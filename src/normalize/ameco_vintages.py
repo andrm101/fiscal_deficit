@@ -261,3 +261,360 @@ def build_long_table(items: tuple[str, ...] = COMPARISON_ITEMS, archive_dir: Pat
     frames = [load_vintage(spec, items) for spec in vintage_specs(archive_dir)]
     frames.append(load_final_snapshot(items))
     return pd.concat(frames, ignore_index=True)
+
+
+# ------------------------------------------------------------------------------- T3 and sign checks
+SIGN_TOLERANCE_PP = 0.5  # |value| below this is too close to zero to test a sign convention
+OUTSIZED_RATIO = 2.0  # a pair's mean absolute revision >= this multiple of the median across pairs is "outsized"
+CAPB_FIRST_WINDOW = (2014, 2021)  # years for first-release versus final comparisons (blueprint step 6)
+
+
+def _norm(text: str) -> str:
+    """Whitespace-normalised, case-preserving text for exact label comparison."""
+    return re.sub(r"\s+", " ", str(text)).strip()
+
+
+def archived(long: pd.DataFrame) -> pd.DataFrame:
+    """Rows of the 26 archived vintages (excludes the Spring 2026 pinned snapshot)."""
+    return long[long["vintage_order"] < FINAL_ORDER]
+
+
+def t3_summary(long: pd.DataFrame, item: str = CAPB_ITEM) -> pd.DataFrame:
+    """Per-vintage coverage of ``item`` for the EU-27 plus label, denominator and flag checks (trigger T3).
+
+    ``label_identical`` and ``denominator_identical`` compare against the first vintage's text after
+    whitespace normalisation. ``flag`` collects: fewer than ``MIN_COUNTRIES_T3`` countries, label or
+    denominator differing from the reference.
+    """
+    sub = long[long["item"] == item]
+    ordered = sub.sort_values("vintage_order")
+    ref_title = _norm(ordered["title"].iloc[0])
+    ref_unit = _norm(ordered["unit_text"].iloc[0])
+    rows = []
+    for (order, label), group in sub.groupby(["vintage_order", "vintage_label"], sort=True):
+        observed = group.dropna(subset=["value"])
+        title_ok = {_norm(t) for t in group["title"]} == {ref_title}
+        unit_ok = {_norm(u) for u in group["unit_text"]} == {ref_unit}
+        flags = []
+        if observed["eurostat_code"].nunique() < MIN_COUNTRIES_T3:
+            flags.append("fewer than 20 countries")
+        if not title_ok:
+            flags.append("label differs")
+        if not unit_ok:
+            flags.append("denominator differs")
+        rows.append(
+            {
+                "vintage_label": label,
+                "vintage_order": order,
+                "n_countries": observed["eurostat_code"].nunique(),
+                "n_years": observed["year"].nunique(),
+                "n_observed_cells": len(observed),
+                "first_year": int(observed["year"].min()),
+                "last_year": int(observed["year"].max()),
+                "sub_chapter": "; ".join(sorted({s for s in group["sub_chapter"] if s})),
+                "label_identical": title_ok,
+                "denominator_identical": unit_ok and ref_unit == POTENTIAL_GDP_TEXT,
+                "flag": "; ".join(flags),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def t3_verdict(summary: pd.DataFrame, archived_only: bool = True) -> dict[str, object]:
+    """PASS/FAIL for T3: ``UBLGBP`` for >= ``MIN_COUNTRIES_T3`` EU-27 countries in every archived vintage."""
+    table = summary[summary["vintage_order"] < FINAL_ORDER] if archived_only else summary
+    return {
+        "pass": bool((table["n_countries"] >= MIN_COUNTRIES_T3).all()),
+        "n_vintages": len(table),
+        "min_countries": int(table["n_countries"].min()),
+        "max_countries": int(table["n_countries"].max()),
+    }
+
+
+def capb_wide(long: pd.DataFrame, item: str = CAPB_ITEM) -> pd.DataFrame:
+    """Wide table indexed by (eurostat_code, year) with one column per ``vintage_order``."""
+    sub = long[long["item"] == item]
+    return sub.pivot_table(index=["eurostat_code", "year"], columns="vintage_order", values="value", aggfunc="first")
+
+
+def adjacent_sign_check(long: pd.DataFrame, item: str = CAPB_ITEM) -> pd.DataFrame:
+    """Compare identical country-years across adjacent vintages: correlation, regression slope and sign agreement.
+
+    A flipped sign convention would give a correlation near -1 and a sign-agreement share near 0. Sign
+    agreement is computed only where both values exceed ``SIGN_TOLERANCE_PP`` in absolute value.
+    """
+    wide = capb_wide(long, item)
+    orders = list(wide.columns)
+    rows = []
+    for earlier, later in zip(orders[:-1], orders[1:], strict=True):
+        both = wide[[earlier, later]].dropna()
+        x, y = both[earlier].to_numpy(), both[later].to_numpy()
+        big = (np.abs(x) > SIGN_TOLERANCE_PP) & (np.abs(y) > SIGN_TOLERANCE_PP)
+        rows.append(
+            {
+                "from_order": earlier,
+                "to_order": later,
+                "n_overlap": len(both),
+                "pearson_r": float(np.corrcoef(x, y)[0, 1]),
+                "slope_later_on_earlier": float(np.polyfit(x, y, 1)[0]),
+                "n_sign_testable": int(big.sum()),
+                "share_same_sign": float((np.sign(x[big]) == np.sign(y[big])).mean()),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+# ------------------------------------------------------------------------------------- revisions
+def _season_by_order(specs: list[VintageSpec]) -> dict[int, VintageSpec]:
+    """Lookup ``vintage_order -> VintageSpec`` including the pinned final (treated as a Spring vintage)."""
+    lookup = {s.order: s for s in specs}
+    lookup[FINAL_ORDER] = VintageSpec(FINAL_LABEL, FINAL_ORDER, "spring", 2026, FINAL_SNAPSHOT_ZIP, date(2026, 6, 3))
+    return lookup
+
+
+def last_observed_by_order(long: pd.DataFrame, specs: list[VintageSpec]) -> dict[int, int]:
+    """Last non-forecast year of each vintage: the vintage's last observed column year minus its horizon."""
+    lookup = _season_by_order(specs)
+    last_year = long.dropna(subset=["value"]).groupby("vintage_order")["year"].max()
+    return {int(o): last_observed_year(int(y), lookup[int(o)].season) for o, y in last_year.items()}
+
+
+def revision_pairs(
+    long: pd.DataFrame,
+    specs: list[VintageSpec],
+    item: str = CAPB_ITEM,
+    min_year: int | None = None,
+    outturn_only: bool = False,
+) -> pd.DataFrame:
+    """Revision distribution of the same country-year between consecutive vintages (including the pinned final).
+
+    Revision = later minus earlier value (pp of potential GDP). ``outturn_only`` keeps country-years that are
+    non-forecast in the *earlier* vintage; ``min_year`` restricts the year window. ``mean_signed_t`` is the
+    t-statistic of the mean of country-average signed revisions across countries (descriptive level-shift
+    screen, not an inference about causes). ``outsized`` flags pairs whose mean absolute revision is at least
+    ``OUTSIZED_RATIO`` times the median across pairs.
+    """
+    wide = capb_wide(long, item)
+    last_obs = last_observed_by_order(long, specs)
+    lookup = _season_by_order(specs)
+    rows = []
+    orders = list(wide.columns)
+    for earlier, later in zip(orders[:-1], orders[1:], strict=True):
+        pair = wide[[earlier, later]].dropna()
+        yrs = pair.index.get_level_values("year")
+        keep = np.ones(len(pair), dtype=bool)
+        if min_year is not None:
+            keep &= yrs >= min_year
+        if outturn_only:
+            keep &= yrs <= last_obs[earlier]
+        pair = pair[keep]
+        rev = (pair[later] - pair[earlier]).rename("rev")
+        if rev.empty:
+            continue
+        by_country = rev.groupby(level="eurostat_code").mean()
+        spread = by_country.std(ddof=1)
+        t_stat = float(by_country.mean() / (spread / np.sqrt(len(by_country)))) if spread > 0 and len(by_country) > 1 else np.nan
+        rows.append(
+            {
+                "from_label": lookup[earlier].label,
+                "to_label": lookup[later].label,
+                "from_order": earlier,
+                "to_order": later,
+                "n": len(rev),
+                "mean_signed": float(rev.mean()),
+                "sd": float(rev.std(ddof=1)),
+                "mean_abs": float(rev.abs().mean()),
+                "max_abs": float(rev.abs().max()),
+                "mean_signed_t": t_stat,
+            }
+        )
+    out = pd.DataFrame(rows)
+    out["outsized"] = out["mean_abs"] >= OUTSIZED_RATIO * out["mean_abs"].median()
+    return out
+
+
+def top_revisions(long: pd.DataFrame, specs: list[VintageSpec], from_label: str, to_label: str, n: int = 3) -> pd.DataFrame:
+    """Largest absolute revisions between two named vintages (used to characterise outsized pairs)."""
+    wide = capb_wide(long)
+    lookup = {s.label: s.order for s in specs} | {FINAL_LABEL: FINAL_ORDER}
+    pair = wide[[lookup[from_label], lookup[to_label]]].dropna()
+    rev = (pair[lookup[to_label]] - pair[lookup[from_label]]).rename("revision")
+    return rev.reindex(rev.abs().sort_values(ascending=False).index).head(n).reset_index()
+
+
+# -------------------------------------------------------------------------- first release vs final
+def first_release_table(
+    long: pd.DataFrame, specs: list[VintageSpec], window: tuple[int, int] = CAPB_FIRST_WINDOW, item: str = CAPB_ITEM
+) -> pd.DataFrame:
+    """First-release CAPB per country-year in ``window`` versus the pinned Spring 2026 final.
+
+    Two definitions: ``first_outturn_*`` is the earliest archived vintage where the year is non-forecast under
+    the Spring/Autumn rule (see ``FORECAST_YEARS_BY_SEASON``); ``first_any_*`` is the earliest vintage that
+    contains a value for the year at all (a forecast, here). Revisions are final minus first.
+    """
+    wide = capb_wide(long, item)
+    last_obs = last_observed_by_order(long, specs)
+    lookup = _season_by_order(specs)
+    archived_orders = [o for o in wide.columns if o != FINAL_ORDER]
+    rows = []
+    for (code, year), values in wide.iterrows():
+        if not window[0] <= year <= window[1] or pd.isna(values.get(FINAL_ORDER)):
+            continue
+        any_order = next((o for o in archived_orders if pd.notna(values[o])), None)
+        out_order = next((o for o in archived_orders if pd.notna(values[o]) and year <= last_obs[o]), None)
+        rows.append(
+            {
+                "eurostat_code": code,
+                "year": int(year),
+                "first_any_vintage": lookup[any_order].label if any_order else None,
+                "first_any_value": values[any_order] if any_order else np.nan,
+                "first_outturn_vintage": lookup[out_order].label if out_order else None,
+                "first_outturn_value": values[out_order] if out_order else np.nan,
+                "final_value": values[FINAL_ORDER],
+            }
+        )
+    table = pd.DataFrame(rows)
+    for tag in ("any", "outturn"):
+        table[f"revision_{tag}"] = table["final_value"] - table[f"first_{tag}_value"]
+    return table
+
+
+def _sign_change(first: pd.Series, final: pd.Series) -> pd.Series:
+    """True where the sign differs between first release and final (both non-zero)."""
+    return (np.sign(first) * np.sign(final)) < 0
+
+
+def summarise_revisions(table: pd.DataFrame, tag: str, by: str | None = None) -> pd.DataFrame:
+    """Mean, SD, mean absolute revision, sign-change share and first/final correlation (overall or per ``by``)."""
+    first, rev = f"first_{tag}_value", f"revision_{tag}"
+
+    def one(group: pd.DataFrame) -> pd.Series:
+        valid = group.dropna(subset=[first, "final_value"])
+        n = len(valid)
+        corr = float(np.corrcoef(valid[first], valid["final_value"])[0, 1]) if n > 2 else np.nan
+        return pd.Series(
+            {
+                "n": n,
+                "mean_revision": valid[rev].mean(),
+                "sd_revision": valid[rev].std(ddof=1),
+                "mean_abs_revision": valid[rev].abs().mean(),
+                "share_sign_change": _sign_change(valid[first], valid["final_value"]).mean(),
+                "corr_first_final": corr,
+            }
+        )
+
+    if by is None:
+        return one(table).to_frame().T
+    return table.groupby(by).apply(one, include_groups=False).reset_index()
+
+
+# ------------------------------------------------------------------ real-time availability (counts)
+ELECTION_WINDOW = (date(2015, 1, 1), date(2021, 12, 31))  # Gate 3a sample years that a real-time panel can reach
+SAMPLE_WINDOW_YEARS = (2015, 2021)
+CALENDAR_CSV = PROJECT_ROOT / "data" / "interim" / "election_calendar_eu27.csv"
+CLASSES = ("scheduled", "early", "delayed", "unclassified")
+
+
+def conservative_release_dates(specs: list[VintageSpec]) -> dict[int, date]:
+    """Later of the printed date and the chapter 17 file timestamp: a conservative availability date per vintage."""
+    out = {}
+    for spec in specs:
+        stamp = date.fromisoformat(str(inventory_vintage(spec)["chapter17_stamp"]))
+        out[spec.order] = max(spec.printed_date, stamp)
+    return out
+
+
+def pre_election_vintage(
+    election_date: date, specs: list[VintageSpec], release_dates: dict[int, date] | None = None
+) -> VintageSpec | None:
+    """Latest vintage released strictly before ``election_date`` (printed dates unless ``release_dates`` is given).
+
+    The vintage with the suspect printed date is excluded from the printed-date rule only if it would otherwise
+    be selected on the strength of an implausible date; here it simply follows its printed date, and the report
+    flags it.
+    """
+    dates = release_dates or {s.order: s.printed_date for s in specs}
+    candidates = [s for s in specs if dates[s.order] < election_date]
+    return max(candidates, key=lambda s: dates[s.order]) if candidates else None
+
+
+def read_calendar(path: Path = CALENDAR_CSV) -> pd.DataFrame:
+    """Election calendar rows that are in the calendar, with ``election_date`` parsed (columns used: code, date, class)."""
+    cal = pd.read_csv(path)
+    cal = cal[cal["in_calendar"].astype(bool)].copy()
+    cal["election_date"] = pd.to_datetime(cal["date_used"]).dt.date
+    return cal[["eurostat_code", "election_date", "class_primary"]].rename(columns={"class_primary": "election_class"})
+
+
+def election_availability(
+    calendar: pd.DataFrame,
+    long: pd.DataFrame,
+    specs: list[VintageSpec],
+    start: date = ELECTION_WINDOW[0],
+    end: date = ELECTION_WINDOW[1],
+    release_dates: dict[int, date] | None = None,
+    item: str = CAPB_ITEM,
+) -> pd.DataFrame:
+    """For each election in ``[start, end]``: the pre-election vintage and whether it carries CAPB for t-1, t, t+1.
+
+    ``t`` is the election year. ``t1_outturn`` marks whether year t-1 is non-forecast in that vintage. Pure
+    descriptive availability; no outcome is related to election timing.
+    """
+    wide = capb_wide(long, item)
+    last_obs = last_observed_by_order(long, specs)
+    rows = []
+    sel = calendar[calendar["election_date"].between(start, end)]
+    for rec in sel.itertuples(index=False):
+        vintage = pre_election_vintage(rec.election_date, specs, release_dates)
+        year = rec.election_date.year
+        row = {
+            "eurostat_code": rec.eurostat_code,
+            "election_date": rec.election_date,
+            "election_year": year,
+            "election_class": rec.election_class,
+            "vintage": vintage.label if vintage else None,
+            "has_vintage": vintage is not None,
+        }
+        for tag, offset in (("t_minus_1", -1), ("t", 0), ("t_plus_1", 1)):
+            key = (rec.eurostat_code, year + offset)
+            row[f"has_{tag}"] = bool(vintage and key in wide.index and pd.notna(wide.at[key, vintage.order]))
+        row["t_minus_1_is_outturn"] = bool(vintage and row["has_t_minus_1"] and year - 1 <= last_obs[vintage.order])
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def availability_by_class(avail: pd.DataFrame) -> pd.DataFrame:
+    """Counts of elections per class with a pre-election vintage and with CAPB for t-1, outturn t-1, t and t+1."""
+    flags = ["has_vintage", "has_t_minus_1", "t_minus_1_is_outturn", "has_t", "has_t_plus_1"]
+    out = avail.groupby("election_class")[flags].sum().astype(int)
+    out.insert(0, "n_elections", avail.groupby("election_class").size())
+    out = out.reindex([c for c in CLASSES if c in out.index])
+    total = out.sum().to_frame("total").T
+    return pd.concat([out, total])
+
+
+def gate3a_sample_keys(end_year: int = 2021) -> pd.DataFrame:
+    """Country-year keys (eurostat_code, year) of the Gate 3a confirmatory sample (715 rows to 2021).
+
+    Reuses ``evaluate.sample`` (keys only: no outcome value and no exposure value leaves this function).
+    """
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "evaluate"))
+    import sample  # noqa: PLC0415
+
+    selection = sample.select_sample(sample.build_panel(), end_year)
+    return selection.sample[["eurostat_code", "year"]].reset_index(drop=True)
+
+
+def realtime_window_coverage(keys: pd.DataFrame, first_year: int, last_year: int) -> dict[str, float]:
+    """Share of the confirmatory sample country-years whose year falls in ``[first_year, last_year]``."""
+    inside = keys["year"].between(first_year, last_year)
+    return {"n_total": int(len(keys)), "n_inside": int(inside.sum()), "share": float(inside.mean())}
+
+
+def to_interim_csv(long: pd.DataFrame, path: Path) -> None:
+    """Write the long table (all vintages, three items) with the requested schema, sorted for stable diffs."""
+    cols = ["vintage_label", "vintage_order", "printed_date", "area", "eurostat_code", "item", "year", "value", "unit_text"]
+    out = long[cols].sort_values(["vintage_order", "item", "eurostat_code", "year"]).copy()
+    out["printed_date"] = out["printed_date"].dt.strftime("%Y-%m-%d")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    out.to_csv(path, index=False)

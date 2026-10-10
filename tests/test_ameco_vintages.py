@@ -139,3 +139,179 @@ def test_real_final_snapshot_matches_pinned_sdmx_extract() -> None:
     )
     assert len(merged) > 900
     assert np.allclose(merged["value"], merged["sdmx"], atol=5e-5)
+
+
+# ---------------------------------------------------------------- analytic helpers on synthetic data
+def _long(rows: list[tuple[int, str, int, float]], unit: str = av.POTENTIAL_GDP_TEXT, title: str = "T") -> pd.DataFrame:
+    """Synthetic long table: (vintage_order, eurostat_code, year, value) -> full schema."""
+    return pd.DataFrame(
+        {
+            "vintage_label": [f"V{o}" for o, *_ in rows],
+            "vintage_order": [o for o, *_ in rows],
+            "printed_date": pd.Timestamp("2020-01-01"),
+            "area": [c for _, c, *_ in rows],
+            "eurostat_code": [c for _, c, *_ in rows],
+            "item": av.CAPB_ITEM,
+            "year": [y for _, _, y, _ in rows],
+            "value": [v for *_, v in rows],
+            "unit_text": unit,
+            "sub_chapter": "s",
+            "title": title,
+        }
+    )
+
+
+def test_t3_summary_counts_flags_and_verdict() -> None:
+    rows = [(1, c, 2014, 1.0) for c in "ABC"] + [(2, c, 2014, 1.0) for c in "AB"]
+    summary = av.t3_summary(_long(rows))
+    assert list(summary["n_countries"]) == [3, 2]
+    assert av.t3_verdict(summary)["pass"] is False  # 3 and 2 countries are below the 20 threshold
+    assert "fewer than 20" in summary["flag"].iloc[0]
+
+
+def test_t3_detects_changed_denominator_and_label() -> None:
+    first = _long([(1, "A", 2014, 1.0)])
+    second = _long([(2, "A", 2014, 1.0)], unit="Percentage of GDP at current prices", title="Other")
+    summary = av.t3_summary(pd.concat([first, second], ignore_index=True))
+    assert summary["label_identical"].tolist() == [True, False]
+    assert summary["denominator_identical"].tolist() == [True, False]
+
+
+def test_sign_check_detects_flipped_convention() -> None:
+    base = [("A", 0, 2.0), ("A", 1, -1.5), ("B", 0, 3.0)]
+    same = _long([(1, c, 2014 + i, v) for c, i, v in base] + [(2, c, 2014 + i, v + 0.1) for c, i, v in base])
+    flipped = _long([(1, c, 2014 + i, v) for c, i, v in base] + [(2, c, 2014 + i, -v) for c, i, v in base])
+    assert av.adjacent_sign_check(same)["share_same_sign"].iloc[0] == 1.0
+    assert av.adjacent_sign_check(flipped)["share_same_sign"].iloc[0] == 0.0
+    assert av.adjacent_sign_check(flipped)["pearson_r"].iloc[0] == pytest.approx(-1.0)
+
+
+def _specs3() -> list[av.VintageSpec]:
+    return [
+        av.VintageSpec("V1", 1, "autumn", 2014, Path("a.zip"), date(2014, 11, 6)),
+        av.VintageSpec("V2", 2, "spring", 2015, Path("b.zip"), date(2015, 5, 7)),
+        av.VintageSpec("V3", 3, "autumn", 2015, Path("c.zip"), date(2015, 11, 5)),
+    ]
+
+
+def test_revision_pairs_exact_numbers() -> None:
+    rows = []
+    for order, shift in ((1, 0.0), (2, 0.5), (3, 0.5)):
+        for country, base in (("A", 1.0), ("B", -2.0)):
+            for year in (2012, 2013, 2014, 2015):
+                rows.append((order, country, year, base + (shift if country == "A" else 0.0)))
+    pairs = av.revision_pairs(_long(rows), _specs3())
+    first = pairs.iloc[0]
+    assert first["n"] == 8 and first["mean_signed"] == pytest.approx(0.25)
+    assert first["mean_abs"] == pytest.approx(0.25) and first["max_abs"] == pytest.approx(0.5)
+    assert pairs.iloc[1]["mean_abs"] == pytest.approx(0.0)
+    # outturn_only keeps years <= last observed year of the earlier vintage (Autumn: max 2015 -> 2015-3 = 2012)
+    out = av.revision_pairs(_long(rows), _specs3(), outturn_only=True)
+    assert out.iloc[0]["n"] == 2
+    assert av.revision_pairs(_long(rows), _specs3(), min_year=2015).iloc[0]["n"] == 2
+
+
+def test_first_release_table_and_summary() -> None:
+    specs = _specs3()
+    rows = []
+    # V1 (autumn, last year 2016 -> last observed 2013): 2014 is a forecast; V2 (spring, 2016 -> 2014): outturn
+    for order, max_year, v2014 in ((1, 2016, 1.0), (2, 2016, 2.0), (3, 2017, 2.5)):
+        for year in range(2013, max_year + 1):
+            rows.append((order, "A", year, v2014 if year == 2014 else 0.0))
+    rows.append((99, "A", 2014, 3.0))
+    rows.append((99, "A", 2013, 0.0))
+    table = av.first_release_table(_long(rows), specs, window=(2014, 2014))
+    rec = table.iloc[0]
+    assert rec["first_any_vintage"] == "V1" and rec["first_any_value"] == 1.0
+    assert rec["first_outturn_vintage"] == "V2" and rec["first_outturn_value"] == 2.0
+    assert rec["revision_outturn"] == pytest.approx(1.0) and rec["revision_any"] == pytest.approx(2.0)
+    summary = av.summarise_revisions(table, "outturn")
+    assert summary["mean_abs_revision"].iloc[0] == pytest.approx(1.0)
+    assert summary["share_sign_change"].iloc[0] == 0.0
+
+
+def test_sign_change_share() -> None:
+    first = pd.Series([1.0, -1.0, 0.0, 2.0])
+    final = pd.Series([-1.0, -2.0, 1.0, 3.0])
+    assert av._sign_change(first, final).tolist() == [True, False, False, False]
+
+
+def test_pre_election_vintage_is_strictly_before() -> None:
+    specs = _specs3()
+    assert av.pre_election_vintage(date(2015, 5, 7), specs).label == "V1"  # same day is not "before"
+    assert av.pre_election_vintage(date(2015, 5, 8), specs).label == "V2"
+    assert av.pre_election_vintage(date(2014, 11, 6), specs) is None
+
+
+def test_election_availability_flags() -> None:
+    rows = []
+    for order, max_year in ((1, 2016), (2, 2016), (3, 2017)):
+        for year in range(2013, max_year + 1):
+            rows.append((order, "A", year, 1.0))
+    calendar = pd.DataFrame(
+        {"eurostat_code": ["A", "A"], "election_date": [date(2015, 6, 1), date(2015, 1, 15)], "election_class": ["early", "scheduled"]}
+    )
+    out = av.election_availability(calendar, _long(rows), _specs3(), start=date(2015, 1, 1), end=date(2015, 12, 31))
+    june = out[out["election_class"] == "early"].iloc[0]
+    assert june["vintage"] == "V2" and june["has_t"] and june["has_t_plus_1"] and june["t_minus_1_is_outturn"]
+    jan = out[out["election_class"] == "scheduled"].iloc[0]
+    assert jan["vintage"] == "V1" and not jan["t_minus_1_is_outturn"]  # 2014 is still a forecast in the autumn vintage
+    counts = av.availability_by_class(out)
+    assert counts.loc["total", "n_elections"] == 2
+
+
+def test_realtime_window_coverage() -> None:
+    keys = pd.DataFrame({"eurostat_code": ["A"] * 4, "year": [2013, 2015, 2020, 2021]})
+    assert av.realtime_window_coverage(keys, 2015, 2021) == {"n_total": 4, "n_inside": 3, "share": 0.75}
+
+
+def test_interim_csv_schema(tmp_path: Path) -> None:
+    out = tmp_path / "x" / "v.csv"
+    av.to_interim_csv(_long([(1, "A", 2014, 1.0)]), out)
+    frame = pd.read_csv(out)
+    assert list(frame.columns) == [
+        "vintage_label", "vintage_order", "printed_date", "area", "eurostat_code", "item", "year", "value", "unit_text"
+    ]
+    assert frame["printed_date"].iloc[0] == "2020-01-01"
+
+
+@real
+def test_real_t3_pass_and_known_facts() -> None:
+    long = av.build_long_table()
+    summary = av.t3_summary(long)
+    verdict = av.t3_verdict(summary)
+    assert verdict["pass"] and verdict["n_vintages"] == 26 and verdict["min_countries"] == 27
+    assert summary["label_identical"].all() and summary["denominator_identical"].all()
+    assert summary["flag"].eq("").all()
+
+
+@real
+def test_real_autumn_2025_is_a_distinct_autumn_vintage() -> None:
+    long = av.build_long_table(items=("UBLGBP",))
+    last_year = long.dropna(subset=["value"]).groupby("vintage_label")["year"].max()
+    assert last_year["Autumn 2025"] == 2027 and last_year["Spring 2025"] == 2026  # three versus two forecast years
+    wide = av.capb_wide(long)
+    both = wide[[25, 26]].dropna()
+    assert (both[25] != both[26]).all()  # not a duplicate of Spring 2025
+    info = av.inventory_vintage(next(s for s in av.vintage_specs() if s.label == "Autumn 2025"))
+    assert info["latest_member_stamp"] == "2025-12-11"
+
+
+@real
+def test_real_sign_convention_stable_across_vintages() -> None:
+    long = av.build_long_table(items=("UBLGBP",))
+    check = av.adjacent_sign_check(long)
+    assert (check["pearson_r"] > 0.9).all() and (check["share_same_sign"] > 0.95).all()
+    wide = av.capb_wide(long)
+    assert (wide.loc[("EL", 2016)].dropna() > 0).all()  # Appendix B: EL 2016 = +10.58 in the pinned vintage
+    assert wide.loc[("EL", 2016), av.FINAL_ORDER] == pytest.approx(10.58, abs=0.01)
+    assert wide.loc[("DE", 2009), av.FINAL_ORDER] == pytest.approx(1.89, abs=0.01)
+    assert wide.loc[("EL", 2009)].dropna().lt(0).all()  # deficit year is negative in every vintage (surplus positive)
+
+
+@real
+def test_real_gate3a_sample_has_715_rows() -> None:
+    keys = av.gate3a_sample_keys()
+    assert len(keys) == 715 and keys["eurostat_code"].nunique() == 27
+    cov = av.realtime_window_coverage(keys, *av.SAMPLE_WINDOW_YEARS)
+    assert cov["n_inside"] == 7 * 27
