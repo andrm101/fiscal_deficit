@@ -177,7 +177,7 @@ The confirmatory design as registered will most likely return intervals too wide
 |---|---|---|---|
 | T1 | After Gate 3c, β_S wild-bootstrap MDE at the estimated ρ is still above 1.0 pp | Week 3–4 | Frame the thesis as estimation with bounds; drop significance language for H1; keep Holm only over targets that remain powered |
 | T2 | γ_B MDE above 1.0 pp (D-C) | At freeze | Move H2B to descriptive; Holm family becomes {β_S, γ_W} |
-| T3 | AMECO archive vintages Autumn 2014–Autumn 2025 contain `UBLGBP` for fewer than 20 countries (zips not yet opened) | Week 4 | Cancel S4 (real-time CAPB) permanently; no further work |
+| T3 | AMECO archive vintages Autumn 2014–Autumn 2025 contain `UBLGBP` for fewer than 20 countries | Resolved 2026-10-10: **PASS** (27 of 27 in all 26 vintages) | S4 re-scoped to a descriptive revision appendix, no election-effect replication (`reports/gate5_realtime_feasibility.md`) |
 | T4 | Any Gate 4 control has joint coverage below 97 per cent in the confirmatory sample | Week 3 | Drop that control in a pre-registered order: interest–growth differential first, then debt; keep lagged output gap and euro membership |
 | T5 | Bednář (2019) full text | Resolved 2026-10-10 (read in full) | No action |
 | T6 | Confirmatory results (M4) not complete by end of Week 7 | Week 7 | Cut in this order: E-models (all), S1g COFOG, S4, S6 variants except 2022 extension and leave-one-country-out, P1 reduced to P0 vs P1a |
@@ -199,7 +199,7 @@ The confirmatory design as registered will most likely return intervals too wide
 | 7 | Lead placebo; event-study variant with a robust estimator; **cut check T6** | M4 |
 | 8–9 | Secondary outcomes S1 with BH; sample variants S6; early-election term S3 | M5 |
 | 10 | Robustness: windows, crisis exclusions, alternative codings; exploratory E1 (restricted fiscal-rule window) | M5 |
-| 11 | Real-time CAPB if T3 passed; **cut check T7** | M5 |
+| 11 | S4 CAPB revision appendix (descriptive); **cut check T7** | M5 |
 | 12 | Predictive module P0–P1 (or cut) | M6 |
 | 13 | One optional extension, or buffer | M6 |
 | 14 | Draft complete; **length check T8**; figures at 300 dpi with source lines | M7 |

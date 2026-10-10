@@ -28,7 +28,7 @@ description = "Early-election term: beta_E from M1 reported with its own interva
 [[model]]
 id = "S4"
 description = "Real-time CAPB comparison"
-gate = "Week-4 feasibility gate: AMECO archive vintages Autumn 2014 to Autumn 2025 contain UBLGBP for >= 20 countries; methodology is homogeneous only from Autumn 2014; archive zips not yet opened"
+gate = "T3 passed 2026-10-10 (27 of 27 countries in all 26 vintages). Recommendation: DESCRIPTIVE-ONLY. A real-time panel covers 2015-2021 only (189 of 715 country-years, 51 elections), so no election-effect replication; report revisions as a measurement-error appendix (first-outturn vs final: mean absolute revision 0.64 pp)"
 fallback = "headline primary balance and expenditure components"
 
 [[model]]

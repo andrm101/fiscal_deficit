@@ -319,6 +319,8 @@ The thresholds are proposals, justified from [Appendix D](appendix_D_feasibility
 
 ## 15. Real-time CAPB: feasibility gate, not a promise
 
+> **Update 2026-10-10 (gate resolved):** all 26 archived vintages from Autumn 2014 to Autumn 2025 were downloaded and parsed. Trigger T3 **passed** (`UBLGBP` for all 27 countries in every vintage, identical label and denominator, surplus positive). But a real-time panel covers 2015–2021 only (189 of 715 country-years; 51 elections: 35 scheduled, 12 early, 4 unclassified), so S4 is **descriptive-only**: a measurement-error appendix on CAPB revisions, not an election-effect replication. The typical revision from first outturn to the pinned Spring 2026 value is 0.64 pp (mean absolute; SD 0.98; sign changes in 9.7 per cent of cells; correlation 0.93), which exceeds the 0.5 pp smallest effect of interest proposed for the main design. See `reports/gate5_realtime_feasibility.md`. The text below is the original plan.
+
 Thirty-five zipped AMECO vintages are publicly archived (Spring 2011 to the listed "Autumn 2025"), but zip contents were not opened, so the presence of `UBLGBP` in each is **NOT VERIFIED**. The cyclical-adjustment method is homogeneous only from Autumn 2014 (first tier from Winter 2013, second tier from Autumn 2014), which limits any real-time panel to roughly 2014–2025 vintages and requires mapping each vintage to the information set available before each election.
 
 - **Core:** one pinned vintage, labelled ex-post revised data.
