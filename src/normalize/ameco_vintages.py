@@ -508,6 +508,25 @@ def summarise_revisions(table: pd.DataFrame, tag: str, by: str | None = None) ->
     return table.groupby(by).apply(one, include_groups=False).reset_index()
 
 
+def compare_to_final(long: pd.DataFrame, order: int, years: tuple[int, int], item: str = CAPB_ITEM) -> dict[str, float]:
+    """Revision statistics of one archived vintage against the pinned final over ``years`` (inclusive).
+
+    Used for sample years that predate the archive window (e.g. Autumn 2014 versus Spring 2026 for 1995-2013):
+    this is the stability of a vintage's history, not a first release.
+    """
+    wide = capb_wide(long, item)[[order, FINAL_ORDER]].dropna()
+    wide = wide[wide.index.get_level_values("year").to_series().between(*years).to_numpy()]
+    rev = wide[FINAL_ORDER] - wide[order]
+    return {
+        "n": int(len(wide)),
+        "mean_revision": float(rev.mean()),
+        "sd_revision": float(rev.std(ddof=1)),
+        "mean_abs_revision": float(rev.abs().mean()),
+        "share_sign_change": float(_sign_change(wide[order], wide[FINAL_ORDER]).mean()),
+        "corr": float(np.corrcoef(wide[order], wide[FINAL_ORDER])[0, 1]) if len(wide) > 2 else float("nan"),
+    }
+
+
 # ------------------------------------------------------------------ real-time availability (counts)
 ELECTION_WINDOW = (date(2015, 1, 1), date(2021, 12, 31))  # Gate 3a sample years that a real-time panel can reach
 SAMPLE_WINDOW_YEARS = (2015, 2021)
@@ -618,3 +637,18 @@ def to_interim_csv(long: pd.DataFrame, path: Path) -> None:
     out["printed_date"] = out["printed_date"].dt.strftime("%Y-%m-%d")
     path.parent.mkdir(parents=True, exist_ok=True)
     out.to_csv(path, index=False)
+
+
+INTERIM_CSV = PROJECT_ROOT / "data" / "interim" / "ameco_vintage_capb.csv"
+
+
+def main() -> None:
+    """Build the long table, write ``data/interim/ameco_vintage_capb.csv`` and print the T3 verdict."""
+    long = build_long_table()
+    to_interim_csv(long, INTERIM_CSV)
+    verdict = t3_verdict(t3_summary(long))
+    print(f"wrote {INTERIM_CSV.relative_to(PROJECT_ROOT)}: {len(long)} rows; T3 {verdict}")
+
+
+if __name__ == "__main__":
+    main()

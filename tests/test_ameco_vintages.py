@@ -315,3 +315,11 @@ def test_real_gate3a_sample_has_715_rows() -> None:
     assert len(keys) == 715 and keys["eurostat_code"].nunique() == 27
     cov = av.realtime_window_coverage(keys, *av.SAMPLE_WINDOW_YEARS)
     assert cov["n_inside"] == 7 * 27
+
+
+def test_compare_to_final_exact() -> None:
+    rows = [(1, "A", 2010, 1.0), (1, "A", 2011, -1.0), (1, "B", 2010, 2.0), (99, "A", 2010, 2.0), (99, "A", 2011, 1.0), (99, "B", 2010, 2.0)]
+    out = av.compare_to_final(_long(rows), 1, (2010, 2011))
+    assert out["n"] == 3 and out["mean_revision"] == pytest.approx(1.0)
+    assert out["mean_abs_revision"] == pytest.approx(1.0) and out["share_sign_change"] == pytest.approx(1 / 3)
+    assert av.compare_to_final(_long(rows), 1, (2011, 2011))["n"] == 1
