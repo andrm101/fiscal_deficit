@@ -56,7 +56,7 @@ def test_confirmatory_family_is_exactly_three_tests_under_holm():
     assert set(hyp) == {"H1", "H2B", "H2W"}
     assert {h["family"] for h in hyp.values()} == {"holm3"}
     assert "Holm" in doc["registry"]["multiplicity"]
-    formula = doc["model"][0]["formula_fixest"]
+    formula = doc["model"][0]["formula"]
     for term in ("W_S", "W_E", "W_D", "W_U", "Post", "W_S:abar", "W_S:adev", "a_lag", "eurostat_code + year"):
         assert term in formula
 

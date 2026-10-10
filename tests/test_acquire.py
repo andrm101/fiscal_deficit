@@ -21,7 +21,20 @@ PAYLOAD = b"country,year,value\nDE,2009,-1.89\nEL,2009,-8.79\n"
 class _Handler(BaseHTTPRequestHandler):
     routes: dict[str, tuple[bytes, str]] = {}
 
+    hits: dict[str, int] = {}
+
     def do_GET(self) -> None:  # noqa: N802 (http.server API)
+        _Handler.hits[self.path] = _Handler.hits.get(self.path, 0) + 1
+        truncate = self.path == "/broken.csv" or (self.path == "/flaky.csv" and _Handler.hits[self.path] == 1)
+        if truncate:  # promise more bytes than are sent, then close: the client sees IncompleteRead
+            self.send_response(200)
+            self.send_header("Content-Type", "text/csv")
+            self.send_header("Content-Length", str(len(PAYLOAD) + 50))
+            self.end_headers()
+            self.wfile.write(PAYLOAD[:10])
+            self.wfile.flush()
+            self.close_connection = True
+            return
         body, ctype = self.routes.get(self.path, (b"", "text/plain"))
         status = 200 if self.path in self.routes else 404
         self.send_response(status)
@@ -36,8 +49,10 @@ class _Handler(BaseHTTPRequestHandler):
 
 @pytest.fixture()
 def server():
+    _Handler.hits = {}
     _Handler.routes = {
         "/ok.csv": (PAYLOAD, "text/csv; charset=utf-8"),
+        "/flaky.csv": (PAYLOAD, "text/csv; charset=utf-8"),
         "/html.csv": (b"<html>error</html>", "text/html"),
     }
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
@@ -171,3 +186,53 @@ def test_shipped_manifests_are_valid(name):
         if spec.size_basis == "measured":
             assert spec.expected_size_bytes > 0
         assert Path(spec.dest).as_posix().startswith(release.manifest_dir)
+
+
+def _two_file_manifest(tmp_path: Path, first_url: str, second_url: str) -> Path:
+    lines = ["[release]", 'source_id = "test"', 'vintage = "v1"', 'manifest_dir = "data/raw/test/v1"']
+    for fid, url, name in (("T01", first_url, "first.csv"), ("T02", second_url, "second.csv")):
+        lines += [
+            "", "[[file]]", f'id = "{fid}"', f'url = "{url}"', f'dest = "data/raw/test/v1/{name}"',
+            'content_type = "text/csv"', "expected_size_bytes = 0", 'size_basis = "unknown"',
+        ]
+    path = tmp_path / "two.toml"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def test_truncated_response_is_retried_and_then_succeeds(tmp_path, server, monkeypatch):
+    monkeypatch.setattr(acquire, "RETRY_SLEEP_SECONDS", 0.0)
+    manifest = _write_manifest(tmp_path, server, url=f"{server}/flaky.csv", size_basis="unknown", expected_size_bytes=0)
+    assert _run(manifest, tmp_path, "--allow-network") == 0
+    assert (tmp_path / "data/raw/test/v1/ok.csv").read_bytes() == PAYLOAD
+    assert _Handler.hits["/flaky.csv"] == 2
+    assert not list((tmp_path / "data/raw/test/v1").glob("*.partial"))
+
+
+def test_persistent_truncation_fails_cleanly_and_leaves_no_partial(tmp_path, server, monkeypatch):
+    monkeypatch.setattr(acquire, "RETRY_SLEEP_SECONDS", 0.0)
+    manifest = _write_manifest(tmp_path, server, url=f"{server}/broken.csv", size_basis="unknown", expected_size_bytes=0)
+    assert _run(manifest, tmp_path, "--allow-network") == 1
+    assert _Handler.hits["/broken.csv"] == acquire.MAX_ATTEMPTS
+    folder = tmp_path / "data/raw/test/v1"
+    assert not (folder / "ok.csv").exists()
+    assert not list(folder.glob("*.partial"))
+
+
+def test_one_failed_file_does_not_stop_the_remaining_files(tmp_path, server, monkeypatch):
+    monkeypatch.setattr(acquire, "RETRY_SLEEP_SECONDS", 0.0)
+    manifest = _two_file_manifest(tmp_path, f"{server}/broken.csv", f"{server}/ok.csv")
+    assert _run(manifest, tmp_path, "--allow-network") == 1
+    assert (tmp_path / "data/raw/test/v1/second.csv").read_bytes() == PAYLOAD
+    assert not (tmp_path / "data/raw/test/v1/first.csv").exists()
+    records = (tmp_path / "data/raw/test/v1/manifest.jsonl").read_text().splitlines()
+    assert len(records) == 1 and json.loads(records[0])["id"] == "T02"
+
+
+def test_stale_partial_from_a_crashed_run_is_replaced(tmp_path, server):
+    folder = tmp_path / "data/raw/test/v1"
+    folder.mkdir(parents=True)
+    (folder / "ok.csv.partial").write_bytes(b"garbage from a crashed run")
+    assert _run(_write_manifest(tmp_path, server), tmp_path, "--allow-network") == 0
+    assert (folder / "ok.csv").read_bytes() == PAYLOAD
+    assert not (folder / "ok.csv.partial").exists()

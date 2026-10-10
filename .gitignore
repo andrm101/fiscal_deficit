@@ -33,5 +33,9 @@ data/raw/fiscal_governance/*/*
 !data/raw/fiscal_governance/*/manifest.jsonl
 !data/raw/fiscal_governance/*/README.md
 data/raw/elections_ageing/etad/
+# AMECO archive vintages (terms not stated): re-acquire with config/acquisition/gate5_ameco_archive.toml
+data/raw/ameco_archive/*
+!data/raw/ameco_archive/manifest.jsonl
+!data/raw/ameco_archive/README.md
 
 # Everything else under data/raw (ParlGov: CC0; Eurostat: reuse with acknowledgement) is committed.

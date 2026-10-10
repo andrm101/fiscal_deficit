@@ -2,7 +2,7 @@
 
 Status 2026-10-10. Built on the gate results in [decision_log.md](decision_log.md). Gate 1 (AMECO pin) and Gate 2 (fiscal-rule audit) and Gate 3a (calendar and sample) are complete; Gate 3b (power) is summarised in section 7. This is a blueprint: nothing in sections 2–6 below is implemented unless marked **exists**. Machine-readable parts live in `config/`.
 
-Environment facts checked on this machine (2026-10-10): Python 3.14.3 with pandas 3.0.2, numpy, scipy, statsmodels, pyarrow, duckdb 1.5.3, pytest. R 4.5.1 is installed at `C:\Program Files\R\R-4.5.1\bin` but is **not on PATH** (scripts must discover it through an environment variable, not a hard-coded path: R12). R packages present: fixest 0.13.2, plm 2.6.7, duckdb 1.5.2, arrow 24.0.0, sandwich, lmtest, knitr, modelsummary, renv 1.2.3. **Missing or unchecked:** `fwildclusterboot` (not installed; CRAN availability not checked) and Quarto (not found on PATH, other locations not checked).
+Environment facts checked on this machine (2026-10-10): Python 3.14.3 with pandas 3.0.2, numpy, scipy, statsmodels 0.14.6, linearmodels 7.0, scikit-learn, matplotlib, seaborn, pyarrow, duckdb 1.5.3 and pytest. **Project rule (researcher, 2026-10-10): Python only, no R; the thesis is a Quarto document.** Not installed: the Quarto CLI, the Jupyter stack Quarto's Python engine needs (jupyter, ipykernel, nbformat, nbclient), `pyfixest`, `arch` and `shap`. They are to be installed into a pinned project environment (pending your approval).
 
 ## 1. Repository tree
 
@@ -13,8 +13,7 @@ Fiscal_Deficit/
 ├── README.md                          # M1: purpose, one-command reproduction, data licences summary
 ├── LICENSE                            # M1 (R07): code licence; data licences are separate
 ├── Makefile                           # M1: acquire (opt-in) | ingest | panel | models | report | audit
-├── environment.yml  uv.lock?          # M1 (R09): pinned Python; renv.lock for R
-├── renv.lock                          # M1
+├── environment.yml  uv.lock?          # M1 (R09): pinned Python (no R)
 ├── .github/workflows/ci.yml           # M1: single `on:` block, actionlint test (R08)
 ├── config/
 │   ├── countries.csv                  # exists: single EU-27 crosswalk (EL, GRC, ROM, ...)
@@ -34,11 +33,11 @@ Fiscal_Deficit/
 │   ├── evaluate/{sample,power}.py     # exists (Gate 3)
 │   ├── evaluate/gates.py              # M2 (R03): failing coverage/contract gates
 │   ├── evaluate/{seed_audit,pipeline_audit}.py    # M7 (R15)
-│   ├── models/R/{00_load,m1_confirmatory,diagnostics,secondary,exploratory}.R   # M3-M5
+│   ├── models/py/{panel,m1_confirmatory,diagnostics,secondary,exploratory}.py   # M3-M5
 │   ├── models/py/{wild_bootstrap,predictive}.py   # M4 / M6
 │   └── export/tables_figures.py       # M4-M7: 300 dpi figures with source line
 ├── scripts/
-│   ├── run_pipeline.py                # M1 (R12): stage runner; Rscript discovery via env var
+│   ├── run_pipeline.py                # M1 (R12): stage runner (Python only)
 │   ├── summarise_ameco_snapshot.py    # exists
 │   └── probes/                        # throw-away; gate2_fgd_audit.py exists; feasibility_probe.py to move here
 ├── tests/                             # exists: 109 tests passing on 2026-10-10 (see section 5)
@@ -75,9 +74,9 @@ flowchart TD
     F --> G{evaluate/gates.py: coverage, keys, ranges, no forecast years}
     G --> GOLD[(gold.panel_country_year)]
     GOLD --> FRZ[freeze: extract hash + git tag preregistration-v1]
-    FRZ --> M1[models/R: M1 confirmatory + diagnostics]
-    FRZ --> SEC[models/R: secondary S1-S6]
-    FRZ --> EXP[models/R: exploratory E1-E7]
+    FRZ --> M1[models/py: M1 confirmatory + diagnostics]
+    FRZ --> SEC[models/py: secondary S1-S6]
+    FRZ --> EXP[models/py: exploratory E1-E7]
     FRZ --> PRD[models/py: predictive P0-P1]
     M1 --> REP[reports/thesis Quarto]
     SEC --> REP
@@ -100,7 +99,7 @@ Frozen in [config/registry/confirmatory.toml](../config/registry/confirmatory.to
 - **Interpretations (decision 5):** `W_S:abar` = cross-country heterogeneity in the election association by average ageing level (potentially confounded by other country traits); `W_S:adev` = whether the association changes as a country ages relative to its own mean (expected to be imprecise). Neither is called the effect of ageing.
 - **Hypotheses and multiplicity:** H1 (β_S), H2B (γ_B) and H2W (γ_W) form one Holm family of three (familywise α = 0.05). H2B and H2W are two-sided with no pre-registered direction.
 - **Inference:** wild-cluster bootstrap-t by country (G = 27) is the headline p-value and interval; country-clustered CR1 with t(26) is reported alongside; Driscoll–Kraay and CCE are sensitivities. No lagged dependent variable and no GMM in M1.
-- **Implementation of the bootstrap:** `fwildclusterboot` is not installed and its CRAN status is unchecked, so the default (ADR-005, awaiting your agreement) is the vectorised Python implementation already used for the power study (`src/evaluate/power.py`), promoted to `src/models/py/wild_bootstrap.py` and cross-checked against `fixest` CR1 standard errors on the real panel. Estimates and CR1 inference come from `fixest` in R.
+- **Estimation and bootstrap (ADR-005, revised 2026-10-10: Python only):** estimation, CR1 inference and the wild-cluster bootstrap-t all run in Python. The vectorised fixed-effects engine already used for the power study (`src/evaluate/power.py`) is promoted to `src/models/py/` and cross-checked on the real panel against `statsmodels` (dummy-variable OLS with cluster covariance) and `linearmodels.PanelOLS` (entity and time effects; clustered and Driscoll–Kraay covariances). Diagnostics that no installed package provides (modified Wald, Wooldridge serial correlation, Pesaran CD, CIPS, CCE) are implemented in Python and unit-tested on simulated panels with known answers.
 - **Diagnostics (reported, not used for selection):** modified Wald heteroskedasticity, Wooldridge serial correlation, Pesaran CD, CIPS unit-root tests on CAPB and the moderator, VIF (>5 flagged), Hausman with the Mundlak terms, binned-kernel linearity and common support for the interaction (Hainmueller, Mummolo & Xu 2019), lead placebo, Rambachan–Roth sensitivity if an event-study variant is run.
 - **Freeze rule:** the registry, the exposure construction, the gold extract hash and the sample are committed and tagged `preregistration-v1` before any outcome model is run. Later changes are logged in `docs/amendments.md` and reported as post hoc.
 
@@ -118,13 +117,13 @@ Current suite: 109 tests passing on 2026-10-10 (acquisition, AMECO metadata, cro
 | R06 | READMEs claim sources or commands that do not exist | `scripts/check_readme_claims.py` runs in CI against this repo's README | planned M7 |
 | R07 | No LICENSE; third-party data terms unread | CI fails if a file under `data/raw` or `data/external` has no row in `data/external/LICENSES.md`; terms read from providers (ETAD dataset licence, AMECO, EC FGD, CPDS, IMF are unverified) | planned M1; needs your decision on redistribution |
 | R08 | Duplicate `on:` key in CI | `actionlint` and strict-YAML load of the new workflow | planned M1 |
-| R09 | Unpinned environment | `uv lock --check` / `renv::status()` in CI | planned M1 |
+| R09 | Unpinned environment | `uv lock --check` (or the equivalent pinned-environment check) in CI | planned M1 |
 | R10 | `GR` vs `EL` mismatch | covered by `tests/test_countries.py` | **exists** |
 | R11 | `NaN` emitted as invalid JSON | strict-JSON export test | only if the dashboard stretch is built |
-| R12 | Hard-coded paths and `Rscript` location | static test: no `C:\` or `/Users/` in `src`, `scripts`, `config`; `RSCRIPT` environment variable discovery tested | planned M1 |
+| R12 | Hard-coded paths | static test: no `C:\` or `/Users/` in `src`, `scripts`, `config` | planned M1 |
 | R13 | Bronze writer duplicates NULL keys | `tests/test_duckdb_writer.py` on a file database: reruns insert 0 rows; failed run logged; new vintage keeps both | planned M2 |
 | R14 | `log`/`clip` applied to signed CAPB; plain TWFE event study for repeated treatment | static test on `capb` columns; simulated staggered-timing check for any event-study estimator; power-module tests exist | partly **exists** (`tests/test_power.py`); rest planned M4 |
-| R15 | Audit tools that pass when hashes are missing | `scripts/pipeline_audit.py --mode=full` fails without `expected_hashes.json`; seed audit flags unseeded `default_rng()` and R scripts without `set.seed(42)` | planned M7 |
+| R15 | Audit tools that pass when hashes are missing | `scripts/pipeline_audit.py --mode=full` fails without `expected_hashes.json`; seed audit flags unseeded `default_rng()` and unseeded random calls | planned M7 |
 | R16 | Bronze year range excluded 1995–1999 | contract test: years 1993–2025 accepted for raw, confirmatory extract limited to 1995–2021 | planned M2 |
 | R17 | Live API calls in a static-data project | **exists:** `src/ingest/acquire.py` with 17 tests; static test that no module outside `src/ingest/acquire.py` imports a network library | acquisition **exists**; static test planned M1 |
 
@@ -134,10 +133,10 @@ Target repository not yet chosen: `Fiscal_Deficit` currently sits inside the San
 
 | Milestone | Weeks | Issues (acceptance = the test or artefact named) |
 |---|---|---|
-| **M1 Foundations** | 1–2 | I01 environment lock (R09); I02 LICENSE and data-licence table (R07); I03 CI with a single `on:` block (R08); I04 static tests: no absolute paths, no network outside `acquire.py`, no ISO dicts (R04, R12, R17); I05 `Makefile` and `run_pipeline.py` with `RSCRIPT` discovery; I06 move the probe script to `scripts/probes/`; I07 ADR-002..005; I08 approve and run Gate 4 acquisition |
+| **M1 Foundations** | 1–2 | I01 environment lock (R09); I02 LICENSE and data-licence table (R07); I03 CI with a single `on:` block (R08); I04 static tests: no absolute paths, no network outside `acquire.py`, no ISO dicts (R04, R12, R17); I05 `Makefile` and `run_pipeline.py`; I06 move the probe script to `scripts/probes/`; I07 ADR-002..005; I08 approve and run Gate 4 acquisition |
 | **M2 Silver and gold ingestion** | 2–3 | I09 Eurostat SDMX-CSV reader (R01); I10 AMECO silver builder with forecast flag; I11 failing gates (R03); I12 DuckDB writer (R13); I13 controls: debt, interest–growth, EOADR inputs; I14 contract enforcement (R16) |
 | **M3 Freeze** | 3–4 | I15 assemble gold panel (N = 715); I16 tier-1 descriptives and coverage plots; I17 AMECO archive feasibility check for real-time CAPB (S4 gate); I18 freeze: extract hash, `preregistration-v1` tag |
-| **M4 Confirmatory** | 5–7 | I19 M1 in `fixest`; I20 wild-cluster bootstrap module and cross-check (R14, ADR-005); I21 diagnostics suite; I22 lead/placebo and event-study variant; I23 Holm-adjusted results table |
+| **M4 Confirmatory** | 5–7 | I19 M1 in Python; I20 wild-cluster bootstrap module and cross-check (R14, ADR-005); I21 diagnostics suite; I22 lead/placebo and event-study variant; I23 Holm-adjusted results table |
 | **M5 Secondary and robustness** | 8–11 | I24 S1 outcomes and BH; I25 sample variants S6; I26 robustness windows and crisis exclusions; I27 exploratory E1 (restricted fiscal-rule window) and E2–E6; I28 real-time CAPB if I17 passed |
 | **M6 Predictive and optional** | 12–13 | I29 P0–P1 rolling-origin; I30 single optional extension decision |
 | **M7 Writing and reproducibility** | 5–16 | I31 Quarto thesis skeleton and `references.bib`; I32 figures at 300 dpi with source lines; I33 README-claims check (R06); I34 pipeline and seed audit (R15); I35 model card and data statement; I36 clean-clone reproduction |
@@ -196,7 +195,7 @@ The confirmatory design as registered will most likely return intervals too wide
 | 2 | Eurostat SDMX reader (R01); AMECO silver builder; failing gates (R03); DuckDB writer (R13); controls (debt, interest–growth) | M2 |
 | 3 | Gold panel; coverage report; **Gate 3c power comparison**; decisions D-A, D-B, D-C; Bednář check (T5) | M2 → M3 |
 | 4 | Tier-1 descriptives; AMECO archive check (T3); **freeze**: registry, extract hash, tag `preregistration-v1` | M3 |
-| 5–6 | M1 in `fixest`; wild-cluster bootstrap module and cross-check; diagnostics suite; Holm table | M4 |
+| 5–6 | M1 in Python; wild-cluster bootstrap module and cross-check; diagnostics suite; Holm table | M4 |
 | 7 | Lead placebo; event-study variant with a robust estimator; **cut check T6** | M4 |
 | 8–9 | Secondary outcomes S1 with BH; sample variants S6; early-election term S3 | M5 |
 | 10 | Robustness: windows, crisis exclusions, alternative codings; exploratory E1 (restricted fiscal-rule window) | M5 |

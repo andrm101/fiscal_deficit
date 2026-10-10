@@ -1,0 +1,273 @@
+# Gate 5: AMECO archive vintages Autumn 2014 to Autumn 2025, for the real-time CAPB feasibility check (S4, trigger T3).
+# Approved by the researcher ("Do AMECO", 2026-10-10) after the scale (about two dozen zips) was stated. Sizes: the three newest files were
+# measured (Content-Range); the other 23 report no total before download, so their size is unknown (expect roughly 6-7 MB each).
+# Methodology note (Appendix B 1.3): the cyclical-adjustment method is homogeneous only from Autumn 2014. The printed date of "Autumn 2025"
+# (3 June 2025) looks wrong; its internal date is checked after download.
+
+[release]
+source_id = "ameco_archive"
+vintage = "autumn2014_to_autumn2025"
+release_label = "AMECO archive, 26 zipped text vintages (Autumn 2014 ... Autumn 2025)"
+manifest_dir = "data/raw/ameco_archive"
+provider = "European Commission, DG ECFIN"
+landing_page = "https://economy-finance.ec.europa.eu/economic-research-and-databases/economic-databases/ameco-database/ameco-archive_en"
+
+[[file]]
+id = "V01"
+role = "archived vintage Autumn 2014 (printed date 6 Nov 2014)"
+url = "https://economy-finance.ec.europa.eu/document/download/e18a0d7f-bb2f-41fa-92ad-34b6d55dd80a_en?filename=ameco_autumn2014.zip"
+dest = "data/raw/ameco_archive/2014_autumn/ameco_autumn2014.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V02"
+role = "archived vintage Winter 2015 (printed date 4 Feb 2015)"
+url = "https://economy-finance.ec.europa.eu/document/download/87ee798c-a6d4-4653-8539-9c948dca7743_en?filename=winter_2015.zip"
+dest = "data/raw/ameco_archive/2015_winter/ameco_winter2015.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V03"
+role = "archived vintage Spring 2015 (printed date 7 May 2015)"
+url = "https://economy-finance.ec.europa.eu/document/download/af291ff7-1b5d-4343-805f-061c8362ae60_en?filename=ameco_spring2015.zip"
+dest = "data/raw/ameco_archive/2015_spring/ameco_spring2015.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V04"
+role = "archived vintage Autumn 2015 (printed date 5 Nov 2015)"
+url = "https://economy-finance.ec.europa.eu/document/download/8ff15496-dc11-45e8-8711-820eae40f27e_en?filename=ameco_autumn2015.zip"
+dest = "data/raw/ameco_archive/2015_autumn/ameco_autumn2015.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V05"
+role = "archived vintage Winter 2016 (printed date 4 Feb 2016)"
+url = "https://economy-finance.ec.europa.eu/document/download/f7cccbf2-db5e-4ca5-a3c9-9f461c6546c4_en?filename=winter_2016.zip"
+dest = "data/raw/ameco_archive/2016_winter/ameco_winter2016.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V06"
+role = "archived vintage Spring 2016 (printed date 3 May 2016)"
+url = "https://economy-finance.ec.europa.eu/document/download/ac6e8f81-3ae8-4cdf-9776-e1fd34449cb3_en?filename=ameco_spring2016.zip"
+dest = "data/raw/ameco_archive/2016_spring/ameco_spring2016.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V07"
+role = "archived vintage Autumn 2016 (printed date 9 Nov 2016)"
+url = "https://economy-finance.ec.europa.eu/document/download/2bad1334-5866-404f-9f60-ffe2f8ee951c_en?filename=ameco_autumn20161.zip"
+dest = "data/raw/ameco_archive/2016_autumn/ameco_autumn2016.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V08"
+role = "archived vintage Winter 2017 (printed date 13 Feb 2017)"
+url = "https://economy-finance.ec.europa.eu/document/download/bda76528-cc84-4efa-98a4-39f8c9763a2d_en?filename=winter_2017.zip"
+dest = "data/raw/ameco_archive/2017_winter/ameco_winter2017.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V09"
+role = "archived vintage Spring 2017 (printed date 11 May 2017)"
+url = "https://economy-finance.ec.europa.eu/document/download/ada26fc5-3ce0-412c-af3c-6937376ae6af_en?filename=ameco_spring20171.zip"
+dest = "data/raw/ameco_archive/2017_spring/ameco_spring2017.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V10"
+role = "archived vintage Autumn 2017 (printed date 9 Nov 2017)"
+url = "https://economy-finance.ec.europa.eu/document/download/b7b692aa-44e3-4a75-9501-7379dfaafa50_en?filename=ameco_autumn20171.zip"
+dest = "data/raw/ameco_archive/2017_autumn/ameco_autumn2017.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V11"
+role = "archived vintage Spring 2018 (printed date 3 May 2018)"
+url = "https://economy-finance.ec.europa.eu/document/download/66a10fb5-0c73-4fcf-831a-e58d25ca79bf_en?filename=ameco_spring20181.zip"
+dest = "data/raw/ameco_archive/2018_spring/ameco_spring2018.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V12"
+role = "archived vintage Autumn 2018 (printed date 8 Nov 2018)"
+url = "https://economy-finance.ec.europa.eu/document/download/5cfc8121-138b-4c42-9411-90df559b21db_en?filename=ameco_autumn20181.zip"
+dest = "data/raw/ameco_archive/2018_autumn/ameco_autumn2018.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V13"
+role = "archived vintage Spring 2019 (printed date 7 May 2019)"
+url = "https://economy-finance.ec.europa.eu/document/download/2dbfb168-f2f9-43b8-bfb7-c6efa0e4da88_en?filename=ameco_spring2019.zip"
+dest = "data/raw/ameco_archive/2019_spring/ameco_spring2019.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V14"
+role = "archived vintage Autumn 2019 (printed date 7 Nov 2019)"
+url = "https://economy-finance.ec.europa.eu/document/download/d7f7871e-fa02-46f2-b9b8-4fed822bd72d_en?filename=ameco_autumn2019.zip"
+dest = "data/raw/ameco_archive/2019_autumn/ameco_autumn2019.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V15"
+role = "archived vintage Spring 2020 (printed date 6 May 2020)"
+url = "https://economy-finance.ec.europa.eu/document/download/e6e8f547-0d9b-40f6-b9d8-98d11b502696_en?filename=ameco_spring2020.zip"
+dest = "data/raw/ameco_archive/2020_spring/ameco_spring2020.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V16"
+role = "archived vintage Autumn 2020 (printed date 5 Nov 2020)"
+url = "https://economy-finance.ec.europa.eu/document/download/e058b7c7-a9c6-4340-abe1-a6669c469592_en?filename=ameco_autumn2020.zip"
+dest = "data/raw/ameco_archive/2020_autumn/ameco_autumn2020.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V17"
+role = "archived vintage Spring 2021 (printed date 12 May 2021)"
+url = "https://economy-finance.ec.europa.eu/document/download/17372dca-211c-42b6-9a1d-89559b985d23_en?filename=ameco_spring2021.zip"
+dest = "data/raw/ameco_archive/2021_spring/ameco_spring2021.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V18"
+role = "archived vintage Autumn 2021 (printed date 11 Nov 2021)"
+url = "https://economy-finance.ec.europa.eu/document/download/a522fc1a-c386-4c3e-80dd-50de123fb773_en?filename=ameco_autumn2021.zip"
+dest = "data/raw/ameco_archive/2021_autumn/ameco_autumn2021.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V19"
+role = "archived vintage Spring 2022 (printed date 16 May 2022)"
+url = "https://economy-finance.ec.europa.eu/document/download/c5be576e-fbea-45f3-98a5-3cf59d16d70a_en?filename=ameco_spring2022.zip"
+dest = "data/raw/ameco_archive/2022_spring/ameco_spring2022.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V20"
+role = "archived vintage Autumn 2022 (printed date 17 Nov 2022)"
+url = "https://economy-finance.ec.europa.eu/document/download/b16e473a-04ef-4ec8-b2f8-1e0c30a39d3c_en?filename=ameco_autumn2022.zip"
+dest = "data/raw/ameco_archive/2022_autumn/ameco_autumn2022.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V21"
+role = "archived vintage Spring 2023 (printed date 15 May 2023)"
+url = "https://economy-finance.ec.europa.eu/document/download/adbcba6f-8169-4d6d-80e7-7a365ff6e87d_en?filename=ameco_spring2023.zip"
+dest = "data/raw/ameco_archive/2023_spring/ameco_spring2023.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V22"
+role = "archived vintage Autumn 2023 (printed date 27 Nov 2023)"
+url = "https://economy-finance.ec.europa.eu/document/download/6a48b097-bd09-496b-908f-404d0e85cff8_en?filename=AMECO_2023_Autumn_Revised.zip"
+dest = "data/raw/ameco_archive/2023_autumn/ameco_autumn2023.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V23"
+role = "archived vintage Spring 2024 (printed date 15 May 2024)"
+url = "https://economy-finance.ec.europa.eu/document/download/ad8d7bd0-c4d9-4860-b597-bb613408d6bd_en?filename=AMECO_2024_Spring_final.zip"
+dest = "data/raw/ameco_archive/2024_spring/ameco_spring2024.zip"
+content_type = "application/zip"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V24"
+role = "archived vintage Autumn 2024 (printed date 15 Nov 2024)"
+url = "https://economy-finance.ec.europa.eu/document/download/9c2630c3-6c25-456d-b484-6b05c202e8ce_en?filename=ameco0.zip"
+dest = "data/raw/ameco_archive/2024_autumn/ameco_autumn2024.zip"
+content_type = "application/zip"
+expected_size_bytes = 6395221
+size_basis = "measured"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V25"
+role = "archived vintage Spring 2025 (printed date 19 May 2025)"
+url = "https://economy-finance.ec.europa.eu/document/download/b4b375e7-80a6-4581-b8fd-9c207790cd01_en?filename=ameco0.zip"
+dest = "data/raw/ameco_archive/2025_spring/ameco_spring2025.zip"
+content_type = "application/zip"
+expected_size_bytes = 6526975
+size_basis = "measured"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"
+
+[[file]]
+id = "V26"
+role = "archived vintage Autumn 2025 (printed date 3 Jun 2025 (suspect))"
+url = "https://economy-finance.ec.europa.eu/document/download/92bd1d5e-35e8-4a94-a8b1-8d919ced4cdb_en?filename=ameco-autumn2025.zip"
+dest = "data/raw/ameco_archive/2025_autumn/ameco_autumn2025.zip"
+content_type = "application/zip"
+expected_size_bytes = 7179297
+size_basis = "measured"
+licence_status = "not stated (AMECO is 'free of charge'); not redistributed"

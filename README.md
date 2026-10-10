@@ -16,7 +16,7 @@ Are scheduled national elections associated with deterioration in the cyclically
 | `reports/gate*.md`, `reports/literature_fulltext_*.md` | Gate 1–4 audits and the full-text literature extractions |
 | `docs/decision_log.md`, `docs/stage_c_blueprint.md` | Decisions, repository tree, data contracts, pipeline graph, tests plan, milestones, 16-week plan with scope-cut triggers |
 | `config/` | Acquisition manifests, data contracts, model registries (confirmatory / secondary / exploratory / predictive), country crosswalk |
-| `src/`, `tests/`, `scripts/` | Python code and tests (stdlib + pandas/numpy/scipy/statsmodels/pyarrow); R code arrives with the modelling milestone |
+| `src/`, `tests/`, `scripts/` | Python code and tests (stdlib + pandas/numpy/scipy/statsmodels/pyarrow); no R in this project, the thesis is a Quarto document |
 | `data/raw/` | Hashed, read-only source files with a `manifest.jsonl` and `README.md` per source |
 
 ## Reproducing

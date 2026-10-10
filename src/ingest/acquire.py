@@ -20,10 +20,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import http.client
 import json
 import os
 import stat
 import sys
+import time
 import tomllib
 import urllib.error
 import urllib.request
@@ -37,6 +39,8 @@ RAW_REL = Path("data") / "raw"
 USER_AGENT = "fiscal-deficit-capstone/0.1 (academic research; static-data acquisition)"
 CHUNK_BYTES = 1 << 20
 STRICT_SIZE_BASES = {"measured"}
+MAX_ATTEMPTS = 3  # transient transport errors (truncated chunked bodies, resets, timeouts) are retried
+RETRY_SLEEP_SECONDS = 2.0  # multiplied by the attempt number
 
 
 class AcquisitionError(RuntimeError):
@@ -128,6 +132,34 @@ def _media_type(header_value: str | None) -> str:
     return (header_value or "").split(";")[0].strip().lower()
 
 
+def _download_once(spec: FileSpec, partial: Path) -> tuple[int, str, dict[str, Any]]:
+    """One download attempt into ``partial``. Returns (size, sha256 hex, response metadata)."""
+    request = urllib.request.Request(spec.url, headers={"User-Agent": USER_AGENT})
+    digest = hashlib.sha256()
+    size = 0
+    with urllib.request.urlopen(request, timeout=120) as resp:  # noqa: S310 (scheme validated above)
+        got_type = _media_type(resp.headers.get("Content-Type"))
+        if got_type != _media_type(spec.content_type):
+            raise AcquisitionError(f"{spec.id}: content type {got_type!r}, expected {spec.content_type!r}")
+        with partial.open("wb") as out:
+            for block in iter(lambda: resp.read(CHUNK_BYTES), b""):
+                out.write(block)
+                digest.update(block)
+                size += len(block)
+        declared = resp.headers.get("Content-Length")
+        if declared is not None and declared.strip().isdigit() and size != int(declared):
+            # http.client does not raise on a short body when read(n) is used with a declared length
+            raise http.client.IncompleteRead(b"", int(declared) - size)
+        meta = {
+            "final_url": resp.geturl(),
+            "http_status": getattr(resp, "status", 200),
+            "content_type": got_type,
+            "last_modified": resp.headers.get("Last-Modified"),
+            "etag": resp.headers.get("ETag"),
+        }
+    return size, digest.hexdigest(), meta
+
+
 def acquire_file(spec: FileSpec, release: Release, root: Path) -> dict[str, Any]:
     """Download one file, or confirm it is already acquired. Returns the provenance record."""
     dest = resolve_dest(root, spec.dest)
@@ -145,30 +177,22 @@ def acquire_file(spec: FileSpec, release: Release, root: Path) -> dict[str, Any]
 
     dest.parent.mkdir(parents=True, exist_ok=True)
     partial = dest.with_name(dest.name + ".partial")
-    request = urllib.request.Request(spec.url, headers={"User-Agent": USER_AGENT})
-    digest = hashlib.sha256()
-    size = 0
-    try:
-        with urllib.request.urlopen(request, timeout=120) as resp:  # noqa: S310 (scheme validated above)
-            status = getattr(resp, "status", 200)
-            got_type = _media_type(resp.headers.get("Content-Type"))
-            if got_type != _media_type(spec.content_type):
-                raise AcquisitionError(f"{spec.id}: content type {got_type!r}, expected {spec.content_type!r}")
-            with partial.open("wb") as out:
-                for block in iter(lambda: resp.read(CHUNK_BYTES), b""):
-                    out.write(block)
-                    digest.update(block)
-                    size += len(block)
-            meta = {
-                "final_url": resp.geturl(),
-                "http_status": status,
-                "content_type": got_type,
-                "last_modified": resp.headers.get("Last-Modified"),
-                "etag": resp.headers.get("ETag"),
-            }
-    except (urllib.error.URLError, OSError, AcquisitionError):
+    last_error: BaseException | None = None
+    for attempt in range(1, MAX_ATTEMPTS + 1):
         partial.unlink(missing_ok=True)
-        raise
+        try:
+            size, digest_hex, meta = _download_once(spec, partial)
+            break
+        except (http.client.HTTPException, ConnectionError, TimeoutError) as exc:  # transient: retry
+            last_error = exc
+            partial.unlink(missing_ok=True)
+            if attempt < MAX_ATTEMPTS:
+                time.sleep(RETRY_SLEEP_SECONDS * attempt)
+        except (urllib.error.URLError, OSError, AcquisitionError):  # permanent: fail this file now
+            partial.unlink(missing_ok=True)
+            raise
+    else:
+        raise AcquisitionError(f"{spec.id}: download failed after {MAX_ATTEMPTS} attempts: {last_error!r}")
 
     if size == 0:
         partial.unlink(missing_ok=True)
@@ -194,7 +218,7 @@ def acquire_file(spec: FileSpec, release: Release, root: Path) -> dict[str, Any]
         "expected_size_bytes": spec.expected_size_bytes,
         "size_basis": spec.size_basis,
         "size_check": size_check,
-        "sha256": digest.hexdigest(),
+        "sha256": digest_hex,
         "retrieved_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "licence_status": spec.licence_status,
         **meta,
@@ -249,7 +273,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             rec = acquire_file(spec, release, args.root)
             print(f"{rec['status']}\t{spec.id}\t{rec['size_bytes']} B\t{rec['sha256']}")
-        except (AcquisitionError, urllib.error.URLError, OSError) as exc:
+        except (AcquisitionError, urllib.error.URLError, http.client.HTTPException, OSError) as exc:
             failures += 1
             print(f"FAILED\t{spec.id}\t{exc}", file=sys.stderr)
     return 1 if failures else 0

@@ -13,7 +13,8 @@ seed = 42
 [[model]]
 id = "M1"
 description = "Two-way fixed effects with fractional scheduled-election exposure and Mundlak-split ageing interaction"
-formula_fixest = "capb ~ W_S + W_E + W_D + W_U + Post + W_S:abar + W_S:adev + a_lag | eurostat_code + year"
+engine = "Python: fixed-effects engine of src/evaluate/power.py promoted to src/models/py; cross-checked against statsmodels and linearmodels"
+formula = "capb ~ W_S + W_E + W_D + W_U + Post + W_S:abar + W_S:adev + a_lag | eurostat_code + year"
 variables = { W_S = "scheduled-election exposure", W_E = "early-election exposure", W_D = "delayed", W_U = "unclassified elections (default treatment: separate regressor)", Post = "12 months after any election", a_lag = "OLDDEP1 at t-1, standardised on the estimation sample", abar = "country mean of a_lag over the estimation sample (standardised)", adev = "a_lag minus abar" }
 controls = ["outgap_lag", "debt_gdp_lag", "ig_diff_lag", "euro_member"]
 controls_note = "Controls enter at t-1 only; contemporaneous output gap, unemployment and inflation are mediators/simultaneous and are omitted (proposal 5.3)."

@@ -19,7 +19,7 @@ The original working title ("Political Economy of Fiscal Deficits under Demograp
 
 ## 1. Executive abstract
 
-Political budget cycle research asks whether governments loosen fiscal policy before elections. The evidence is large but conditional, and meta-analyses disagree on its size: Philips (2016) reports significant but small average effects, whereas Mandon and Cazals (2019) find little systematic evidence once selective reporting is considered. Most EU studies use headline deficits, spending or composition. Studies with structural-balance outcomes are fewer, and we found none that interacts an election-timing variable with population ageing (a search result, not proof of absence). This capstone asks whether scheduled national elections are associated with deterioration in the cyclically adjusted primary balance (CAPB, European Commission AMECO series UBLGBP, per cent of potential GDP) of EU member states, and whether that association varies with population ageing. The sample is an annual panel of the 27 member states, 1995–2023 (783 country-years, 770 with complete outcome and moderator data). The confirmatory model is a two-way fixed-effects regression with a fractional pre-election exposure for scheduled elections, a within-between decomposition of the old-age dependency ratio, and wild-cluster-bootstrap inference with 27 clusters. Fiscal-rule strength, expenditure components, early elections and real-time CAPB vintages are secondary, pre-specified analyses; prediction is a separate, non-causal module. A simulation-based power calculation on the real election calendar (Gate 3b) finds minimum detectable effects of roughly 0.7 pp of potential GDP for the scheduled-election term and 0.9 pp per standard deviation for the ageing interactions, so an imprecise or null result is the most likely outcome and the design is framed to report it as such (section 21 and the thesis rely on interval estimates, not significance alone). The deliverables are the thesis and a reproducible Python–DuckDB–R pipeline with source manifests, failing quality gates and a locked analysis extract.
+Political budget cycle research asks whether governments loosen fiscal policy before elections. The evidence is large but conditional, and meta-analyses disagree on its size: Philips (2016) reports significant but small average effects, whereas Mandon and Cazals (2019) find little systematic evidence once selective reporting is considered. Most EU studies use headline deficits, spending or composition. Studies with structural-balance outcomes are fewer, and we found none that interacts an election-timing variable with population ageing (a search result, not proof of absence). This capstone asks whether scheduled national elections are associated with deterioration in the cyclically adjusted primary balance (CAPB, European Commission AMECO series UBLGBP, per cent of potential GDP) of EU member states, and whether that association varies with population ageing. The sample is an annual panel of the 27 member states, 1995–2023 (783 country-years, 770 with complete outcome and moderator data). The confirmatory model is a two-way fixed-effects regression with a fractional pre-election exposure for scheduled elections, a within-between decomposition of the old-age dependency ratio, and wild-cluster-bootstrap inference with 27 clusters. Fiscal-rule strength, expenditure components, early elections and real-time CAPB vintages are secondary, pre-specified analyses; prediction is a separate, non-causal module. A simulation-based power calculation on the real election calendar (Gate 3b) finds minimum detectable effects of roughly 0.7 pp of potential GDP for the scheduled-election term and 0.9 pp per standard deviation for the ageing interactions, so an imprecise or null result is the most likely outcome and the design is framed to report it as such (section 21 and the thesis rely on interval estimates, not significance alone). The deliverables are the thesis and a reproducible Python–DuckDB pipeline (Quarto thesis, no R) with source manifests, failing quality gates and a locked analysis extract.
 
 ## 2. Problem statement and motivation
 
@@ -288,7 +288,7 @@ Fiscal_Deficit/
 ├── tests/
 ├── reports/        # proposal.md, appendices, data_audit.md, model_card.md, robustness.md, thesis/ (Quarto)
 ├── docs/adr/       # ADR-001 acquisition, ADR-002 vintage pinning, ADR-003 exposure definition, ...
-├── environment.yml / uv.lock, renv.lock
+├── environment.yml / uv.lock
 └── Makefile
 ```
 
@@ -296,13 +296,13 @@ Medallion mapping: bronze = raw files plus manifest; silver = parsed, typed, fla
 
 ### 14.3 Rules
 
-- **Immutable raw data**, relative paths only (`pathlib`, project root resolved once), seeds set and logged (`np.random.seed(42)`, `set.seed(42)`), pinned `environment.yml` and `renv.lock`.
+- **Immutable raw data**, relative paths only (`pathlib`, project root resolved once), seeds set and logged (`np.random.seed(42)` or `default_rng(42)`), pinned `environment.yml`.
 - **Vintage pinning:** Spring 2026 AMECO (live stamp 2026-06-03) is the thesis vintage. The Autumn 2026 release is due in mid-November, after which the live database will change; download and hash the Spring 2026 files **now**. The printed date of the archived "Autumn 2025" vintage (3 June 2025) looks wrong and must be checked before any real-time use.
 - **Eurostat parsing:** use SDMX-CSV (separate `OBS_FLAG`, negatives preserved); the bulk TSV puts the flag in the value cell (`-5.4 b`), which the author's earlier parser dropped (R01).
 - **Tests:** signs and scales (surplus positive; AMECO denominator assertion via COMMENT string), duplicate country-years, impossible dates, panel keys, merge losses (27 × 29 = 783 rows), forecast-year exclusion, flags carried. Failing gates replace warning-only checks (R03).
 - **No silent interpolation**; any imputation is declared in the data dictionary.
 - **Figures** at 300 dpi with axis labels, units and a source line; a locked analysis extract is hashed and tagged for the final results.
-- **Languages:** Python for ingestion, validation and ML; R (`fixest`, `boottest`-style wild bootstrap, `plm` diagnostics) for panel econometrics; Quarto for the thesis.
+- **Languages:** Python for ingestion, validation, panel econometrics (own vectorised fixed-effects engine, cross-checked against `statsmodels` and `linearmodels`; wild-cluster bootstrap and diagnostics implemented and tested in Python) and machine learning; Quarto with its Python engine for the thesis. No R (researcher decision, 2026-10-10).
 
 ### 14.4 Quality gates
 
@@ -332,13 +332,13 @@ All ten repositories are public with default branch `main`, and were live-checke
 |---|---|---|---|---|---|
 | `rd-productivity-eu` | Adaptation | `00_utils.py` (manifest, hash) | `src/ingest/manifest.py` | refactor | Path-depth bug; date-only dedupe, no checksum check (R05) |
 | | Adaptation | `05_build_panel.py` (coverage gate, DuckDB bridge) | `src/normalize/build_panel.py`, `src/evaluate/gates.py` | refactor | Gate only warns; five duplicated ISO dicts; `log(clip)` unusable for signed CAPB (R03, R04, R14) |
-| | Adaptation | `src/R/00_load.R` | `src/models/R/00_load.R` | refactor | Hard-coded 29/30 country list, years 1998–2024 (R12) |
-| | Pattern only | `05_local_projections.R`, `04_system_gmm.R` (really IV/2SLS), `09_robustness.R` | `src/models/R/`, `src/evaluate/R/` | pattern | Misleading GMM name (R02); R&D-specific variables |
+| | Adaptation | `src/R/00_load.R` | `src/models/py/panel.py` | rewrite in Python (pattern only) | Hard-coded 29/30 country list, years 1998–2024 (R12) |
+| | Pattern only | `05_local_projections.R`, `04_system_gmm.R` (really IV/2SLS), `09_robustness.R` | `src/models/py/`, `src/evaluate/` | pattern only (rewrite in Python) | Misleading GMM name (R02); R&D-specific variables |
 | `PL-Capital-Reform-DiD` | Adaptation | `scripts/run_r_stages.py` | `scripts/run_pipeline.py` | refactor | Hard-coded R 4.5.1 path; "skip if output exists" ignores input changes (R12) |
 | | Adaptation | `export_to_json.py` | `src/export/to_json.py` | refactor | `NaN` emitted as invalid JSON (R11) |
 | | Pattern only | `05_did_eventstudy.py` | `src/models/eventstudy_election.py` | pattern | Single-reform TWFE is biased for repeated elections (R14) |
 | `EU-Innovation-Panel` | Adaptation | `seed_check.py`, `logging_config.py`, `vocab_guard.py`, `bronze_schema.py`, `pipeline_audit.py` | `src/evaluate/`, `src/utils/`, `src/ingest/contracts.py` | refactor | `time` range rejects 1995–1999; missing `expected_hashes.json` passes (R15, R16) |
-| `RO-Administrative-Reform` | Adaptation / pattern | `scripts/r/utils.R` | `src/models/R/utils.R` | refactor | cwd coupling (R12) |
+| `RO-Administrative-Reform` | Adaptation / pattern | `scripts/r/utils.R` | not migrated (no R in this project) | pattern only | cwd coupling (R12) |
 | `Nuclear Sector` | Adaptation | `bootstrap.py`, `duckdb_writer.py`, `conftest.py` | `scripts/bootstrap_db.py`, `src/ingest/duckdb_writer.py` | refactor | NULL-key duplicates, no failed-run log (R13); duplicate `on:` key in `ci.yml` (R08, rewrite) |
 | `EU-GNN-Risk-Monitor` | Parser reference only | `extend_eurostat.py` (keeps negatives) | `src/normalize/eurostat_tsv.py` | refactor | **Contains no V-Dem or political data despite README**; `GR`/`EL` inconsistency (R06, R10); GNN not justified at N≈27 |
 | `RO-Voting-Prediction` | Do not reuse | `clean_eurostat.py` | n/a | rewrite | **`_strip_flag` drops negatives** (R01) |
@@ -350,7 +350,7 @@ All ten repositories are public with default branch `main`, and were live-checke
 
 ## 17. Expected contributions
 
-**Academic:** a pre-specified, powered test of the scheduled-election association with a structural-balance outcome in the EU-27; a within/between treatment of the ageing moderator that makes explicit how little clean within-country variation exists; a documented comparison of ex-post and (if feasible) real-time CAPB; and transparent reporting of nulls. **Technical:** a reproducible Python–DuckDB–R pipeline with failing quality gates, vintage manifests, tests and a model card; a documented list of data traps (UBLGBP vs UBLGIE, unit-code ambiguity, ISO-code divergence, frozen political datasets).
+**Academic:** a pre-specified, powered test of the scheduled-election association with a structural-balance outcome in the EU-27; a within/between treatment of the ageing moderator that makes explicit how little clean within-country variation exists; a documented comparison of ex-post and (if feasible) real-time CAPB; and transparent reporting of nulls. **Technical:** a reproducible Python–DuckDB pipeline (Quarto thesis, no R) with failing quality gates, vintage manifests, tests and a model card; a documented list of data traps (UBLGBP vs UBLGIE, unit-code ambiguity, ISO-code divergence, frozen political datasets).
 
 ## 18. Limitations and ethical considerations
 
