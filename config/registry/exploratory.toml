@@ -1,0 +1,39 @@
+# Exploratory model registry: labelled exploratory in the thesis; any reported p-value is flagged unadjusted or BH-adjusted
+# within this family, and no result here may carry causal language.
+
+[registry]
+class = "exploratory"
+seed = 42
+
+[[model]]
+id = "E1"
+description = "Fiscal-rule moderation (old S2, downgraded at Gate 2)"
+moderator = "EC Fiscal Rules Strength Index, raw C-FRSI, lagged one year, '.' kept missing (never zero or the standardised floor)"
+window = "2016-2021 (the audit's 2016-2023 window truncated by the sample end: 6 years, about 27 countries)"
+pre_specified_details = ["resolve NL 2021-2022 (raw 12.92 vs 19.62 and 19.76 around it) before use: standardised value or exclusion with sensitivity", "leave-one-country-out", "rule-presence dummy as an alternative"]
+promotion_condition = "may return to secondary only if the Gate 3b-style power check for this window gives an interaction MDE inside the agreed threshold"
+interpretation = "de jure design strength of national rules (and rule count/coverage), never enforcement or compliance"
+
+[[model]]
+id = "E2"
+description = "Triple interaction W_S x ageing x rule strength"
+
+[[model]]
+id = "E3"
+description = "Nonlinear ageing (thresholds or splines) in the interaction"
+
+[[model]]
+id = "E4"
+description = "Heterogeneity: debt level (Afonso et al. report high-debt countries differ), EU-15 vs accession members, euro vs non-euro, democratic age (V-Dem would need acquisition)"
+
+[[model]]
+id = "E5"
+description = "Cabinet ideology and fragmentation (CPDS gov_left, gov_party; DPI herfgov, checks), measured at t-1; CPDS ends 2023 and these are not yet acquired"
+
+[[model]]
+id = "E6"
+description = "Country typologies / fiscal-stress regime clustering"
+
+[[model]]
+id = "E7"
+description = "Single optional extension chosen at Week 13 (for example a Denmark-Romania comparison); at most one"

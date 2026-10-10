@@ -1,0 +1,100 @@
+# Data contracts (Stage C). Machine-readable source of truth for table schemas; enforced by tests and the
+# failing quality gates (src/evaluate/gates.py, to be written in milestone M2). Layers follow bronze -> silver -> gold.
+# "status": exists = a module or test already produces/validates it; planned = to be built in the stated milestone.
+
+[bronze.raw_file_manifest]
+status = "exists (src/ingest/acquire.py writes it; tests/test_acquire.py)"
+key = ["id", "source_id", "vintage"]
+columns = [
+  { name = "id", type = "str" },
+  { name = "source_id", type = "str" },
+  { name = "vintage", type = "str" },
+  { name = "requested_url", type = "str" },
+  { name = "final_url", type = "str" },
+  { name = "dest", type = "str", rule = "posix path under data/raw/" },
+  { name = "size_bytes", type = "int", rule = "> 0" },
+  { name = "sha256", type = "str", rule = "64 hex characters" },
+  { name = "retrieved_utc", type = "datetime", rule = "UTC, ISO 8601" },
+  { name = "content_type", type = "str" },
+  { name = "last_modified", type = "str", nullable = true },
+  { name = "size_check", type = "str", rule = "one of: match, differs_from_expected, not_checked" },
+  { name = "licence_status", type = "str" },
+]
+rules = ["file at dest exists, is read-only, and its SHA-256 equals sha256", "no .partial files remain"]
+
+[silver.ameco_long]
+status = "planned (M2); readers exist in src/normalize/ameco.py"
+key = ["ameco_area", "year", "item", "unit_text"]
+columns = [
+  { name = "ameco_area", type = "str", rule = "AMECO chapter-flow code, e.g. GRC, ROM" },
+  { name = "eurostat_code", type = "str", rule = "from config/countries.csv; null for aggregates" },
+  { name = "year", type = "int" },
+  { name = "item", type = "str", rule = "e.g. UBLGBP" },
+  { name = "unit_text", type = "str", rule = "official denominator text, never the numeric unit code" },
+  { name = "value", type = "float", nullable = true, rule = "negatives allowed; percentage points" },
+  { name = "last_update", type = "str" },
+  { name = "is_forecast", type = "bool", rule = "True for the last two years of a Spring vintage" },
+]
+rules = ["UBLGBP rows all carry the potential-GDP text", "no row with is_forecast enters any estimation extract"]
+
+[silver.eurostat_long]
+status = "planned (M2)"
+key = ["geo", "year", "dataset", "unit", "na_item_or_indic"]
+columns = [
+  { name = "geo", type = "str", rule = "Eurostat code; EL for Greece; no UK" },
+  { name = "year", type = "int" },
+  { name = "dataset", type = "str" },
+  { name = "unit", type = "str", nullable = true },
+  { name = "na_item_or_indic", type = "str" },
+  { name = "value", type = "float", nullable = true, rule = "negatives preserved (R01)" },
+  { name = "obs_flag", type = "str", nullable = true, rule = "p, b, e, ... carried, never dropped" },
+]
+rules = ["parsed from SDMX-CSV only; the bulk TSV flag-in-cell format is rejected", "unique key"]
+
+[silver.election_calendar]
+status = "exists (data/interim/election_calendar_eu27.csv; tests/test_elections.py)"
+key = ["eurostat_code", "election_date"]
+columns = [
+  { name = "eurostat_code", type = "str" },
+  { name = "election_date", type = "date" },
+  { name = "class_primary", type = "str", rule = "scheduled | early | delayed | unclassified (ETAD rules)" },
+]
+rules = ["built without any outcome data", "all unclassified elections listed in reports/gate3_election_exclusions.csv"]
+
+[silver.exposure_country_year]
+status = "exists (data/interim/exposure_eu27.csv)"
+key = ["eurostat_code", "year"]
+columns = [
+  { name = "W_S", type = "float", rule = "0 <= x <= 1" },
+  { name = "W_E", type = "float", rule = "0 <= x <= 1" },
+  { name = "W_D", type = "float", rule = "0 <= x <= 1; delayed elections" },
+  { name = "W_U", type = "float", rule = "0 <= x <= 1; unclassified elections" },
+  { name = "Post", type = "float", rule = "0 <= x <= 1" },
+  { name = "exposure_complete_cv", type = "bool", rule = "true through 2021 for all 27 countries" },
+  { name = "exposure_complete_etad", type = "bool" },
+]
+rules = ["no CAPB column present", "additive variants (*_add) may exceed 1 only where flagged additive_exceeds_one"]
+
+[gold.panel_country_year]
+status = "planned (M3); assembled from silver tables via src/evaluate/sample.py build_panel"
+key = ["eurostat_code", "year"]
+columns = [
+  { name = "eurostat_code", type = "str" },
+  { name = "year", type = "int", rule = "1995 <= year <= 2021 for the confirmatory extract" },
+  { name = "capb", type = "float", rule = "UBLGBP, pp of potential GDP, surplus positive, -50 < x < 30" },
+  { name = "W_S", type = "float" }, { name = "W_E", type = "float" }, { name = "W_D", type = "float" },
+  { name = "W_U", type = "float" }, { name = "Post", type = "float" },
+  { name = "olddep1_lag", type = "float", rule = "OLDDEP1 at t-1, per 100" },
+  { name = "olddep1_lag_flag", type = "str", nullable = true },
+  { name = "outgap_lag", type = "float", nullable = true, rule = "AVGDGP at t-1" },
+  { name = "debt_gdp_lag", type = "float", nullable = true, rule = "Eurostat GD, % of GDP, at t-1" },
+  { name = "ig_diff_lag", type = "float", nullable = true, rule = "(i-g)/(1+g) at t-1, i = D41PAY / lagged GD" },
+  { name = "euro_member", type = "bool" },
+  { name = "in_confirmatory", type = "bool" },
+]
+rules = [
+  "unique (eurostat_code, year)",
+  "confirmatory extract has exactly 715 rows and 27 countries (Gate 3a); a change requires a new frozen extract hash",
+  "no forecast-year row; no negative CAPB removed; flags carried",
+  "coverage gate fails the build when joint coverage < 97% of cells or any retained country has < 20 observations",
+]

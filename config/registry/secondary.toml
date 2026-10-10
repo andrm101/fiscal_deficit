@@ -1,0 +1,41 @@
+# Secondary model registry: pre-specified, reported with Benjamini-Hochberg control within this family.
+# Fiscal-rule moderation (old S2) was moved to exploratory at Gate 2.
+
+[registry]
+class = "secondary"
+multiplicity = "Benjamini-Hochberg over the outcome family S1a-S1g, applied to beta_S only; other rows are descriptive"
+sample = "same as M1 unless noted"
+seed = 42
+
+[[model]]
+id = "S1"
+description = "M1 repeated for alternative outcomes (does the CAPB result coincide with composition changes?)"
+outcomes = [
+  { id = "S1a", series = "AMECO UBLGIE (EDP primary balance, % of GDP; select the potential-GDP/actual-GDP text explicitly)" },
+  { id = "S1b", series = "Eurostat gov_10a_main B9 (net lending, % of GDP)" },
+  { id = "S1c", series = "delta CAPB (first difference of UBLGBP)" },
+  { id = "S1d", series = "primary expenditure = TE - D41PAY, % of GDP" },
+  { id = "S1e", series = "revenue TR, % of GDP" },
+  { id = "S1f", series = "social benefits D62PAY and D632PAY, % of GDP" },
+  { id = "S1g", series = "COFOG GF10, GF1002, GF07 (shorter sample; SK from 2010; GF1002 from 2000/2001 for 11 states)" },
+]
+needs_acquisition = "gate4_controls_and_secondary.toml (pending approval)"
+
+[[model]]
+id = "S3"
+description = "Early-election term: beta_E from M1 reported with its own interval; early elections are endogenous, so descriptive only"
+
+[[model]]
+id = "S4"
+description = "Real-time CAPB comparison"
+gate = "Week-4 feasibility gate: AMECO archive vintages Autumn 2014 to Autumn 2025 contain UBLGBP for >= 20 countries; methodology is homogeneous only from Autumn 2014; archive zips not yet opened"
+fallback = "headline primary balance and expenditure components"
+
+[[model]]
+id = "S5"
+description = "Robustness moderators for the ageing interaction: OLDDEP3, median age, 65+ share, economic dependency ratio EOADR = 100 * mean(P65+ at 1 Jan t, t+1) / (1000 * employed 15-64)"
+needs_acquisition = "EOADR inputs demo_pjanbroad and lfsa_egan are not yet acquired"
+
+[[model]]
+id = "S6"
+description = "Sample variants: 2022 extension (N = 737), balanced-22 (N = 594), drop unclassified elections (25 countries, N = 633), gap-filled classes (*_gf columns), leave-one-country-out, Ireland 2010 winsorised"

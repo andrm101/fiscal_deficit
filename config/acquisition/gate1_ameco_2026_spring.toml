@@ -1,0 +1,121 @@
+# Gate 1: AMECO Spring 2026 immutable snapshot. PENDING USER APPROVAL (nothing downloaded yet).
+# Probed 2026-10-10 with HEAD requests and one-byte ranged GETs only (sizes), plus page reads.
+# size_basis: measured = total size read from Content-Range (enforced exactly);
+#             page_stated = size printed on the provider page (approximate, not enforced);
+#             estimated = my estimate from row counts (NOT measured, not enforced);
+#             unknown = not available before download.
+
+[release]
+source_id = "ameco"
+vintage = "2026_spring"
+release_label = "Spring 2026 Economic Forecast (page: last update 03 June 2026)"
+manifest_dir = "data/raw/ameco/2026_spring"
+provider = "European Commission, DG ECFIN"
+landing_page = "https://economy-finance.ec.europa.eu/economic-research-and-databases/economic-databases/ameco-database_en"
+
+[[file]]
+id = "A01"
+role = "primary snapshot: all series, CSV"
+url = "https://economy-finance.ec.europa.eu/document/download/fd885a67-e390-46fb-a6d0-bbc67d946ebf_en"
+dest = "data/raw/ameco/2026_spring/ameco_all_csv.zip"
+content_type = "application/zip"
+expected_size_bytes = 6181987
+size_basis = "measured"
+licence_status = "not stated (page: 'free of charge'); reuse terms unverified"
+note = "Server Last-Modified 2026-06-02T14:51:24Z; page date 3 June 2026. Hash and compare with SDMX extracts."
+
+[[file]]
+id = "A02"
+role = "official variable help texts"
+url = "https://economy-finance.ec.europa.eu/document/download/ee1f3fdc-bef6-498e-9de0-d57257186a66_en?filename=Ameco%20help%20files%20%282026_05%29.zip"
+dest = "data/raw/ameco/2026_spring/docs/ameco_help_files_2026_05.zip"
+content_type = "application/zip"
+expected_size_bytes = 256502
+size_basis = "page_stated"
+licence_status = "not stated"
+note = "Page states 250.49 KB and 21 May 2026, i.e. before the 3 June release; confirm it matches the vintage."
+
+[[file]]
+id = "A03"
+role = "official methodology: forecast-year rule, back-casting"
+url = "https://economy-finance.ec.europa.eu/document/download/ae8a3bbf-7a9c-446c-a91e-e4e4f721c21d_en?filename=Reference_Metadata_AMECO.pdf"
+dest = "data/raw/ameco/2026_spring/docs/Reference_Metadata_AMECO.pdf"
+content_type = "application/pdf"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated"
+note = "Reference metadata, updated 26/11/2025 per the scout; size not available before download."
+
+[[file]]
+id = "A04"
+role = "official code lists: exact labels (DSD_AMECO 1.4)"
+url = "https://webgate.ec.europa.eu/ecfin/redisstat/api/dissemination/sdmx/2.1/datastructure/ECFIN/DSD_AMECO/1.4?references=children"
+dest = "data/raw/ameco/2026_spring/sdmx/DSD_AMECO_1.4.xml"
+content_type = "application/vnd.sdmx.structure+xml"
+expected_size_bytes = 0
+size_basis = "unknown"
+licence_status = "not stated"
+note = "Network API call (acquisition layer). Header Content-Length is 0 for dynamic responses."
+
+[[file]]
+id = "A05"
+role = "primary outcome CAPB (UBLGBP), chapter 17-01, with COMMENT (denominator) and OBS_STATUS"
+url = "https://webgate.ec.europa.eu/ecfin/redisstat/api/dissemination/sdmx/2.1/data/AMECO_CHAPTER17-01/A......UBLGBP?format=SDMX-CSV"
+dest = "data/raw/ameco/2026_spring/sdmx/AMECO_CHAPTER17-01_UBLGBP.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 250000
+size_basis = "estimated"
+licence_status = "not stated"
+note = "Scout counted 1,140 rows (34 areas); size is my estimate at about 220 B per row, not measured."
+
+[[file]]
+id = "A06"
+role = "cyclically adjusted net lending (UBLGAP), for the UBLGAP minus UBLGBP interest check"
+url = "https://webgate.ec.europa.eu/ecfin/redisstat/api/dissemination/sdmx/2.1/data/AMECO_CHAPTER17-01/A......UBLGAP?format=SDMX-CSV"
+dest = "data/raw/ameco/2026_spring/sdmx/AMECO_CHAPTER17-01_UBLGAP.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 250000
+size_basis = "estimated"
+licence_status = "not stated"
+
+[[file]]
+id = "A07"
+role = "cyclical component, potential-GDP basis (UBLGCP)"
+url = "https://webgate.ec.europa.eu/ecfin/redisstat/api/dissemination/sdmx/2.1/data/AMECO_CHAPTER17-01/A......UBLGCP?format=SDMX-CSV"
+dest = "data/raw/ameco/2026_spring/sdmx/AMECO_CHAPTER17-01_UBLGCP.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 250000
+size_basis = "estimated"
+licence_status = "not stated"
+
+[[file]]
+id = "A08"
+role = "output gap vs potential GDP (AVGDGP), chapter 06-05"
+url = "https://webgate.ec.europa.eu/ecfin/redisstat/api/dissemination/sdmx/2.1/data/AMECO_CHAPTER06-05/A......AVGDGP?format=SDMX-CSV"
+dest = "data/raw/ameco/2026_spring/sdmx/AMECO_CHAPTER06-05_AVGDGP.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 250000
+size_basis = "estimated"
+licence_status = "not stated"
+
+[[file]]
+id = "A09"
+role = "headline EDP primary balance (UBLGIE), chapter 16-04, for label and denominator contrast"
+url = "https://webgate.ec.europa.eu/ecfin/redisstat/api/dissemination/sdmx/2.1/data/AMECO_CHAPTER16-04/A......UBLGIE?format=SDMX-CSV"
+dest = "data/raw/ameco/2026_spring/sdmx/AMECO_CHAPTER16-04_UBLGIE.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 250000
+size_basis = "estimated"
+licence_status = "not stated"
+
+[[file]]
+id = "A10"
+role = "OPTIONAL: all series, TXT format, for cross-format parity only"
+url = "https://economy-finance.ec.europa.eu/document/download/03324a2c-995c-4163-a57d-62eb2d7e80df_en"
+dest = "data/raw/ameco/2026_spring/ameco_all_txt.zip"
+content_type = "application/zip"
+expected_size_bytes = 7134059
+size_basis = "measured"
+licence_status = "not stated"
+optional = true
+note = "Skipped unless --include-optional is passed."

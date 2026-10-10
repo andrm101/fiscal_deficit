@@ -1,0 +1,78 @@
+# Gate 4 (Stage C): controls and secondary outcomes from Eurostat. PENDING USER APPROVAL, NOTHING DOWNLOADED.
+# Dimension orders verified on 2026-10-10 from the official ESTAT data structure definitions:
+#   gov_10a_main / gov_10a_exp / gov_10dd_edpt1 -> freq.unit.sector.na_item.geo (gov_10a_exp inserts cofog99 before na_item per Appendix B)
+#   nama_10_gdp                                 -> freq.unit.na_item.geo
+# Code values (B9, D41PAY, TR, TE, D62PAY, D632PAY, GF10, GF1002, GF07, GD, B1GQ, CP_MEUR, PC_GDP, MIO_EUR) were seen in live responses
+# by the Appendix B scout, not in the structure files (which only reference codelists). The metadata test after download must confirm them.
+# startPeriod=1993: the interest-growth control is lagged one year and uses lagged debt and nominal GDP growth.
+# All sizes are my estimates (rows x about 200 B); none measured.
+
+[release]
+source_id = "eurostat_controls"
+vintage = "2026-10-10_probe"
+release_label = "Eurostat government finance, COFOG, EDP debt, national accounts; EU-27, 1993-2025"
+manifest_dir = "data/raw/eurostat_controls"
+provider = "Eurostat"
+landing_page = "https://ec.europa.eu/eurostat/web/government-finance-statistics"
+
+[[file]]
+id = "S01"
+role = "secondary outcomes and mechanism: B9, D41PAY, TR, TE, D62PAY, D632PAY, % of GDP, S13"
+url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/gov_10a_main/A.PC_GDP.S13.B9+D41PAY+TR+TE+D62PAY+D632PAY.AT+BE+BG+CY+CZ+DE+DK+EE+EL+ES+FI+FR+HR+HU+IE+IT+LT+LU+LV+MT+NL+PL+PT+RO+SE+SI+SK?startPeriod=1993&endPeriod=2025&format=SDMX-CSV&compressed=false"
+dest = "data/raw/eurostat_controls/gov_10a_main_pc_gdp_1993_2025.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 1100000
+size_basis = "estimated"
+licence_status = "Eurostat reuse with source acknowledgement"
+note = "Flags in OBS_FLAG (p, b). Negative values must survive parsing (R01)."
+
+[[file]]
+id = "S02"
+role = "interest paid in million euro, for the effective interest rate (D41PAY / lagged debt)"
+url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/gov_10a_main/A.MIO_EUR.S13.D41PAY.AT+BE+BG+CY+CZ+DE+DK+EE+EL+ES+FI+FR+HR+HU+IE+IT+LT+LU+LV+MT+NL+PL+PT+RO+SE+SI+SK?startPeriod=1993&endPeriod=2025&format=SDMX-CSV&compressed=false"
+dest = "data/raw/eurostat_controls/gov_10a_main_d41pay_mio_eur_1993_2025.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 200000
+size_basis = "estimated"
+licence_status = "Eurostat reuse with source acknowledgement"
+
+[[file]]
+id = "S03"
+role = "COFOG: total, social protection GF10, old age GF1002, health GF07 (mechanism check, shorter sample)"
+url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/gov_10a_exp/A.PC_GDP.S13.TOTAL+GF10+GF1002+GF07.TE.AT+BE+BG+CY+CZ+DE+DK+EE+EL+ES+FI+FR+HR+HU+IE+IT+LT+LU+LV+MT+NL+PL+PT+RO+SE+SI+SK?startPeriod=1993&endPeriod=2025&format=SDMX-CSV&compressed=false"
+dest = "data/raw/eurostat_controls/gov_10a_exp_cofog_pc_gdp_1993_2025.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 700000
+size_basis = "estimated"
+licence_status = "Eurostat reuse with source acknowledgement"
+note = "Dimension order here is freq.unit.sector.cofog99.na_item.geo per Appendix B; the key above follows that order. SK starts 2010; GF1002 starts 2000/2001 for 11 states."
+
+[[file]]
+id = "S04"
+role = "government consolidated gross debt, % of GDP (lagged control)"
+url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/gov_10dd_edpt1/A.PC_GDP.S13.GD.AT+BE+BG+CY+CZ+DE+DK+EE+EL+ES+FI+FR+HR+HU+IE+IT+LT+LU+LV+MT+NL+PL+PT+RO+SE+SI+SK?startPeriod=1993&endPeriod=2025&format=SDMX-CSV&compressed=false"
+dest = "data/raw/eurostat_controls/gov_10dd_edpt1_gd_pc_gdp_1993_2025.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 200000
+size_basis = "estimated"
+licence_status = "Eurostat reuse with source acknowledgement"
+
+[[file]]
+id = "S05"
+role = "government gross debt in million euro (denominator of the effective interest rate)"
+url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/gov_10dd_edpt1/A.MIO_EUR.S13.GD.AT+BE+BG+CY+CZ+DE+DK+EE+EL+ES+FI+FR+HR+HU+IE+IT+LT+LU+LV+MT+NL+PL+PT+RO+SE+SI+SK?startPeriod=1993&endPeriod=2025&format=SDMX-CSV&compressed=false"
+dest = "data/raw/eurostat_controls/gov_10dd_edpt1_gd_mio_eur_1993_2025.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 200000
+size_basis = "estimated"
+licence_status = "Eurostat reuse with source acknowledgement"
+
+[[file]]
+id = "S06"
+role = "nominal GDP, million euro (nominal growth g in the interest-growth differential)"
+url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/nama_10_gdp/A.CP_MEUR.B1GQ.AT+BE+BG+CY+CZ+DE+DK+EE+EL+ES+FI+FR+HR+HU+IE+IT+LT+LU+LV+MT+NL+PL+PT+RO+SE+SI+SK?startPeriod=1993&endPeriod=2025&format=SDMX-CSV&compressed=false"
+dest = "data/raw/eurostat_controls/nama_10_gdp_b1gq_cp_meur_1993_2025.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 200000
+size_basis = "estimated"
+licence_status = "Eurostat reuse with source acknowledgement"

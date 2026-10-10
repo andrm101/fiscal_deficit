@@ -1,0 +1,63 @@
+# Gate 3: real election dates and the ageing moderator, for the power update. PENDING USER APPROVAL (nothing downloaded yet).
+
+[release]
+source_id = "elections_ageing"
+vintage = "2026-10-10_probe"
+release_label = "ETAD v1.0.0 (files Last-Modified 2026-10-08), ParlGov 2024 stable release, Eurostat demo_pjanind"
+manifest_dir = "data/raw/elections_ageing"
+provider = "Multiple (see per-file notes)"
+landing_page = "https://yukiyanai.github.io/data_etad/"
+
+[[file]]
+id = "E01"
+role = "ETAD dataset v1.0.0: held_date, sche_date, dif_days, timing1/2, reason, termlength"
+url = "https://yukiyanai.github.io/data_etad/ETAD_v_1_0_0.csv"
+dest = "data/raw/elections_ageing/etad/ETAD_v_1_0_0.csv"
+content_type = "text/csv"
+expected_size_bytes = 438778
+size_basis = "measured"
+licence_status = "dataset licence NOT stated; paper asks for citation (Higashijima et al. 2025, Electoral Studies 96, 102964)"
+note = "Server Last-Modified is 2026-10-08, but the page dates v1.0.0 as 2025-07-16: possible silent re-upload. Hash it and compare row count with the article (3,127 elections)."
+
+[[file]]
+id = "E02"
+role = "ETAD codebook v1"
+url = "https://yukiyanai.github.io/data_etad/ETAD_codebook_ver_1.pdf"
+dest = "data/raw/elections_ageing/etad/ETAD_codebook_ver_1.pdf"
+content_type = "application/pdf"
+expected_size_bytes = 82079
+size_basis = "measured"
+licence_status = "not stated"
+
+[[file]]
+id = "E03"
+role = "ParlGov 2024 stable release: view_election (election dates, previous-election links)"
+url = "https://dataverse.harvard.edu/api/access/datafile/10437092"
+dest = "data/raw/elections_ageing/parlgov_2024_stable/view_election.tab"
+content_type = "text/tab-separated-values"
+expected_size_bytes = 1243626
+size_basis = "provider_api"
+licence_status = "CC0 1.0 (Dataverse metadata, SPDX CC0-1.0)"
+note = "Dataverse lists size 1,243,626 B and original md5 ee737ba6b7e0afa3d16c872f4d7253db; the access URL 303-redirects to a signed S3 URL. Elections only to June 2023."
+
+[[file]]
+id = "E04"
+role = "ParlGov codebook"
+url = "https://dataverse.harvard.edu/api/access/datafile/10437091"
+dest = "data/raw/elections_ageing/parlgov_2024_stable/codebook.pdf"
+content_type = "application/pdf"
+expected_size_bytes = 248194
+size_basis = "provider_api"
+licence_status = "CC0 1.0 (Dataverse metadata)"
+note = "Dataverse md5 f32ad48bb75b44bfbda6035013ec9bc3."
+
+[[file]]
+id = "P01"
+role = "Eurostat demo_pjanind: OLDDEP1 (primary moderator), OLDDEP3 and MEDAGEPOP (robustness), EU-27, 1994-2025"
+url = "https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/demo_pjanind/A.OLDDEP1+OLDDEP3+MEDAGEPOP.AT+BE+BG+CY+CZ+DE+DK+EE+EL+ES+FI+FR+HR+HU+IE+IT+LT+LU+LV+MT+NL+PL+PT+RO+SE+SI+SK?startPeriod=1994&endPeriod=2025&format=SDMX-CSV&compressed=false"
+dest = "data/raw/elections_ageing/eurostat_demo_pjanind/demo_pjanind_EU27_OLDDEP_1994_2025.csv"
+content_type = "application/vnd.sdmx.data+csv"
+expected_size_bytes = 500000
+size_basis = "estimated"
+licence_status = "Eurostat reuse allowed with source acknowledgement (copyright notice, verified)"
+note = "1994 is needed because the moderator enters lagged one year. SDMX-CSV keeps flags in a separate OBS_FLAG column. Size is my estimate (about 2,600 rows), not measured."

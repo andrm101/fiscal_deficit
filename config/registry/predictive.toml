@@ -1,0 +1,33 @@
+# Predictive module registry: out-of-time, non-causal, separate from the confirmatory thesis question.
+
+[registry]
+class = "predictive"
+target = "next-year change in CAPB (UBLGBP), continuous; binary deterioration event optional"
+seed = 42
+causal_language = "forbidden"
+
+[validation]
+scheme = "expanding-window rolling origin; first forecast origin 2008; features lagged to the origin"
+stress = "leave-one-country-out"
+metrics = ["RMSE", "MAE", "calibration slope", "error by country, era, regime"]
+comparison = "Diebold-Mariano against the persistence benchmark; incremental value of the political + demographic block over a lagged fiscal-and-macro baseline"
+limitation = "the CAPB target is ex-post revised data containing information a real forecaster lacked; documented in the model card"
+
+[[model]]
+id = "P0"
+description = "Naive persistence"
+
+[[model]]
+id = "P1a"
+description = "Regularised linear (ridge / elastic net)"
+
+[[model]]
+id = "P1b"
+description = "Gradient-boosted trees"
+
+[[model]]
+id = "P1c"
+description = "Optional interpretable GAM"
+
+[interpretation]
+tools = "SHAP / ALE used only for predictive interpretation, never as causal attribution"

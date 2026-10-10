@@ -1,0 +1,37 @@
+# Python and tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# R
+.Rproj.user/
+.Rhistory
+.RData
+
+# Literature PDFs: copyright; read locally, never redistributed
+data/external/literature/
+
+# Regenerable intermediate tables (rebuilt from data/raw by the pipeline)
+data/interim/*
+!data/interim/ameco_2026_spring_snapshot.json
+
+# Raw files whose redistribution terms are NOT verified (docs/decision_log.md, data/external/LICENSES.md).
+# They are restored with: python src/ingest/acquire.py --manifest config/acquisition/<gate>.toml --allow-network
+# and checked against the SHA-256 values in each committed manifest.jsonl.
+data/raw/ameco/*
+!data/raw/ameco/*/
+data/raw/ameco/*/*
+!data/raw/ameco/*/manifest.jsonl
+!data/raw/ameco/*/README.md
+data/raw/fiscal_governance/*
+!data/raw/fiscal_governance/*/
+data/raw/fiscal_governance/*/*
+!data/raw/fiscal_governance/*/manifest.jsonl
+!data/raw/fiscal_governance/*/README.md
+data/raw/elections_ageing/etad/
+
+# Everything else under data/raw (ParlGov: CC0; Eurostat: reuse with acknowledgement) is committed.

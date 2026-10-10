@@ -1,0 +1,102 @@
+{
+  "denominator_text": "(Percentage of potential GDP at current prices)",
+  "eu27_cells_observed_1995_to_last_observed": 824,
+  "eu27_cells_possible": 837,
+  "eu27_first_observed_year_by_area": {
+    "AUT": 1995,
+    "BEL": 1995,
+    "BGR": 1995,
+    "CYP": 1997,
+    "CZE": 1997,
+    "DEU": 1991,
+    "DNK": 1995,
+    "ESP": 1995,
+    "EST": 1995,
+    "FIN": 1975,
+    "FRA": 1978,
+    "GRC": 1995,
+    "HRV": 2001,
+    "HUN": 1995,
+    "IRL": 1995,
+    "ITA": 1995,
+    "LTU": 1995,
+    "LUX": 1995,
+    "LVA": 1995,
+    "MLT": 1995,
+    "NLD": 1995,
+    "POL": 1995,
+    "PRT": 1995,
+    "ROM": 1995,
+    "SVK": 1996,
+    "SVN": 1997,
+    "SWE": 1993
+  },
+  "files": {
+    "A01": {
+      "retrieved_utc": "2026-10-10T09:37:22+00:00",
+      "sha256": "b460629037dfc994d805b3f236c80feb6c49bc86b3cde3f3cfc32027a08c3005",
+      "size_bytes": 6181987
+    },
+    "A02": {
+      "retrieved_utc": "2026-10-10T09:37:22+00:00",
+      "sha256": "a1a9abd671e9eedfb5a644f7917caee9e3e9168ef04a5dae2d8f99457a403258",
+      "size_bytes": 256498
+    },
+    "A03": {
+      "retrieved_utc": "2026-10-10T09:37:23+00:00",
+      "sha256": "123351dd08395853c583c046e6731dd5e1e2b1538f207e29f0558a6fbbcaed42",
+      "size_bytes": 195280
+    },
+    "A04": {
+      "retrieved_utc": "2026-10-10T09:37:23+00:00",
+      "sha256": "fff66da3853da8d1437984b91fe9fb84b15b0209b9bb84fe3b67c9154064b0a2",
+      "size_bytes": 169312
+    },
+    "A05": {
+      "retrieved_utc": "2026-10-10T09:37:24+00:00",
+      "sha256": "d397b902ed3141f1f5648b15a00d08305768d94cd049898c80c48328109a639e",
+      "size_bytes": 159220
+    },
+    "A06": {
+      "retrieved_utc": "2026-10-10T09:37:24+00:00",
+      "sha256": "4af82c802947cf9ca2118f94e26187fc0278002b64c5149f2405aa72f68220ed",
+      "size_bytes": 161430
+    },
+    "A07": {
+      "retrieved_utc": "2026-10-10T09:37:25+00:00",
+      "sha256": "1da6030ef65a37919dfe7801661d921c70729d6fa4f9256bab36f6f9e64d8f1a",
+      "size_bytes": 210603
+    },
+    "A08": {
+      "retrieved_utc": "2026-10-10T09:37:25+00:00",
+      "sha256": "2ef6cccb87672d1182fb8a4a1bd41c982a01ee2c97634a0a8da426ace9bf21b0",
+      "size_bytes": 257961
+    },
+    "A09": {
+      "retrieved_utc": "2026-10-10T09:37:26+00:00",
+      "sha256": "c8ae466fc6b9e20a69063eb0e56156fd8c0c4e2fce2d63ab3b3763c66bd907ee",
+      "size_bytes": 527883
+    }
+  },
+  "forecast_rule": "last 2 years of a Spring vintage are forecasts (AMECO Reference Metadata)",
+  "forecast_years": [
+    2026,
+    2027
+  ],
+  "label": "Net lending (+) or net borrowing (-) excluding interest of general government adjusted for the cyclical component :- Adjustment based on potential GDP Excessive deficit procedure",
+  "last_observed_year_used": 2025,
+  "max_year_in_vintage": 2027,
+  "obs_status_informative": false,
+  "obs_status_values": [
+    "A"
+  ],
+  "series": "UBLGBP",
+  "sign_convention": "surplus positive",
+  "vintage": {
+    "sdmx_last_update_values": [
+      "03/06/26 09:31:17"
+    ],
+    "season": "spring",
+    "zip_server_last_modified": "Tue, 02 Jun 2026 14:51:24 GMT"
+  }
+}

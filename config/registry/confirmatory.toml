@@ -1,0 +1,44 @@
+# Confirmatory model registry. FROZEN at the pre-registration tag (milestone M3) BEFORE any outcome model is estimated.
+# After the tag, any change is a logged amendment (docs/amendments.md) and the result is reported as post-hoc.
+# Language: associations only. Scheduled elections are predetermined, not exogenous (proposal 9.3; decision log 5).
+
+[registry]
+class = "confirmatory"
+sample = "EU-27, 1995-2021, N = 715 (Gate 3a); extract hash recorded at freeze"
+outcome = "capb: AMECO UBLGBP, pp of potential GDP, surplus positive, Spring 2026 vintage"
+multiplicity = "Holm over the three tests in the family: beta_S, gamma_B, gamma_W (alpha = 0.05 familywise)"
+inference_primary = "wild-cluster bootstrap-t by country (G = 27); CR1 with t(26) reported alongside"
+seed = 42
+
+[[model]]
+id = "M1"
+description = "Two-way fixed effects with fractional scheduled-election exposure and Mundlak-split ageing interaction"
+formula_fixest = "capb ~ W_S + W_E + W_D + W_U + Post + W_S:abar + W_S:adev + a_lag | eurostat_code + year"
+variables = { W_S = "scheduled-election exposure", W_E = "early-election exposure", W_D = "delayed", W_U = "unclassified elections (default treatment: separate regressor)", Post = "12 months after any election", a_lag = "OLDDEP1 at t-1, standardised on the estimation sample", abar = "country mean of a_lag over the estimation sample (standardised)", adev = "a_lag minus abar" }
+controls = ["outgap_lag", "debt_gdp_lag", "ig_diff_lag", "euro_member"]
+controls_note = "Controls enter at t-1 only; contemporaneous output gap, unemployment and inflation are mediators/simultaneous and are omitted (proposal 5.3)."
+period_terms = "W_S interacted with era dummies (1995-2007, 2008-2015, 2016-2021) so that gamma_W is not a time-trend proxy. The era dummies are CENTRED at their exposure-weighted sample means, so beta_S is the average association across eras. Uncentred terms make beta_S the 1995-2007 effect, whose MDE is about 1.8-1.9 pp (Gate 3b, reports/gate3_power_update.md section 8)."
+
+[[hypothesis]]
+id = "H1"
+statement = "beta_S < 0: scheduled-election pre-exposure is associated with a lower CAPB"
+test = "two-sided, beta_S"
+family = "holm3"
+
+[[hypothesis]]
+id = "H2B"
+statement = "gamma_B != 0: the association differs with the country-mean ageing level (cross-country heterogeneity; possibly confounded)"
+test = "two-sided, gamma_B; direction withheld"
+family = "holm3"
+
+[[hypothesis]]
+id = "H2W"
+statement = "gamma_W != 0: the association changes as a country ages relative to its own mean (expected to be imprecise)"
+test = "two-sided, gamma_W; direction withheld"
+family = "holm3"
+
+[[diagnostic]]
+ids = ["modified_wald_heteroskedasticity", "wooldridge_serial_correlation", "pesaran_cd", "cips_unit_root_capb_and_a", "vif_gt_5_flag", "hausman_with_mundlak", "binned_kernel_interaction_linearity", "common_support", "lead_placebo", "rambachan_roth_sensitivity_if_event_study"]
+
+[[amendment_rule]]
+text = "Windows, exposure construction, controls, sample and test family are fixed here. Sample changes (for example the 2022 extension) are sensitivities, not replacements."

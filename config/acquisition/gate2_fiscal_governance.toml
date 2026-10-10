@@ -1,0 +1,32 @@
+# Gate 2: EC Fiscal Governance Database audit inputs. PENDING USER APPROVAL (nothing downloaded yet).
+# Page stated: current NFR database 175.24 KB, dated 5 March 2026; old-methodology file 373.5 KB, dated 6 March 2017.
+
+[release]
+source_id = "fiscal_governance"
+vintage = "nfr_2025_update"
+release_label = "Numerical Fiscal Rules database, 2025 update (last update 5 March 2026), plus the old-methodology file for break audit"
+manifest_dir = "data/raw/fiscal_governance/nfr_2025_update"
+provider = "European Commission, DG ECFIN"
+landing_page = "https://economy-finance.ec.europa.eu/economic-research-and-databases/economic-databases/fiscal-governance-database_en"
+
+[[file]]
+id = "F01"
+role = "current rule database and Fiscal Rule Strength Index (1990-2024)"
+url = "https://economy-finance.ec.europa.eu/document/download/57a58927-0240-4bc2-8686-f2c8cb50bf19_en?filename=Numerical-Fiscal-Rules-database-2025.xlsx"
+dest = "data/raw/fiscal_governance/nfr_2025_update/Numerical-Fiscal-Rules-database-2025.xlsx"
+content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+expected_size_bytes = 179446
+size_basis = "page_stated"
+licence_status = "not stated on page; legal notice not read"
+note = "Page: 175.24 KB. Server HEAD and ranged GET do not reveal the total size."
+
+[[file]]
+id = "F02"
+role = "old-methodology (2016 update) database, to audit the methodological break; do not splice"
+url = "https://economy-finance.ec.europa.eu/document/download/8a4717d6-0689-486a-8e60-cc45f06d5737_en?filename=fiscal_rules_database_en_old_methodology.xls"
+dest = "data/raw/fiscal_governance/nfr_2025_update/fiscal_rules_database_en_old_methodology.xls"
+content_type = "application/vnd.ms-excel"
+expected_size_bytes = 382464
+size_basis = "page_stated"
+licence_status = "not stated on page; legal notice not read"
+note = "Page: 373.5 KB, dated 6 March 2017."
