@@ -50,11 +50,13 @@ def test_registries_have_expected_classes_and_unique_ids():
             seen.add(model["id"])
 
 
-def test_confirmatory_family_is_exactly_three_tests_under_holm():
+def test_confirmatory_family_is_two_powered_tests_under_holm_and_gamma_w_is_descriptive():
     doc = _load(REGISTRY / "confirmatory.toml")
     hyp = {h["id"]: h for h in doc["hypothesis"]}
-    assert set(hyp) == {"H1", "H2B", "H2W"}
-    assert {h["family"] for h in hyp.values()} == {"holm3"}
+    assert set(hyp) == {"H1", "H2B"}
+    assert {h["family"] for h in hyp.values()} == {"holm2"}
+    assert [d["id"] for d in doc["descriptive"]] == ["H2W"]
+    assert "NOT POWERED" in doc["descriptive"][0]["statement"]
     assert "Holm" in doc["registry"]["multiplicity"]
     formula = doc["model"][0]["formula"]
     for term in ("W_S", "W_E", "W_D", "W_U", "Post", "W_S:abar", "W_S:adev", "a_lag", "eurostat_code + year"):
@@ -63,9 +65,7 @@ def test_confirmatory_family_is_exactly_three_tests_under_holm():
 
 def test_ageing_interaction_direction_is_not_pre_registered():
     doc = _load(REGISTRY / "confirmatory.toml")
-    for hid in ("H2B", "H2W"):
-        text = next(h for h in doc["hypothesis"] if h["id"] == hid)["test"]
-        assert "direction withheld" in text
+    assert "direction withheld" in next(h for h in doc["hypothesis"] if h["id"] == "H2B")["test"]
 
 
 def test_fiscal_rule_moderation_is_exploratory_only():

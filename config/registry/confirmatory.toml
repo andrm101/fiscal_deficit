@@ -6,13 +6,14 @@
 class = "confirmatory"
 sample = "EU-27, 1995-2021, N = 715 (Gate 3a); extract hash recorded at freeze"
 outcome = "capb: AMECO UBLGBP, pp of potential GDP, surplus positive, Spring 2026 vintage"
-multiplicity = "Holm over the three tests in the family: beta_S, gamma_B, gamma_W (alpha = 0.05 familywise)"
+multiplicity = "Holm over the two tests in the family: beta_S, gamma_B (alpha = 0.05 familywise). gamma_W was demoted to descriptive by rule D-C after Gate 3c (wild-bootstrap MDE of 1.08 pp or more under every variant, 1.93 pp under OLS)"
 inference_primary = "wild-cluster bootstrap-t by country (G = 27); CR1 with t(26) reported alongside"
 seed = 42
 
 [[model]]
 id = "M1"
 description = "Two-way fixed effects with fractional scheduled-election exposure and Mundlak-split ageing interaction"
+estimator_status = "OPEN (Gate 3d decision): feasible WLS + AR(1) GLS with wild-cluster bootstrap that re-estimates weights and rho in every resample; with or without the controls that survived trigger T4 (see docs/decision_log.md)"
 engine = "Python: fixed-effects engine of src/evaluate/power.py promoted to src/models/py; cross-checked against statsmodels and linearmodels"
 formula = "capb ~ W_S + W_E + W_D + W_U + Post + W_S:abar + W_S:adev + a_lag | eurostat_code + year"
 variables = { W_S = "scheduled-election exposure", W_E = "early-election exposure", W_D = "delayed", W_U = "unclassified elections (default treatment: separate regressor)", Post = "12 months after any election", a_lag = "OLDDEP1 at t-1, standardised on the estimation sample", abar = "country mean of a_lag over the estimation sample (standardised)", adev = "a_lag minus abar" }
@@ -24,19 +25,18 @@ period_terms = "W_S interacted with era dummies (1995-2007, 2008-2015, 2016-2021
 id = "H1"
 statement = "beta_S < 0: scheduled-election pre-exposure is associated with a lower CAPB"
 test = "two-sided, beta_S"
-family = "holm3"
+family = "holm2"
 
 [[hypothesis]]
 id = "H2B"
 statement = "gamma_B != 0: the association differs with the country-mean ageing level (cross-country heterogeneity; possibly confounded)"
 test = "two-sided, gamma_B; direction withheld"
-family = "holm3"
+family = "holm2"
 
-[[hypothesis]]
+[[descriptive]]
 id = "H2W"
-statement = "gamma_W != 0: the association changes as a country ages relative to its own mean (expected to be imprecise)"
-test = "two-sided, gamma_W; direction withheld"
-family = "holm3"
+statement = "gamma_W: whether the association changes as a country ages relative to its own mean. NOT POWERED (decision D-C): reported as an estimate with its interval, no test and no Holm adjustment"
+reason = "Gate 3c: wild-bootstrap MDE at the estimated rho is 1.08 pp per SD under the best variant and 1.93 pp under OLS with the registry era terms"
 
 [[diagnostic]]
 ids = ["modified_wald_heteroskedasticity", "wooldridge_serial_correlation", "pesaran_cd", "cips_unit_root_capb_and_a", "vif_gt_5_flag", "hausman_with_mundlak", "binned_kernel_interaction_linearity", "common_support", "lead_placebo", "rambachan_roth_sensitivity_if_event_study"]

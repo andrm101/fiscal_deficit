@@ -207,3 +207,20 @@ The confirmatory design as registered will most likely return intervals too wide
 | 16 | Clean-clone reproduction; supervisor revisions; submission package | M8 |
 
 Writing runs in parallel from Week 5. The freeze in Week 4 is the one hard dependency: no outcome model is run before it.
+
+### 7.5 Gate 3c outcome (2026-10-11): reports/gate3c_specification_power.md, reports/gate4_controls_coverage.md
+
+**Controls and trigger T4.** All 14 assumed Eurostat code combinations exist; 660 negative values survive the new reader; flags p (135) and b (15) are kept. Coverage on the 715-row sample: lagged output gap 98.3%, lagged debt 96.2%, lagged interest–growth differential 92.9%, euro membership 100%. The pre-registered drop order removes the interest–growth differential (it needs 1993 inputs that do not exist: Eurostat debt and GDP start in 1995) and then debt (0.8 points under the 97% line). Survivors: lagged output gap and euro membership. Because AMECO's output gap starts in 1995–97 for 12 country-years, a complete-case sample with these controls has **N = 703, not 715**.
+
+**Power-only comparison (no effect estimates computed; reported by the agent and not independently re-run).** Wild-cluster bootstrap MDE at the estimated ρ (pp; β_S / γ_B / γ_W): V0 baseline OLS 0.70 / 1.08 / 1.93; V1 + controls 0.70 / 1.16 / 2.01; V3 feasible WLS 0.59 / 0.76 / 1.45; V4 AR(1) GLS 0.58 / 0.80 / 1.16; V5 lagged outcome 0.72 / 0.98 / 1.47; **V6 controls + WLS + AR(1) 0.53 / 0.65 / 1.08**. Bootstrap size is 4.2–6.1% for all variants; bias at a true 0.5 pp is under 1% for V3, V4, V6 (−4.1% for V5). CR1 over-rejects for the feasible-GLS variants (about 8–10%), so **the wild bootstrap, re-estimating weights and ρ in every resample, is the only valid inference for them**. The mechanical selection rule picks V6.
+
+**How to read it.**
+1. The gain comes from the **estimators**, not the controls. On identical noise V1 (+ controls) is no better than V0 (0.70 vs 0.70), while V3 and V4 each gain 16–17%. The controls only cost sample size.
+2. The AR(1) part depends on ρ = 0.69 being right: V4 at ρ = 0 gives 0.98 pp, no better than OLS. Feasible WLS is robust to ρ (0.81 pp at ρ = 0).
+3. The registry's era terms leave β_S alone but raise the γ_W MDE from 0.90 to 1.93 pp under OLS (they absorb most of the within-country ageing variation).
+4. V6 is still AMBER for β_S (0.53 pp at the estimated ρ vs the 0.50 line; 0.79 pp at ρ = 0 vs 0.75). Power against the literature benchmarks is 60% (0.41 pp) and 74% (0.49 pp) at the estimated ρ, and 34% and 44% at ρ = 0 (indicative: different outcomes and designs).
+5. Choosing a variant by power on the same panel is a researcher degree of freedom. It is mitigated because only noise calibrations were used, but the freeze must record the choice and the report hash.
+
+**Decisions applied or open.**
+- **D-C applied (rule you accepted):** γ_W is "not powered" (1.08 pp or more under every variant), so it is reported descriptively; the Holm family is {β_S, γ_B} (`config/registry/confirmatory.toml`). γ_B is powered only under a feasible-GLS estimator (0.65–0.80 pp; 1.08 pp under OLS). Consequence for the thesis: it cannot test whether election associations change as a country ages relative to its own mean; the confirmatory ageing test is the between-country term only, which is potentially confounded (decision 5).
+- **Open (D-B, Gate 3d):** V6 as selected, or a simpler variant without the controls. The selection rule's tie-break prefers the simpler variant within 5%, and V3 + V4 *without* controls was not among the candidates. Recommended: run that one extra candidate (V7 = V0 + WLS + AR(1), N = 715) before the freeze. If it is within 5% of V6 it wins by the rule, N stays 715, and the controls become a robustness model. Estimated cost: a few hours of compute.
