@@ -76,25 +76,71 @@ columns = [
 rules = ["no CAPB column present", "additive variants (*_add) may exceed 1 only where flagged additive_exceeds_one"]
 
 [gold.panel_country_year]
-status = "planned (M3); assembled from silver tables via src/evaluate/sample.py build_panel"
+status = "exists (M3 part 1): src/features/panel.py builds it, src/evaluate/gates.py enforces it; written to data/processed/gold/ only when every gate passes"
 key = ["eurostat_code", "year"]
+# The gold panel holds the 27 countries x 1995-2021 = 729 rows; `in_confirmatory` marks the 715 rows of the Gate 3a sample and
+# `in_robustness_703` the complete cases of outgap_lag and euro_member. Units: percentage points (pp) of potential GDP for
+# capb and sec_cyclical_component; per cent of GDP for every other sec_ column; per 100 persons for olddep*, years for medage.
 columns = [
   { name = "eurostat_code", type = "str" },
   { name = "year", type = "int", rule = "1995 <= year <= 2021 for the confirmatory extract" },
-  { name = "capb", type = "float", rule = "UBLGBP, pp of potential GDP, surplus positive, -50 < x < 30" },
-  { name = "W_S", type = "float" }, { name = "W_E", type = "float" }, { name = "W_D", type = "float" },
-  { name = "W_U", type = "float" }, { name = "Post", type = "float" },
-  { name = "olddep1_lag", type = "float", rule = "OLDDEP1 at t-1, per 100" },
+  { name = "capb", type = "float", nullable = true, rule = "UBLGBP, pp of potential GDP, surplus positive, -50 < x < 30; null only outside the confirmatory extract" },
+  { name = "W_S", type = "float", nullable = true, rule = "0 <= x <= 1" }, { name = "W_E", type = "float", nullable = true, rule = "0 <= x <= 1" },
+  { name = "W_D", type = "float", nullable = true, rule = "0 <= x <= 1" }, { name = "W_U", type = "float", nullable = true, rule = "0 <= x <= 1" },
+  { name = "Post", type = "float", nullable = true, rule = "0 <= x <= 1" },
+  { name = "W_S_gf", type = "float", nullable = true }, { name = "W_E_gf", type = "float", nullable = true }, { name = "W_D_gf", type = "float", nullable = true },
+  { name = "W_U_gf", type = "float", nullable = true }, { name = "Post_gf", type = "float", nullable = true },
+  { name = "exposure_complete_cv", type = "bool" },
+  { name = "exposure_complete_etad", type = "bool" },
+  { name = "touches_unclassified_or_delayed", type = "bool" },
+  { name = "olddep1_lag", type = "float", nullable = true, rule = "OLDDEP1 at t-1, per 100 persons aged 15-64" },
   { name = "olddep1_lag_flag", type = "str", nullable = true },
+  { name = "olddep3_lag", type = "float", nullable = true, rule = "OLDDEP3 at t-1 (robustness moderator S5)" },
+  { name = "olddep3_lag_flag", type = "str", nullable = true },
+  { name = "medage_lag", type = "float", nullable = true, rule = "MEDAGEPOP at t-1, years (robustness moderator S5)" },
+  { name = "medage_lag_flag", type = "str", nullable = true },
   { name = "outgap_lag", type = "float", nullable = true, rule = "AVGDGP at t-1" },
   { name = "debt_gdp_lag", type = "float", nullable = true, rule = "Eurostat GD, % of GDP, at t-1" },
+  { name = "debt_gdp_lag_flag", type = "str", nullable = true },
   { name = "ig_diff_lag", type = "float", nullable = true, rule = "(i-g)/(1+g) at t-1, i = D41PAY / lagged GD" },
+  { name = "ig_diff_lag_flag", type = "str", nullable = true },
   { name = "euro_member", type = "bool" },
+  { name = "sec_primary_balance_edp", type = "float", nullable = true, rule = "AMECO UBLGIE selected by the text (Percentage of GDP ... excessive deficit procedure), % of GDP, surplus positive" },
+  { name = "sec_net_lending_b9", type = "float", nullable = true, rule = "Eurostat gov_10a_main B9, % of GDP" },
+  { name = "sec_d_capb", type = "float", nullable = true, rule = "capb_t - capb_{t-1} by explicit calendar join, pp of potential GDP" },
+  { name = "sec_primary_expenditure", type = "float", nullable = true, rule = "TE - D41PAY, % of GDP" },
+  { name = "sec_total_expenditure", type = "float", nullable = true, rule = "TE, % of GDP" },
+  { name = "sec_interest_d41pay", type = "float", nullable = true, rule = "D41PAY, % of GDP" },
+  { name = "sec_revenue", type = "float", nullable = true, rule = "TR, % of GDP" },
+  { name = "sec_social_benefits_d62", type = "float", nullable = true, rule = "D62PAY, % of GDP" },
+  { name = "sec_social_transfers_kind_d632", type = "float", nullable = true, rule = "D632PAY, % of GDP" },
+  { name = "sec_cofog_total", type = "float", nullable = true, rule = "gov_10a_exp TE, TOTAL, % of GDP" },
+  { name = "sec_cofog_gf10", type = "float", nullable = true, rule = "gov_10a_exp TE, GF10 social protection, % of GDP" },
+  { name = "sec_cofog_gf1002", type = "float", nullable = true, rule = "gov_10a_exp TE, GF1002 old age, % of GDP" },
+  { name = "sec_cofog_gf07", type = "float", nullable = true, rule = "gov_10a_exp TE, GF07 health, % of GDP" },
+  { name = "sec_cyclical_component", type = "float", nullable = true, rule = "AMECO UBLGCP, pp of potential GDP (diagnostic; descriptives only)" },
+  { name = "sec_obs_flags", type = "str", nullable = true, rule = "'column:flag;...' for flagged Eurostat observations of the sec_ columns" },
   { name = "in_confirmatory", type = "bool" },
+  { name = "in_robustness_703", type = "bool", rule = "in_confirmatory and outgap_lag and euro_member observed" },
 ]
 rules = [
   "unique (eurostat_code, year)",
   "confirmatory extract has exactly 715 rows and 27 countries (Gate 3a); a change requires a new frozen extract hash",
   "no forecast-year row; no negative CAPB removed; flags carried",
   "coverage gate fails the build when joint coverage < 97% of cells or any retained country has < 20 observations",
+  "coverage is measured on the 729-row window panel (retained countries x 1995-2021) before complete-case selection; after selection it would be 100% by construction",
+  "the gates in the table below fail the build (GateFailure, non-zero exit) and no output file is written",
 ]
+
+# Numeric parameters read by src/evaluate/gates.py (GateConfig.from_contract).
+[gold.panel_country_year.gates]
+confirmatory_rows = 715
+confirmatory_countries = 27
+year_min = 1995
+year_max = 2021
+coverage_min = 0.97
+min_obs_per_country = 20
+capb_lower_exclusive = -50.0
+capb_upper_exclusive = 30.0
+w_lower = 0.0
+w_upper = 1.0

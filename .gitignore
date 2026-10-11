@@ -39,3 +39,9 @@ data/raw/ameco_archive/*
 !data/raw/ameco_archive/README.md
 
 # Everything else under data/raw (ParlGov: CC0; Eurostat: reuse with acknowledgement) is committed.
+
+# Gold panel contains AMECO-derived series (redistribution terms unverified): only its extract hash is committed.
+data/processed/*
+!data/processed/gold/
+data/processed/gold/*
+!data/processed/gold/panel_country_year.sha256

@@ -26,7 +26,12 @@ The pipeline is **offline-first** (ADR-001). Only `src/ingest/acquire.py` may us
 ```bash
 python src/ingest/acquire.py --manifest config/acquisition/gate1_ameco_2026_spring.toml --dry-run
 python src/ingest/acquire.py --manifest config/acquisition/gate1_ameco_2026_spring.toml --allow-network
-python -m pytest tests -q
+```
+
+Run the tests with the project environment, not whatever `pytest` is on PATH (`tests/test_environment.py` fails with a clear message otherwise):
+
+```bash
+.venv/Scripts/python.exe -m pytest tests -q   # Windows;  .venv/bin/python -m pytest tests -q elsewhere
 ```
 
 ### Environment

@@ -19,3 +19,7 @@ Read from the providers' own pages on 2026-10-10 unless marked otherwise. "Commi
 ## Open items
 
 AMECO, EC Fiscal Governance Database and ETAD terms are unverified (R07). Until they are read from the providers, those raw files stay out of version control. The code in this repository is MIT-licensed (see `LICENSE`).
+
+## Derived tables and figures
+
+Figures and tables in `reports/` that summarise AMECO, Eurostat, ParlGov or ETAD data carry a source line on the figure itself. The gold panel (`data/processed/gold/`) is not committed because it contains AMECO-derived series; its SHA-256 is.
