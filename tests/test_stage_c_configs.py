@@ -95,3 +95,13 @@ def test_contracts_define_all_layers_and_keys():
     assert any("715" in r for r in gold["rules"])
     exposure = doc["silver"]["exposure_country_year"]
     assert "no CAPB column present" in exposure["rules"]
+
+
+def test_primary_estimator_is_v7_without_controls_and_robustness_controls_are_the_t4_survivors():
+    doc = _load(REGISTRY / "confirmatory.toml")
+    model = doc["model"][0]
+    assert model["estimator_status"].startswith("SELECTED (Gate 3d")
+    assert "feasible WLS" in model["estimator_status"] and "AR(1)" in model["estimator_status"]
+    assert model["controls"] == []
+    assert model["robustness_controls"] == ["outgap_lag", "euro_member"]
+    assert "wild-cluster bootstrap" in model["estimator_status"]

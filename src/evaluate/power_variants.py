@@ -19,6 +19,10 @@ V4 AR(1) feasible GLS (Prais-Winsten quasi-differencing, rows after a gap restar
 V5 Lagged-dependent-variable model (``capb_{t-1}`` regressor, first year of every run lost). Reported as a
    bias-versus-power check: its W_S coefficient is a short-run effect, so against a static true effect it carries bias.
 V6 The mechanical combination of the components that pass the stand-alone screen (see ``choose_v6_components``).
+V7 (Gate 3d) The registry baseline V0 (era terms, N = 715, NO controls) estimated by feasible WLS AND AR(1) feasible GLS: V6
+   without the controls; designated DGP ``F``; complexity 2. ``V7@703`` is the same estimator on the 703 complete-case rows
+   of V6 (rows lacking the lagged output gap dropped, the control itself NOT a regressor): it separates the sample change from
+   the controls, and is not eligible for selection.
 
 Data-generating processes (``DGP_LABELS``)
 ------------------------------------------
@@ -144,9 +148,14 @@ def variant_regressors(frame: pd.DataFrame, *, era: bool = True, control_names: 
     return combined, scale, targets
 
 
-def build_variant_design(frame: pd.DataFrame, label: str, *, era: bool = True, control_names: tuple[str, ...] = (), ireland_indicator: bool = False) -> power.Design:
-    """:class:`power.Design` of a variant on the (complete-case) sample frame."""
-    frame = variant_frame(frame, control_names)
+def build_variant_design(frame: pd.DataFrame, label: str, *, era: bool = True, control_names: tuple[str, ...] = (), ireland_indicator: bool = False,
+                         restrict_names: tuple[str, ...] = ()) -> power.Design:
+    """:class:`power.Design` of a variant on the (complete-case) sample frame.
+
+    ``restrict_names`` are columns whose complete cases define the sample WITHOUT entering the regressors (the V7@703 sample
+    change); ``control_names`` both restrict the sample and enter as regressors.
+    """
+    frame = variant_frame(frame, tuple(dict.fromkeys((*control_names, *restrict_names))))
     regressors, scale, targets = variant_regressors(frame, era=era, control_names=control_names, ireland_indicator=ireland_indicator)
     return power.build_design(frame, label=label, regressors=regressors, targets=targets, scale=scale)
 
@@ -454,6 +463,8 @@ class VariantSpec:
     dgps: tuple[str, ...] = ("F",)
     designated_dgp: str = "F"
     complexity: int = 0  # number of modifications relative to V0
+    restrict_to_control_sample: bool = False  # complete-case rows of the surviving controls, which are NOT regressors (V7@703)
+    eligible: bool = True  # False: reported but never selected (V7@703)
 
     @property
     def fast(self) -> bool:
@@ -471,7 +482,12 @@ VARIANT_SPECS: dict[str, VariantSpec] = {
     "V4": VariantSpec("V4", "V0, AR(1) feasible GLS (Prais-Winsten, Nickell-corrected rho per draw)", estimator="gls", ar1=True, complexity=1),
     "V5": VariantSpec("V5", "V0 + lagged dependent variable (bias check)", estimator="ldv", complexity=1),
 }
-SIMPLICITY_ORDER = ("V0", "V1", "V2i", "V2w", "V3", "V4", "V5", "V6")  # tie-break order of the selection rule
+GATE3D_SPECS: dict[str, VariantSpec] = {  # Gate 3d: added to the context by ``Context`` but not to ``VARIANT_SPECS`` (the 3c job lists stay unchanged)
+    "V7": VariantSpec("V7", "V0 (N = 715, no controls), feasible WLS + AR(1) GLS", estimator="gls", wls=True, ar1=True, complexity=2),
+    "V7@703": VariantSpec("V7@703", "V7 on the 703 complete-case rows of V6 (no controls as regressors; not eligible)", estimator="gls", wls=True, ar1=True, complexity=2,
+                          restrict_to_control_sample=True, eligible=False),
+}
+SIMPLICITY_ORDER = ("V0", "V1", "V2i", "V2w", "V3", "V4", "V5", "V7", "V6")  # tie-break order of the selection rule (Gate 3d: V7, complexity 2, sits before V6, complexity 3)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -536,7 +552,7 @@ class Context:
         self.frame = frame if controls_attached else controls_module.attach_controls(frame)
         self.t4 = controls_module.apply_t4_rule(self.frame)
         self.control_names = tuple(self.t4.surviving)
-        self.specs: dict[str, VariantSpec] = dict(VARIANT_SPECS)
+        self.specs: dict[str, VariantSpec] = {**VARIANT_SPECS, **GATE3D_SPECS}
         self._designs: dict[str, power.Design] = {}
         self._params: dict[tuple[str, str], DgpParams] = {}
         self.design_ref = self.design_of(self.specs["V0n"])
@@ -547,7 +563,8 @@ class Context:
         """Design of the spec's regressors on its complete-case sample (cached)."""
         if spec.vid not in self._designs:
             self._designs[spec.vid] = build_variant_design(
-                self.frame, spec.vid, era=spec.era, control_names=self.control_names if spec.use_controls else (), ireland_indicator=spec.ireland_indicator)
+                self.frame, spec.vid, era=spec.era, control_names=self.control_names if spec.use_controls else (), ireland_indicator=spec.ireland_indicator,
+                restrict_names=self.control_names if spec.restrict_to_control_sample else ())
         return self._designs[spec.vid]
 
     def _params_from(self, label: str, cal: power.Calibration, spike: float = 0.0) -> DgpParams:
@@ -643,7 +660,7 @@ def build_variant(ctx: Context, spec: VariantSpec) -> Variant:
     """Design and estimator of a spec on the context's sample."""
     design = ctx.design_of(spec)
     if spec.estimator == "ldv":
-        frame = variant_frame(ctx.frame, ctx.control_names if spec.use_controls else ())
+        frame = variant_frame(ctx.frame, ctx.control_names if (spec.use_controls or spec.restrict_to_control_sample) else ())
         regressors, _, targets = variant_regressors(frame, era=spec.era, control_names=ctx.control_names if spec.use_controls else (), ireland_indicator=spec.ireland_indicator)
         return Variant(spec, design, LdvEstimator(design, frame, regressors, targets))
     return Variant(spec, design, GlsEstimator(design, wls=spec.wls, ar1=spec.ar1, winsor=spec.winsor))
@@ -856,7 +873,7 @@ def evaluate_candidates(df: pd.DataFrame, specs: dict[str, VariantSpec], dgp_mod
     """
     rows = []
     for vid, spec in specs.items():
-        if vid in exclude:
+        if vid in exclude or not spec.eligible:
             continue
         dgp = spec.designated_dgp if dgp_mode == "designated" else dgp_mode
         sub = df[(df["vid"] == vid) & (df["dgp"] == dgp) & (df["target"] == "beta_S")]
@@ -932,11 +949,12 @@ def load_v6(cache: Path) -> VariantSpec | None:
 
 
 STAGE_A = ("V4", "V3", "V2w", "V5", "V0n", "V0", "V1", "V2i")  # slow generic-engine variants first for load balance
+STAGE_C = ("V7", "V7@703")  # Gate 3d: the added candidate and its sample-change control
 
 
 def job_list(stage: str, specs: dict[str, VariantSpec]) -> list[tuple[str, str, str]]:
-    """(variant, DGP, scenario) triples of a stage (``A``: V0n..V5, ``B``: V6)."""
-    vids = STAGE_A if stage == "A" else ("V6",)
+    """(variant, DGP, scenario) triples of a stage (``A``: V0n..V5, ``B``: V6, ``C``: V7 and V7@703)."""
+    vids = {"A": STAGE_A, "B": ("V6",), "C": STAGE_C}[stage]
     return [(v, dgp, s) for v in vids if v in specs for dgp in specs[v].dgps for s in SCENARIO_NAMES]
 
 
@@ -953,11 +971,19 @@ def _pick(df: pd.DataFrame, vid: str, dgp: str, scenario: str, target: str, colu
     return float(sub[column].iloc[0]) if len(sub) else float("nan")
 
 
-def mde_table(df: pd.DataFrame, specs: dict[str, VariantSpec], dgp_of, vids: list[str]) -> str:
-    """Variant x target table of wild-bootstrap MDEs at rho_hat, rho = 0 and the block bootstrap (plus CR1 at rho_hat)."""
+def _vid_dgp(entry: "str | tuple[str, str]", specs: dict[str, VariantSpec], dgp_of) -> tuple[str, str]:
+    """``(vid, dgp)`` of a table entry: an explicit pair, or a variant id whose DGP is ``dgp_of(spec)``."""
+    return entry if isinstance(entry, tuple) else (entry, dgp_of(specs[entry]))
+
+
+def mde_table(df: pd.DataFrame, specs: dict[str, VariantSpec], dgp_of, vids: "list[str | tuple[str, str]]") -> str:
+    """Variant x target table of wild-bootstrap MDEs at rho_hat, rho = 0 and the block bootstrap (plus CR1 at rho_hat).
+
+    An entry of ``vids`` may be a ``(vid, dgp)`` pair to show a variant under a DGP other than ``dgp_of(spec)``.
+    """
     rows = []
-    for vid in vids:
-        dgp = dgp_of(specs[vid])
+    for entry in vids:
+        vid, dgp = _vid_dgp(entry, specs, dgp_of)
         row: dict[str, object] = {"variant": vid, "DGP": dgp, "N": int(df[(df["vid"] == vid) & (df["dgp"] == dgp)]["n_obs"].iloc[0]) if len(df[(df["vid"] == vid) & (df["dgp"] == dgp)]) else ""}
         for t in ("beta_S", "gamma_B", "gamma_W"):
             for scen, tag in (("ar1_rho_hat", "rho_hat"), ("ar1_rho0", "rho=0"), ("block_bootstrap", "block")):
@@ -967,13 +993,13 @@ def mde_table(df: pd.DataFrame, specs: dict[str, VariantSpec], dgp_of, vids: lis
     return power.md_table(pd.DataFrame(rows), floatfmt=".3f")
 
 
-def size_table(df: pd.DataFrame, specs: dict[str, VariantSpec], dgp_of, vids: list[str]) -> str:
+def size_table(df: pd.DataFrame, specs: dict[str, VariantSpec], dgp_of, vids: "list[str | tuple[str, str]]") -> str:
     """Null rejection rates by variant, target, inference method and scenario; ``!`` marks values outside 3.5-6.5 per cent."""
     rows = []
-    for vid in vids:
-        dgp = dgp_of(specs[vid])
+    for entry in vids:
+        vid, dgp = _vid_dgp(entry, specs, dgp_of)
         for t in ("beta_S", "gamma_B", "gamma_W"):
-            row: dict[str, object] = {"variant": vid, "target": t}
+            row: dict[str, object] = {"variant": f"{vid} ({dgp})" if isinstance(entry, tuple) else vid, "target": t}
             flags = []
             for method, column in (("CR1", "cr1_size"), ("WCB", "wcb_size")):
                 for scen, tag in (("ar1_rho_hat", "rho_hat"), ("ar1_rho0", "rho=0"), ("block_bootstrap", "block")):
@@ -986,17 +1012,17 @@ def size_table(df: pd.DataFrame, specs: dict[str, VariantSpec], dgp_of, vids: li
     return power.md_table(pd.DataFrame(rows))
 
 
-def bias_table(df: pd.DataFrame, specs: dict[str, VariantSpec], dgp_of, vids: list[str]) -> str:
+def bias_table(df: pd.DataFrame, specs: dict[str, VariantSpec], dgp_of, vids: "list[str | tuple[str, str]]") -> str:
     """Bias, relative bias, RMSE and SD of each target's estimate when its true effect is ``TRUE_EFFECT``."""
     rows = []
-    for vid in vids:
-        dgp = dgp_of(specs[vid])
+    for entry in vids:
+        vid, dgp = _vid_dgp(entry, specs, dgp_of)
         for t in ("beta_S", "gamma_B", "gamma_W"):
             sub = df[(df["vid"] == vid) & (df["dgp"] == dgp) & (df["scenario"] == "ar1_rho_hat") & (df["target"] == t)]
             if sub.empty:
                 continue
             r = sub.iloc[0]
-            rows.append({"variant": vid, "target": t, "bias (pp)": r["bias"], "relative bias": f"{100 * r['rel_bias']:.1f}%", "MC SE of bias": r["mc_se_bias"], "RMSE (pp)": r["rmse"], "SD (pp)": r["sd"]})
+            rows.append({"variant": f"{vid} ({dgp})" if isinstance(entry, tuple) else vid, "target": t, "bias (pp)": r["bias"], "relative bias": f"{100 * r['rel_bias']:.1f}%", "MC SE of bias": r["mc_se_bias"], "RMSE (pp)": r["rmse"], "SD (pp)": r["sd"]})
     return power.md_table(pd.DataFrame(rows), floatfmt=".3f")
 
 
@@ -1254,6 +1280,190 @@ def render_report(df: pd.DataFrame, ctx: Context, cache: Path, settings_note: st
     return "\n".join(lines)
 
 
+# ---------------------------------------------------------------------------------------------
+# Gate 3d report: V7 against the Gate 3c variants (reuses the tables above)
+# ---------------------------------------------------------------------------------------------
+REPORT_3D_PATH = PROJECT_ROOT / "reports" / "gate3d_v7_candidate.md"
+REFERENCE_PAIRS_3D = (("V0", "F"), ("V3", "F"), ("V4", "F"), ("V6", "F"), ("V6", "O"))  # shown beside V7 and V7@703
+
+
+def max_abs_difference(a: object, b: object) -> float:
+    """Largest absolute numeric difference between two nested job results (``seconds`` ignored; non-numeric leaves must be equal)."""
+    if isinstance(a, dict) and isinstance(b, dict):
+        keys = (set(a) | set(b)) - {"seconds"}
+        return max([max_abs_difference(a.get(k), b.get(k)) for k in keys] or [0.0])
+    if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+        return float("inf") if len(a) != len(b) else max([max_abs_difference(x, y) for x, y in zip(a, b)] or [0.0])
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)) and not isinstance(a, bool) and not isinstance(b, bool):
+        return 0.0 if (a == b or (a != a and b != b)) else abs(float(a) - float(b))
+    return 0.0 if a == b else float("inf")
+
+
+def reproduction_table(old: pd.DataFrame, new: pd.DataFrame, pairs: "list[tuple[str, str]]", old_cache: Path, new_cache: Path) -> tuple[str, str, float]:
+    """Gate 3c results against a fresh re-run of the same jobs: a per-target table, a per-job table and the largest absolute difference.
+
+    The per-job figure compares every number in the two job files (including the simulated rejection rates), not only the table columns.
+    """
+    import json
+
+    rows, job_rows, worst = [], [], 0.0
+    for vid, dgp in pairs:
+        for scen in SCENARIO_NAMES:
+            if new[(new["vid"] == vid) & (new["dgp"] == dgp) & (new["scenario"] == scen)].empty:
+                job_rows.append({"job": f"{vid}:{dgp}:{scen}", "max abs difference over every number in the job file": "not re-run"})
+                continue
+            for t in ("beta_S", "gamma_B", "gamma_W"):
+                row: dict[str, object] = {"job": f"{vid}:{dgp}:{scen}", "target": t}
+                for label, column in (("WCB MDE", "wcb_mde"), ("CR1 MDE", "cr1_mde"), ("WCB size", "wcb_size"), ("rel bias", "rel_bias")):
+                    if scen != "ar1_rho_hat" and column == "rel_bias":
+                        continue
+                    row[f"{label} 3c"], row[f"{label} re-run"] = _pick(old, vid, dgp, scen, t, column), _pick(new, vid, dgp, scen, t, column)
+                rows.append(row)
+            a_res = json.loads(cache_path(old_cache, vid, dgp, scen).read_text(encoding="utf-8"))
+            b_res = json.loads(cache_path(new_cache, vid, dgp, scen).read_text(encoding="utf-8"))
+            diff = max_abs_difference(a_res, b_res)
+            worst = max(worst, diff)
+            job_rows.append({"job": f"{vid}:{dgp}:{scen}", "max abs difference over every number in the job file": f"{diff:.3g}"})
+    return power.md_table(pd.DataFrame(rows).astype(object).fillna("-"), floatfmt=".4f"), power.md_table(pd.DataFrame(job_rows)), worst
+
+
+def render_report_3d(df: pd.DataFrame, repro: pd.DataFrame, cache: Path, repro_cache: Path, settings_note: str) -> str:
+    """Markdown of ``reports/gate3d_v7_candidate.md``; every number comes from the completed job files of ``cache`` and ``repro_cache``."""
+    specs = {**VARIANT_SPECS, **GATE3D_SPECS}
+    v6 = load_v6(cache)
+    if v6 is not None:
+        specs["V6"] = v6
+    g = lambda v, d, sc, t, c="wcb_mde": _pick(df, v, d, sc, t, c)  # noqa: E731
+    cand = evaluate_candidates(df, specs, "designated")
+    choice, tied = select_variant(cand)
+    cand_f = evaluate_candidates(df, specs, "F")
+    choice_f, tied_f = select_variant(cand_f)
+    eligible = cand[cand["size_valid"] & cand["bias_ok"]]
+    best_row = eligible.sort_values("mde_wcb_rho_hat").iloc[0]
+    best = float(best_row["mde_wcb_rho_hat"])
+    thr = best * (1 + TIE_TOLERANCE)
+    v7, v7_703 = g("V7", "F", "ar1_rho_hat", "beta_S"), g("V7@703", "F", "ar1_rho_hat", "beta_S")
+    v6_o, v6_f = g("V6", "O", "ar1_rho_hat", "beta_S"), g("V6", "F", "ar1_rho_hat", "beta_S")
+    v7_in = bool(v7 <= thr)
+    v7_row = cand[cand["variant"] == "V7"].iloc[0]
+    table_rep, table_jobs, worst = reproduction_table(df, repro, [("V6", "O"), ("V4", "F")], cache, repro_cache)
+    n_rerun = len(repro[repro["vid"].isin(["V4", "V6"])][["vid", "dgp", "scenario"]].drop_duplicates())
+    v6_gap = float(cand.loc[cand["variant"] == "V6", "mde_wcb_rho_hat"].iloc[0]) / best - 1 if (cand["variant"] == "V6").any() else float("nan")
+    pct = lambda frame, cols: frame.assign(**{c: frame[c].map(lambda v: f"{100 * v:.1f}%") for c in cols})  # noqa: E731
+    pct_cols = ("size_wcb_rho_hat", "size_wcb_rho0", "rel_bias")
+    lines = [
+        "# Gate 3d: candidate V7 (V0 + feasible WLS + AR(1) GLS, no controls) added to the power-only specification comparison",
+        "",
+        f"Generated by `python src/evaluate/power_variants.py report3d` ({settings_note}). Same engine, DGPs, seeds, numbers of null draws, bootstrap datasets and bootstrap replications as Gate 3c (`reports/gate3c_specification_power.md`); "
+        "the Gate 3c job results are re-used unchanged for every other variant. Offline. **No effect estimate from the real CAPB panel was computed, printed or logged**: only residual-based noise calibration, as in Gates 3b and 3c.",
+        "",
+        "## 0. Headline",
+        "",
+        f"* **Selected under the unchanged mechanical rule on the extended set {{V0, V1, V2i, V2w, V3, V4, V5, V6, V7}}: {choice}.** Smallest eligible beta_S wild-bootstrap MDE at the estimated rho: {best:.3f} pp ({best_row['variant']}); "
+        f"the 5 per cent tie band is <= {thr:.3f} pp; tied set: {', '.join(tied['variant'])}; the simplicity order {' < '.join(SIMPLICITY_ORDER)} then picks {choice}.",
+        f"* **V7 beta_S MDE {v7:.3f} pp** (N = 715, DGP F) is {100 * (v7 / best - 1):+.1f}% against the minimum: **{'WITHIN' if v7_in else 'OUTSIDE'} the 5 per cent band**; V7 size {100 * v7_row['size_wcb_rho_hat']:.1f}% / {100 * v7_row['size_wcb_rho0']:.1f}% "
+        f"(rho_hat / rho = 0), relative bias {100 * v7_row['rel_bias']:.1f}%, size_valid {bool(v7_row['size_valid'])}, bias_ok {bool(v7_row['bias_ok'])}. V6 (N = 703, DGP O) is {v6_o:.3f} pp; V6 on the common DGP F is {v6_f:.3f} pp.",
+        f"* **V7@703** (same estimator on the 703 rows of V6, not eligible): {v7_703:.3f} pp, i.e. the sample change alone moves beta_S by {v7_703 - v7:+.3f} pp, and the controls themselves by {v6_f - v7_703:+.3f} pp (V6 on F vs V7@703); "
+        f"recalibrating the noise on the V6 residuals (DGP O) adds {v6_o - v6_f:+.3f} pp.",
+        f"* V6 (the Gate 3c choice) is {100 * v6_gap:+.1f}% against the minimum, so it is also inside the 5 per cent band; the tie is resolved by the simplicity order in favour of the simpler variant ({choice}).",
+        f"* Selection on the common DGP F alone (every variant on identical noise) gives {choice_f}.",
+        f"* Engine re-check: {n_rerun} of the 6 V4 (F) / V6 (O) jobs were re-run from scratch; the largest absolute difference to the Gate 3c job files over every stored number is {worst:.3g} (section 4).",
+        "",
+        "## 1. What was added",
+        "",
+        "* **V7** = the registry baseline V0 (M1 with the centred era terms, N = 715, no controls), estimated by feasible WLS (1/sigma_i^2 re-estimated from each draw's own first-stage residuals) AND AR(1) feasible GLS "
+        "(Prais-Winsten, Nickell-corrected rho re-estimated per draw); both steps are repeated inside every wild-bootstrap sample. It is V6 without the controls. Designated DGP: `F` (no regressors are added, so no recalibration).",
+        "* **V7@703** = V7 on the 703 complete-case rows used by V6 (the 12 country-years that lack the lagged output gap are dropped; the output gap and euro membership are NOT regressors), DGP `F`. It separates the effect of the sample change from the effect of the controls and is **not eligible** for selection.",
+        "* **Complexity and tie-break.** V7 has two components (WLS and AR(1)): more than V3/V4 (1), less than V6 (3). The simplicity order is now **V0 < V1 < V2i < V2w < V3 < V4 < V5 < V7 < V6** (`SIMPLICITY_ORDER` in the code, asserted in the tests).",
+        f"* **Rule (unchanged).** Among variants with wild-bootstrap beta_S size in 3.5-6.5 per cent at rho_hat and rho = 0 and |relative bias| < {int(100 * MAX_ABS_REL_BIAS)} per cent at a true 0.5 pp, take the smallest beta_S wild-bootstrap MDE at rho_hat; candidates within {int(100 * TIE_TOLERANCE)} per cent of it are tied and the simplest wins. V0n and V7@703 are reported, never eligible.",
+        "* **Re-use of Gate 3c.** The Gate 3c job files (V0n, V0, V1, V2i, V2w, V3, V4, V5, V6) are read unchanged; V7 and V7@703 are new jobs with the 3c full settings. Because the noise streams depend on (DGP, scenario, purpose) only, V7 sees exactly the same draws as V3, V4 and V6-on-F (common random numbers).",
+        "",
+        "Calibration actually used (job metadata):",
+        "",
+        power.md_table(pd.DataFrame([{"variant": v, "DGP": d, "N": int(g(v, d, "ar1_rho_hat", "beta_S", "n_obs")), "rho_hat of the DGP": g(v, d, "ar1_rho_hat", "beta_S", "rho_dgp")} for v, d in (("V7", "F"), ("V7@703", "F"), ("V6", "O"))]), floatfmt=".3f"),
+        "",
+        "## 2. MDEs: V7 and V7@703 beside their references",
+        "",
+        mde_table(df, specs, lambda s: s.designated_dgp, [("V7", "F"), ("V7@703", "F"), *REFERENCE_PAIRS_3D]),
+        "",
+        "MDE in pp of potential GDP (gamma per +1 SD of the component), 80 per cent power, alpha 0.05, two-sided. WCB = wild-cluster bootstrap-t (Rademacher, null imposed, "
+        f"{N_BOOT} draws, whole feasible procedure re-estimated per bootstrap sample); CR1 = country-clustered t(26). N differs between rows (715 vs 703): compare V7 with V7@703 and V6 on F with V7@703 for like-for-like contrasts.",
+        "",
+        "Monte Carlo SE of the fitted wild-bootstrap MDE at rho_hat (probit-fit parametric bootstrap, pp) and the CR1 MDE at rho = 0:",
+        "",
+        power.md_table(pd.DataFrame([{"variant (DGP)": f"{v} ({d})", **{f"{t} WCB SE": g(v, d, "ar1_rho_hat", t, "wcb_mde_se") for t in ("beta_S", "gamma_B", "gamma_W")},
+                                      **{f"{t} CR1 MDE rho=0": g(v, d, "ar1_rho0", t, "cr1_mde") for t in ("beta_S", "gamma_B", "gamma_W")}} for v, d in (("V7", "F"), ("V7@703", "F"), ("V6", "F"), ("V6", "O"))]), floatfmt=".3f"),
+        "",
+        "## 3. Size and bias",
+        "",
+        "Null rejection rates (`!` = outside 3.5-6.5 per cent); bootstrap size uses 1500 datasets on the generic engine (Monte Carlo SE about 0.56 points):",
+        "",
+        size_table(df, specs, lambda s: s.designated_dgp, [("V7", "F"), ("V7@703", "F"), ("V4", "F"), ("V6", "O")]),
+        "",
+        f"Bias and RMSE at a known true effect of {TRUE_EFFECT} pp per target (estimated-rho AR(1) noise, {FULL.n_bias} draws):",
+        "",
+        bias_table(df, specs, lambda s: s.designated_dgp, [("V7", "F"), ("V7@703", "F"), ("V4", "F"), ("V6", "O")]),
+        "",
+        "## 4. Does the engine still reproduce Gate 3c?",
+        "",
+        f"{n_rerun} of the 6 jobs of V4 (F) and V6 (O) were re-run from scratch into a separate cache with the same code path, seeds and full settings, and compared with the stored Gate 3c job files:",
+        "",
+        table_rep,
+        "",
+        table_jobs,
+        "",
+        f"Largest absolute difference over all compared numbers: **{worst:.3g}**" + (" (bit-for-bit reproduction)." if worst == 0 else "."),
+        "",
+        "## 5. The selection rule re-applied to the extended set",
+        "",
+        power.md_table(pct(cand, pct_cols), floatfmt=".3f"),
+        "",
+        f"Eligible minimum {best:.3f} pp ({best_row['variant']}); tie threshold {best:.3f} x {1 + TIE_TOLERANCE:.2f} = {thr:.4f} pp. Tied: {', '.join(tied['variant'])}. **Selected: {choice}.** "
+        f"V7 is {'within' if v7_in else 'not within'} the band ({v7:.3f} {'<=' if v7_in else '>'} {thr:.4f}).",
+        "",
+        "Sensitivity, every variant on the common DGP F (V6 on F, N = 703):",
+        "",
+        power.md_table(pct(cand_f, pct_cols), floatfmt=".3f"),
+        "",
+        f"Selection on F alone: **{choice_f}** (tied: {', '.join(tied_f['variant'])}).",
+        "",
+    ]
+    if choice is not None:
+        dgp = specs[choice].designated_dgp
+        table, summary = selected_table(df, choice, dgp)
+        lines += [
+            f"## 6. The selected variant ({choice}): MDE table, G2 verdicts, demotion rule D-C, literature benchmarks",
+            "",
+            table,
+            "",
+            "G2: beta_S MDE <= 0.50 pp at the estimated rho and <= 0.75 pp at rho = 0 (GO), NO-GO above 1.0 pp, AMBER between; interactions <= 0.75 pp per SD (GO), NO-GO above 1.0 pp. "
+            "D-C: a target whose WCB MDE at the estimated rho exceeds 1.0 pp is 'not powered'.",
+            "",
+            *[f"* {r['target']}: G2 (WCB) {r['G2 (WCB)']}, G2 (CR1) {r['G2 (CR1)']}; D-C {r['D-C']} (WCB MDE at rho_hat {r['WCB MDE rho_hat']:.3f} pp)." for r in summary],
+            "",
+            "Power of beta_S against the two literature benchmarks (indicative: those studies use other outcomes and designs; CR1 exact from null draws, WCB from the fitted simulated power curve):",
+            "",
+            benchmark_table(df, choice, dgp),
+            "",
+        ]
+    lines += [
+        "## 7. Limitations",
+        "",
+        "1. **V7 was added after the Gate 3c results were seen** (Gate 3c recorded the choice between V6 and a no-controls variant as open). The rule, the thresholds and the tie-break are unchanged and applied mechanically, and V7 is the only addition, but choosing a specification by power on the same panel remains a researcher degree of freedom; the freeze must record the variant, this report and the Gate 3c report.",
+        "2. **The designated DGPs differ.** V7 faces the common noise F; V6 is credited with the noise recalibrated on its own residuals (O). The F-only selection above removes that asymmetry.",
+        "3. **Differences under about 5 per cent are within Monte Carlo noise** (section 2 gives the fitted-MDE standard errors); this is why the rule ties within 5 per cent.",
+        "4. **The AR(1) gain depends on rho = 0.69** (Gate 3b); at rho = 0 the MDEs are reported in section 2.",
+        "5. Single-coefficient power at 5 per cent; Gaussian innovations, one common AR(1) coefficient and cross-country independence in the AR(1) scenarios (as in Gate 3c).",
+        "",
+        "## 8. Files and reproduction",
+        "",
+        "`src/evaluate/power_variants.py` (V7 and V7@703 in `GATE3D_SPECS`, stage C jobs, `report3d`), `tests/test_power_variants.py`, `reports/gate3c_specification_power.md`, this report. "
+        "Reproduce: `python src/evaluate/power_variants.py jobs C` lists the stage-C jobs (V7, V7@703 on DGP F, three scenarios); run each with `job VID DGP SCENARIO --cache DIR` (copy the Gate 3c job files and `v6_spec.json` into DIR first), then `report3d --cache DIR --repro-cache DIR2`.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def ctx_settings_value(df: pd.DataFrame, name: str) -> float:  # noqa: ARG001
     """Number of CR1 null draws used (the full-run setting)."""
     return float(FULL.n_null)
@@ -1271,21 +1481,30 @@ def main(argv: list[str] | None = None) -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description=main.__doc__)
-    parser.add_argument("command", choices=["jobs", "job", "choose", "report"])
+    parser.add_argument("command", choices=["jobs", "job", "choose", "report", "report3d"])
     parser.add_argument("args", nargs="*")
     parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE)
     parser.add_argument("--quick", action="store_true")
-    parser.add_argument("--out", type=Path, default=REPORT_PATH)
+    parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument("--repro-cache", type=Path, default=None, help="report3d: cache with the from-scratch re-run of V4 (F) and V6 (O)")
     ns = parser.parse_args(argv)
     ns.cache.mkdir(parents=True, exist_ok=True)
     settings = QUICK if ns.quick else FULL
     if ns.command == "jobs":
-        specs = dict(VARIANT_SPECS)
+        specs = {**VARIANT_SPECS, **GATE3D_SPECS}
         v6 = load_v6(ns.cache)
         if v6 is not None:
             specs["V6"] = v6
         for vid, dgp, scenario in job_list(ns.args[0], specs):
             print(vid, dgp, scenario)
+        return
+    if ns.command == "report3d":
+        if ns.repro_cache is None:
+            parser.error("report3d needs --repro-cache")
+        note = "quick smoke settings" if ns.quick else "full settings: " + ", ".join(f"{k}={v}" for k, v in FULL.__dict__.items())
+        out_3d = ns.out or REPORT_3D_PATH
+        out_3d.write_text(render_report_3d(load_results(ns.cache), load_results(ns.repro_cache), ns.cache, ns.repro_cache, note), encoding="utf-8")
+        print(f"wrote {out_3d}")
         return
     ctx = Context()
     v6 = load_v6(ns.cache)
@@ -1301,8 +1520,9 @@ def main(argv: list[str] | None = None) -> None:
     else:
         df = load_results(ns.cache)
         note = "quick smoke settings" if ns.quick else "full settings: " + ", ".join(f"{k}={v}" for k, v in FULL.__dict__.items())
-        ns.out.write_text(render_report(df, ctx, ns.cache, note), encoding="utf-8")
-        print(f"wrote {ns.out}")
+        out = ns.out or REPORT_PATH
+        out.write_text(render_report(df, ctx, ns.cache, note), encoding="utf-8")
+        print(f"wrote {out}")
 
 
 if __name__ == "__main__":

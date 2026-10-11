@@ -7,17 +7,20 @@ class = "confirmatory"
 sample = "EU-27, 1995-2021, N = 715 (Gate 3a); extract hash recorded at freeze"
 outcome = "capb: AMECO UBLGBP, pp of potential GDP, surplus positive, Spring 2026 vintage"
 multiplicity = "Holm over the two tests in the family: beta_S, gamma_B (alpha = 0.05 familywise). gamma_W was demoted to descriptive by rule D-C after Gate 3c (wild-bootstrap MDE of 1.08 pp or more under every variant, 1.93 pp under OLS)"
-inference_primary = "wild-cluster bootstrap-t by country (G = 27); CR1 with t(26) reported alongside"
+inference_primary = "wild-cluster bootstrap-t by country (G = 27), re-estimating the feasible-GLS weights and rho in every resample; CR1 with t(26) is shown only for transparency because it over-rejects for this estimator"
 seed = 42
 
 [[model]]
 id = "M1"
 description = "Two-way fixed effects with fractional scheduled-election exposure and Mundlak-split ageing interaction"
-estimator_status = "OPEN (Gate 3d decision): feasible WLS + AR(1) GLS with wild-cluster bootstrap that re-estimates weights and rho in every resample; with or without the controls that survived trigger T4 (see docs/decision_log.md)"
+estimator_status = "SELECTED (Gate 3d, 2026-10-11): V7 = V0 + feasible WLS (1/sigma_i^2) + AR(1) feasible GLS (Prais-Winsten, Nickell-corrected rho), no controls, N = 715. Weights and rho are re-estimated in every simulated draw and every wild-bootstrap sample. CR1 over-rejects for this estimator (about 8-10 per cent), so the wild-cluster bootstrap-t is the only valid inference. Selected mechanically; V6 (with controls, N = 703) was within the 5 per cent tie band and V7 is simpler"
+inference_caveat = "Under block-bootstrap noise, which carries the real cross-country co-movement, wild-bootstrap size for beta_S is about 11-12 per cent (nominal 5), the same as for the OLS baseline in Gate 3b: report Driscoll-Kraay and CCE sensitivities beside the headline"
 engine = "Python: fixed-effects engine of src/evaluate/power.py promoted to src/models/py; cross-checked against statsmodels and linearmodels"
 formula = "capb ~ W_S + W_E + W_D + W_U + Post + W_S:abar + W_S:adev + a_lag | eurostat_code + year"
 variables = { W_S = "scheduled-election exposure", W_E = "early-election exposure", W_D = "delayed", W_U = "unclassified elections (default treatment: separate regressor)", Post = "12 months after any election", a_lag = "OLDDEP1 at t-1, standardised on the estimation sample", abar = "country mean of a_lag over the estimation sample (standardised)", adev = "a_lag minus abar" }
-controls = ["outgap_lag", "debt_gdp_lag", "ig_diff_lag", "euro_member"]
+controls = []
+robustness_controls = ["outgap_lag", "euro_member"]
+robustness_controls_note = "Survivors of trigger T4 (coverage lagged output gap 98.3%, euro membership 100%); lagged debt (96.2%) and the interest-growth differential (92.9%) failed the 97% rule and are dropped. The robustness model uses the 703 complete-case rows. The controls added no power in Gate 3c/3d (beta_S MDE 0.521 vs 0.515 pp)."
 controls_note = "Controls enter at t-1 only; contemporaneous output gap, unemployment and inflation are mediators/simultaneous and are omitted (proposal 5.3)."
 period_terms = "W_S interacted with era dummies (1995-2007, 2008-2015, 2016-2021) so that gamma_W is not a time-trend proxy. The era dummies are CENTRED at their exposure-weighted sample means, so beta_S is the average association across eras. Uncentred terms make beta_S the 1995-2007 effect, whose MDE is about 1.8-1.9 pp (Gate 3b, reports/gate3_power_update.md section 8)."
 

@@ -330,6 +330,47 @@ def test_job_list_covers_every_dgp_and_scenario():
     assert pv.job_list("B", dict(pv.VARIANT_SPECS)) == []  # V6 is absent until stage A has been processed
 
 
+# ---------------------------------------------------------------------------------------------
+# Gate 3d: V7 (V0 + WLS + AR(1) GLS, no controls) and V7@703
+# ---------------------------------------------------------------------------------------------
+def test_v7_definition_complexity_and_simplicity_order():
+    v7, v703 = pv.GATE3D_SPECS["V7"], pv.GATE3D_SPECS["V7@703"]
+    assert v7.estimator == "gls" and v7.wls and v7.ar1 and not v7.winsor and not v7.use_controls and not v7.ireland_indicator and v7.era
+    assert v7.dgps == ("F",) and v7.designated_dgp == "F" and v7.complexity == 2 and v7.eligible
+    assert pv.VARIANT_SPECS["V3"].complexity == pv.VARIANT_SPECS["V4"].complexity == 1 < v7.complexity < 3  # V6 has 3 components
+    assert pv.SIMPLICITY_ORDER == ("V0", "V1", "V2i", "V2w", "V3", "V4", "V5", "V7", "V6")
+    assert v703.wls and v703.ar1 and v703.restrict_to_control_sample and not v703.use_controls and not v703.eligible and v703.designated_dgp == "F"
+
+
+def test_restricted_sample_drops_rows_without_adding_the_control_as_a_regressor():
+    frame = frame_with_controls()
+    frame.loc[3, "outgap_lag"] = np.nan
+    plain, restricted = design_for(frame), design_for(frame, restrict_names=("outgap_lag",))
+    assert restricted.n_obs == plain.n_obs - 1 and restricted.x_names == plain.x_names and "outgap_lag" not in restricted.x_names
+    with_control = design_for(frame, control_names=("outgap_lag",))
+    assert with_control.n_obs == restricted.n_obs and "outgap_lag" in with_control.x_names
+
+
+def test_selection_with_v7_ties_to_v7_over_v6_and_v6_wins_only_outside_five_per_cent():
+    rows = {"variant": ["V0", "V3", "V4", "V7", "V6"], "dgp": ["F", "F", "F", "F", "O"], "n_obs": [715, 715, 715, 715, 703], "mde_wcb_rho_hat": [0.70, 0.59, 0.58, 0.55, 0.53],
+            "mde_wcb_rho0": 1.0, "size_wcb_rho_hat": 0.05, "size_wcb_rho0": 0.05, "size_valid": True, "rel_bias": 0.0, "bias_ok": True, "complexity": [0, 1, 1, 2, 3]}
+    choice, tied = pv.select_variant(pd.DataFrame(rows))
+    assert choice == "V7" and set(tied["variant"]) == {"V7", "V6"}  # 0.58 <= 0.53 * 1.05 = 0.5565 is false, so V4 is out
+    rows["mde_wcb_rho_hat"] = [0.70, 0.59, 0.58, 0.60, 0.53]
+    assert pv.select_variant(pd.DataFrame(rows))[0] == "V6"  # V7 at 0.60 is more than 5 per cent above the minimum
+
+
+def test_ineligible_variant_is_not_a_candidate_and_stage_c_lists_both_v7_jobs():
+    specs = {"V0": pv.VARIANT_SPECS["V0"], "V7": pv.GATE3D_SPECS["V7"], "V7@703": pv.GATE3D_SPECS["V7@703"]}
+    rows = result_rows("V0", "F", 0.70) + result_rows("V7", "F", 0.55) + result_rows("V7@703", "F", 0.40)
+    cand = pv.evaluate_candidates(pd.DataFrame(rows), specs, "designated")
+    assert set(cand["variant"]) == {"V0", "V7"}
+    assert pv.select_variant(cand)[0] == "V7"
+    jobs = pv.job_list("C", {**pv.VARIANT_SPECS, **pv.GATE3D_SPECS})
+    assert len(jobs) == 6 and ("V7", "F", "ar1_rho0") in jobs and ("V7@703", "F", "block_bootstrap") in jobs
+    assert not any(v in ("V7", "V7@703") for v, _, _ in pv.job_list("A", {**pv.VARIANT_SPECS, **pv.GATE3D_SPECS}))  # the 3c job lists are unchanged
+
+
 def panel_frame(seed: int = 21) -> pd.DataFrame:
     """Small panel (14 countries incl. Ireland, 2000-2015) with an AR(1) outcome and the four controls."""
     rng = np.random.default_rng(seed)
@@ -407,3 +448,12 @@ def test_real_sample_context_geometry_and_3b_calibration():
     assert abs(ctx.cal_ref.rho_corrected - 0.694) < 0.01  # reproduces the Gate 3b persistence
     assert 5 <= ctx.block <= 7
     assert ctx.dgp(ctx.specs["V2i"], "S").spike_size > 5.0  # the Ireland-2010 residual is a large outlier
+
+
+@needs_inputs
+def test_real_sample_v7_geometry_matches_v0_and_v7_at_703_matches_v6_rows():
+    ctx = pv.Context()
+    v0, v7, v703, v1 = (ctx.design_of(ctx.specs[v]) for v in ("V0", "V7", "V7@703", "V1"))
+    assert v7.n_obs == 715 and v7.x_names == v0.x_names  # no controls, no sample change
+    assert v703.n_obs == 703 == v1.n_obs and v703.x_names == v0.x_names
+    assert (v703.codes == v1.codes).all() and (v703.year == v1.year).all()  # the same rows as V1 / V6
