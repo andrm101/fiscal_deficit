@@ -2,7 +2,7 @@
 
 Status 2026-10-10. Built on the gate results in [decision_log.md](decision_log.md). Gate 1 (AMECO pin) and Gate 2 (fiscal-rule audit) and Gate 3a (calendar and sample) are complete; Gate 3b (power) is summarised in section 7. This is a blueprint: nothing in sections 2–6 below is implemented unless marked **exists**. Machine-readable parts live in `config/`.
 
-Environment facts checked on this machine (2026-10-10): Python 3.14.3 with pandas 3.0.2, numpy, scipy, statsmodels 0.14.6, linearmodels 7.0, scikit-learn, matplotlib, seaborn, pyarrow, duckdb 1.5.3 and pytest. **Project rule (researcher, 2026-10-10): Python only, no R; the thesis is a Quarto document.** Not installed: the Quarto CLI, the Jupyter stack Quarto's Python engine needs (jupyter, ipykernel, nbformat, nbclient), `pyfixest`, `arch` and `shap`. They are to be installed into a pinned project environment (pending your approval).
+Environment (installed and verified 2026-10-11): Python 3.14.3 in a project virtual environment `.venv` (gitignored), locked in `requirements.lock` (73 packages, hashed, universal; direct dependencies in `requirements.in`): pandas 3.0.2, numpy 2.4.4, scipy 1.17.1, statsmodels 0.14.6, linearmodels 7.0, scikit-learn 1.8.0, pyarrow 24.0.0, duckdb 1.5.3, matplotlib 3.10.8, seaborn 0.13.2, pytest 8.3.4, and the Jupyter stack for Quarto (ipykernel 7.4.0, nbformat 5.11.1, nbclient 0.11.0, jupyter_client 8.10.0). **Project rule (researcher, 2026-10-10): Python only, no R; the thesis is a Quarto document.** Quarto 1.10.19 (official release zip, SHA-256 checked against the published checksum) is installed at `%LOCALAPPDATA%\Programs\Quarto\1.10.19`; PATH and other system settings were not changed, and `scripts/quarto.py` finds it (QUARTO_PATH, then PATH, then that folder) and points its Python engine at `.venv`. A smoke render executed code cells, embedded a 300-dpi figure and produced HTML and a Typst PDF (Quarto bundles Typst, so no LaTeX is needed). Not installed: `pyfixest`, `arch`, `shap` (not needed yet).
 
 ## 1. Repository tree
 
@@ -13,7 +13,7 @@ Fiscal_Deficit/
 ├── README.md                          # M1: purpose, one-command reproduction, data licences summary
 ├── LICENSE                            # M1 (R07): code licence; data licences are separate
 ├── Makefile                           # M1: acquire (opt-in) | ingest | panel | models | report | audit
-├── environment.yml  uv.lock?          # M1 (R09): pinned Python (no R)
+├── requirements.in  requirements.lock # exists: uv-locked, hashed, universal; `.venv` is gitignored (no R)
 ├── .github/workflows/ci.yml           # M1: single `on:` block, actionlint test (R08)
 ├── config/
 │   ├── countries.csv                  # exists: single EU-27 crosswalk (EL, GRC, ROM, ...)

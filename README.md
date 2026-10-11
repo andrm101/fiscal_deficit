@@ -29,6 +29,10 @@ python src/ingest/acquire.py --manifest config/acquisition/gate1_ameco_2026_spri
 python -m pytest tests -q
 ```
 
+### Environment
+
+Python only (no R). Create the pinned environment with `uv venv .venv --python 3.14 && uv pip sync requirements.lock --python .venv`. The thesis will be a Quarto document using the Python engine; Quarto is a separate binary (https://quarto.org), found by `python scripts/quarto.py` (use `QUARTO_PATH` to point to it). PDF output goes through Quarto's bundled Typst.
+
 Raw files whose redistribution terms are unverified (AMECO, the EC Fiscal Governance workbooks, ETAD) are not in version control; the committed `manifest.jsonl` files carry their SHA-256 values so a re-download can be verified. Tests that read those files need them restored first. See `data/external/LICENSES.md`.
 
 ## Data sources and attribution
