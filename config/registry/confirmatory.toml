@@ -12,11 +12,12 @@ seed = 42
 
 [interpretation]
 smallest_effect_size_pp = 0.5
-status = "PROPOSED"
-note = "Decision D-A: the smallest effect size of interest (SESOI), in pp of potential GDP (per +1 SD for the interactions), used to read each bootstrap-t interval as 'excludes zero', 'equivalent within +-SESOI' or 'inconclusive'. 0.5 pp lies between the two literature benchmarks (0.41 and 0.49 pp) and is PROPOSED; the researcher must confirm it (status becomes CONFIRMED) before the freeze tag"
+status = "CONFIRMED"
+confirmed_by = "researcher, 2026-10-12 (0.5 pp accepted as the default)"
+note = "Decision D-A: the smallest effect size of interest (SESOI), in pp of potential GDP (per +1 SD for the interactions), used to read each bootstrap-t interval as 'excludes zero', 'equivalent within +-SESOI' or 'inconclusive'. 0.5 pp lies between the two literature benchmarks (0.41 and 0.49 pp); confirmed by the researcher on 2026-10-12"
 
 [freeze]
-open_items = ["D-A smallest effect size of interest to be confirmed by the researcher"]
+open_items = []
 
 [[model]]
 id = "M1"

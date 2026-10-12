@@ -2,7 +2,7 @@
 
 **Status: DRAFT, not frozen.** This document becomes binding when the git tag `preregistration-v1` is created on the commit that contains it and `docs/freeze_manifest.json`. Until then it may be edited. After the tag, every change is an amendment (section 14).
 
-**Open items that block the tag** (the freeze script refuses while any remains): (1) the researcher must confirm the smallest effect size of interest in section 7 (proposed 0.5 pp, decision D-A). Nothing else is open in the analysis plan.
+**Open items that block the tag:** none. The smallest effect size of interest (section 7) was confirmed by the researcher on 2026-10-12.
 
 Language: results are described as associations. Scheduled elections are *predetermined*, not exogenous; the ageing interactions are never given a causal reading.
 
@@ -63,9 +63,9 @@ Selection record: the estimator was chosen by a pre-specified mechanical rule ap
 - **Multiplicity:** Holm over {H1, H2B}.
 - **Known limitation:** under block-bootstrap noise, which carries real cross-country co-movement, wild-bootstrap size for β_S is about 11–12% (nominal 5%). The p-values may therefore be too small if cross-country dependence is real. Driscoll–Kraay and common-correlated-effects sensitivities accompany the headline.
 
-## 7. Interpretation rule (OPEN: researcher to confirm)
+## 7. Interpretation rule (smallest effect size of interest confirmed 2026-10-12)
 
-Each interval is read three ways, with both flags reported: *excludes zero*; *equivalent*, if it lies inside ±SESOI; otherwise *inconclusive*. **Proposed smallest effect size of interest (SESOI): 0.5 pp** of potential GDP (per SD for γ_B), between the two literature benchmarks (0.41 pp: Bednář 2019, WEO structural balance; 0.49 pp: Afonso, Alves & Leal 2026, primary expenditure). Because the typical first-outturn revision of the CAPB is 0.64 pp (`reports/gate5_realtime_feasibility.md`), measurement error is as large as the SESOI and must be stated beside every result.
+Each interval is read three ways, with both flags reported: *excludes zero*; *equivalent*, if it lies inside ±SESOI; otherwise *inconclusive*. **Smallest effect size of interest (SESOI): 0.5 pp** of potential GDP (per SD for γ_B), between the two literature benchmarks (0.41 pp: Bednář 2019, WEO structural balance; 0.49 pp: Afonso, Alves & Leal 2026, primary expenditure). Because the typical first-outturn revision of the CAPB is 0.64 pp (`reports/gate5_realtime_feasibility.md`), measurement error is as large as the SESOI and must be stated beside every result.
 
 ## 8. Power and its limits (Gate 3d, wild bootstrap, 80% power, α = 0.05; pp of potential GDP)
 

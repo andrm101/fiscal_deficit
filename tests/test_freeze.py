@@ -169,22 +169,33 @@ def test_registry_structure_failures_are_detected(tmp_path, old, new, needle):
     assert result.status == "FAIL" and needle in result.detail
 
 
+def set_open_state(root: Path, status: str, items: list[str]) -> None:
+    """Put the copied confirmatory registry into a known state (independent of what the real file currently says)."""
+    import re
+
+    path = root / "config" / "registry" / "confirmatory.toml"
+    text = path.read_text(encoding="utf-8")
+    text, n_status = re.subn(r'(?m)^status = "[A-Za-z]+"', f'status = "{status}"', text, count=1)  # the first status is [interpretation]
+    listed = "[" + ", ".join(f'"{item}"' for item in items) + "]"
+    text, n_items = re.subn(r"(?m)^open_items = \[.*\]$", f"open_items = {listed}", text, count=1)
+    assert n_status == 1 and n_items == 1
+    path.write_text(text, encoding="utf-8", newline="\n")
+
+
 def test_open_items_block_while_proposed_or_listed(tmp_path):
     root = config_copy(tmp_path)
-    edit_confirmatory(root, 'status = "PROPOSED"', 'status = "CONFIRMED"')
-    edit_confirmatory(root, 'open_items = ["D-A smallest effect size of interest to be confirmed by the researcher"]', "open_items = []")
+    set_open_state(root, "CONFIRMED", [])
     assert freeze.check_open_items(root).status == "PASS"  # a confirmed SESOI and an empty list: nothing blocks
-    edit_confirmatory(root, 'status = "CONFIRMED"', 'status = "PROPOSED"')
+    set_open_state(root, "PROPOSED", [])
     proposed = freeze.check_open_items(root)
     assert proposed.status == "FAIL" and "PROPOSED" in proposed.detail
-    edit_confirmatory(root, 'status = "PROPOSED"', 'status = "OPEN"')
+    set_open_state(root, "OPEN", [])
     assert "OPEN" in freeze.check_open_items(root).detail
-    edit_confirmatory(root, 'status = "OPEN"', 'status = "CONFIRMED"')
-    edit_confirmatory(root, "open_items = []", 'open_items = ["something else"]')
+    set_open_state(root, "CONFIRMED", ["something else"])
     listed = freeze.check_open_items(root)
     assert listed.status == "FAIL" and "something else" in listed.detail
+    set_open_state(root, "CONFIRMED", [])
     (root / "config" / "registry" / "secondary.toml").write_text('[registry]\nclass = "secondary"\n[[model]]\nid = "S1"\nstatus = "open"\n', encoding="utf-8")
-    edit_confirmatory(root, 'open_items = ["something else"]', "open_items = []")
     assert "secondary.toml" in freeze.check_open_items(root).detail  # status anywhere in any registry counts (case-insensitive)
 
 
