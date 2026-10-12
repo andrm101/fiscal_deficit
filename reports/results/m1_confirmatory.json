@@ -1,0 +1,85 @@
+{
+  "source": "real_gold_panel",
+  "n_obs": 715,
+  "n_countries": 27,
+  "estimator": "V7: GlsEstimator(wls=True, ar1=True) on M1 with centred era terms, no controls",
+  "registry_hash": "8bb8383691e4acc2b102d805ee576410308c667f649a3b41d185e924137c03ee",
+  "code_hash": "8823d782c2669d5c2848dfa92554da013065e4fa36a05ea7f2d5318357bd3d2c",
+  "code_hashes": {
+    "m1.py": "01fd7b728e3583921d6ad1d9920b5743a0fa83c4d92dbf93e1f72fd816925c85",
+    "power_variants.py": "f0bdd1105e791276f3ef6c8de7eeea1621a8f313e05eb18c0b6cd81f4a20051e",
+    "code_hash": "8823d782c2669d5c2848dfa92554da013065e4fa36a05ea7f2d5318357bd3d2c",
+    "dependency:power.py": "838b9535c474f27171165edf4229584669106ff017137c5c1e0c6760ac3b0de6"
+  },
+  "seed": 42,
+  "seed_key": 42,
+  "n_boot": 9999,
+  "versions": {
+    "numpy": "2.4.4",
+    "pandas": "3.0.2",
+    "scipy": "1.17.1"
+  },
+  "extract_hash": "2fcf20d4ca687f613d6743214b7be176ceb638b483f513eeed005bd1f73a5bb4",
+  "sesoi_pp": 0.5,
+  "sesoi_status": "CONFIRMED",
+  "holm_family": [
+    "beta_S",
+    "gamma_B"
+  ],
+  "targets": {
+    "beta_S": {
+      "name": "beta_S",
+      "role": "confirmatory",
+      "scaling": "coefficient of W_S (pp of potential GDP per unit of exposure; average over eras)",
+      "estimate": -0.37940192367871645,
+      "ci_lo": -0.6911761405947665,
+      "ci_hi": -0.06927413744983729,
+      "p_bootstrap": 0.0181,
+      "p_holm": 0.0362,
+      "excludes_zero": true,
+      "equivalent_within_sesoi": false,
+      "reading": "excludes zero",
+      "cr1_se": 0.13312193050740026,
+      "cr1_p": 0.008443115279383467,
+      "cr1_ci_lo": -0.6530379707656485,
+      "cr1_ci_hi": -0.10576587659178438,
+      "cr1_note": "not valid for this estimator (over-rejects)"
+    },
+    "gamma_B": {
+      "name": "gamma_B",
+      "role": "confirmatory",
+      "scaling": "coefficient of W_S x between component of standardised lagged OLDDEP1, per +1 SD of that component",
+      "estimate": 0.2066037839733819,
+      "ci_lo": -0.06905787246641823,
+      "ci_hi": 0.4882267285580253,
+      "p_bootstrap": 0.1445,
+      "p_holm": 0.1445,
+      "excludes_zero": false,
+      "equivalent_within_sesoi": true,
+      "reading": "equivalent within +-sesoi",
+      "cr1_se": 0.13170654350009503,
+      "cr1_p": 0.12881690588336359,
+      "cr1_ci_lo": -0.06412289345296165,
+      "cr1_ci_hi": 0.47733046139972546,
+      "cr1_note": "not valid for this estimator (over-rejects)"
+    },
+    "gamma_W": {
+      "name": "gamma_W",
+      "role": "descriptive",
+      "scaling": "coefficient of W_S x within component of standardised lagged OLDDEP1, per +1 SD of that component",
+      "estimate": -0.27083440010090054,
+      "ci_lo": -1.4972840787443067,
+      "ci_hi": 0.9641927288759157,
+      "p_bootstrap": null,
+      "p_holm": null,
+      "excludes_zero": null,
+      "equivalent_within_sesoi": null,
+      "reading": null,
+      "cr1_se": 0.45045557429840843,
+      "cr1_p": null,
+      "cr1_ci_lo": -1.1967590938720614,
+      "cr1_ci_hi": 0.6550902936702602,
+      "cr1_note": "not valid for this estimator (over-rejects)"
+    }
+  }
+}
