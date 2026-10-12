@@ -10,6 +10,14 @@ multiplicity = "Holm over the two tests in the family: beta_S, gamma_B (alpha = 
 inference_primary = "wild-cluster bootstrap-t by country (G = 27), re-estimating the feasible-GLS weights and rho in every resample; CR1 with t(26) is shown only for transparency because it over-rejects for this estimator"
 seed = 42
 
+[interpretation]
+smallest_effect_size_pp = 0.5
+status = "PROPOSED"
+note = "Decision D-A: the smallest effect size of interest (SESOI), in pp of potential GDP (per +1 SD for the interactions), used to read each bootstrap-t interval as 'excludes zero', 'equivalent within +-SESOI' or 'inconclusive'. 0.5 pp lies between the two literature benchmarks (0.41 and 0.49 pp) and is PROPOSED; the researcher must confirm it (status becomes CONFIRMED) before the freeze tag"
+
+[freeze]
+open_items = ["D-A smallest effect size of interest to be confirmed by the researcher"]
+
 [[model]]
 id = "M1"
 description = "Two-way fixed effects with fractional scheduled-election exposure and Mundlak-split ageing interaction"
@@ -26,7 +34,7 @@ period_terms = "W_S interacted with era dummies (1995-2007, 2008-2015, 2016-2021
 
 [[hypothesis]]
 id = "H1"
-statement = "beta_S < 0: scheduled-election pre-exposure is associated with a lower CAPB"
+statement = "beta_S: scheduled-election pre-exposure is associated with a lower CAPB (expected sign negative; the test is two-sided)"
 test = "two-sided, beta_S"
 family = "holm2"
 

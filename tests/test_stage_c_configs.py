@@ -97,6 +97,18 @@ def test_contracts_define_all_layers_and_keys():
     assert "no CAPB column present" in exposure["rules"]
 
 
+def test_interpretation_and_freeze_tables_record_the_open_sesoi_decision():
+    doc = _load(REGISTRY / "confirmatory.toml")
+    interp = doc["interpretation"]
+    assert interp["smallest_effect_size_pp"] == 0.5
+    assert interp["status"] in {"PROPOSED", "CONFIRMED"}
+    assert "D-A" in interp["note"]
+    open_items = doc["freeze"]["open_items"]
+    assert isinstance(open_items, list)
+    if interp["status"] == "PROPOSED":  # an unconfirmed SESOI must be listed as an open item that blocks the freeze
+        assert any("D-A" in item for item in open_items)
+
+
 def test_primary_estimator_is_v7_without_controls_and_robustness_controls_are_the_t4_survivors():
     doc = _load(REGISTRY / "confirmatory.toml")
     model = doc["model"][0]
