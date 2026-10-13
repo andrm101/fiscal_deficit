@@ -1,0 +1,90 @@
+# CAPB revisions and measurement error {#sec-app-revisions}
+
+```{python}
+#| include: false
+import pandas as pd
+import _helpers as H
+
+P = H.S4.get("primary", {})
+ST = P.get("stats", {})
+SG = H.S4.get("signal", {})
+EX = H.S4.get("exposure", {})
+EXT = H.S4.get("extended", {}).get("stats", {})
+sesoi = H.S4.get("meta", {}).get("sesoi_pp", 0.5)
+mabs_ci = P.get("bootstrap_ci", {}).get("mean_abs_revision") or [None, None]
+medabs_ci = P.get("bootstrap_ci", {}).get("median_abs_revision") or [None, None]
+mean_above = mabs_ci[0] is not None and mabs_ci[0] > sesoi
+med_above = medabs_ci[0] is not None and medabs_ci[0] > sesoi
+```
+
+This appendix describes how far the first-outturn CAPB lies from the pinned Spring 2026 value used in the thesis (specification `docs/s4_spec.md`; all numbers are read from `reports/results/s4_revisions.json`). It is descriptive: no election effect is estimated, the confirmatory result is unchanged, and nothing here corrects it. A real-time replication is not feasible because only 2015--2021 can carry a real-time value (`{python} H.fact("n_rt")` of `{python} H.fact("n_obs")` country-years), so the archive supports a description of revisions only.
+
+## Definitions and sample
+
+The *first outturn* of year $y$ is its value in the earliest archived AMECO vintage in which $y$ is no longer a forecast (the last two year columns of a Spring vintage and the last three of an Autumn or Winter vintage are forecasts). The *final* value is the Spring 2026 vintage. The *revision* is final minus first outturn, in pp of potential GDP (positive: the first outturn understated the surplus). The primary sample has `{python} P.get("n")` country-years (`{python} P.get("n_countries")` countries, 2014--2021, first outturns from the Spring 2015 to Spring 2022 vintages); the final values reproduce the gold panel exactly in `{python} H.cnt(H.S4.get("checks", {}).get("n_matched_to_panel"), H.S4.get("checks", {}).get("n_rows"))` rows. Intervals are 95% country-cluster percentile bootstrap intervals (B = `{python} f'{H.S4.get("meta", {}).get("n_boot", 0):,}'`, 27 clusters, approximate).
+
+## Revision statistics
+
+```{python}
+#| label: tbl-revisions
+#| tbl-cap: "Revisions of the CAPB between first outturn and the Spring 2026 value (216 country-years, 2014-2021; pp of potential GDP unless stated). Intervals: 95% country-cluster percentile bootstrap. Source: reports/results/s4_revisions.json."
+spec = [("Mean revision (final minus first)", "mean_revision", 2, False), ("Mean absolute revision", "mean_abs_revision", 2, False),
+        ("Median absolute revision", "median_abs_revision", 2, False), ("SD of the revision", "sd_revision", 2, False),
+        ("Share with |revision| above 0.5 pp", "share_abs_gt_sesoi", 0, True), ("Share with a sign change of the CAPB level", "share_sign_change_level", 0, True),
+        ("Correlation, first outturn and final", "corr_first_final", 2, False), ("Reliability ratio var(final) / var(first)", "reliability", 2, False),
+        ("Correlation of the revision with the first outturn", "corr_rev_first", 2, False), ("Correlation of the revision with the final", "corr_rev_final", 2, False)]
+rows = [{"Statistic": lab, "Estimate [95% interval]": H.s4_ci(k, d, pc)} for lab, k, d, pc in spec]
+if ST:
+    H.show_table(pd.DataFrame(rows), align="lr", widths=[52, 30])
+else:
+    H.not_yet("the revision statistics")
+```
+
+```{python}
+#| output: asis
+H.figure("fig-revisions", "s4_revisions.png",
+         "CAPB revisions between first outturn and the Spring 2026 value (216 country-years, 2014-2021): final against first outturn (panel A) and distribution of the revisions (panel B), with the 0.5 pp band. Raw and unadjusted; exposure years are marked in panel A. Source: AMECO vintages Spring 2015 to Spring 2026; ETAD; ParlGov; author's calculations.",
+         width="95%")
+```
+
+## Reading against the SESOI
+
+The pre-registration and the proposal describe the typical revision (`{python} H.fact("revision")` pp) as "as large as the SESOI". That is the pre-registered description, quoted from the committed documents. The post-run reading is more careful. The mean absolute revision is `{python} H.s4_ci("mean_abs_revision")` pp, whose interval contains `{python} H.num(sesoi, 1)` pp, and the median absolute revision is `{python} H.s4_ci("median_abs_revision")` pp, whose interval lies `{python} "below" if (medabs_ci[1] is not None and medabs_ci[1] < sesoi) else "not entirely below"` it, so that the sample `{python} "supports" if (mean_above and med_above) else "does not support"` the statement that the typical revision exceeds the SESOI. The mean is pulled up by a right tail (a few large revisions), whereas `{python} H.pct(1 - (ST.get("share_abs_gt_sesoi") or 0))` of country-years lie within 0.5 pp of the final value. What can be said is that revisions of the size of the SESOI are common (`{python} H.pct(ST.get("share_abs_gt_sesoi"))` of country-years exceed it) and that the revision SD (`{python} H.num(ST.get("sd_revision"), 2)` pp) is a multiple of it.
+
+Against the estimated association, the revision SD is `{python} H.num(SG.get("sd_revision_over_abs_beta_S"), 1)` times $|\beta_S|$ and the mean absolute revision `{python} H.num(SG.get("mean_abs_revision_over_abs_beta_S"), 1)` times; these are plain quotients without inference. Relative to the variation that the fixed-effects design uses, the revision SD is `{python} H.num(SG.get("sd_revision_over_sd_within_confirmatory"), 2)` of the within-country SD of the CAPB (`{python} H.num(SG.get("sd_capb_within_country_confirmatory"), 2)` pp) and `{python} H.num(SG.get("sd_revision_over_sd_twoway_confirmatory"), 2)` of the two-way demeaned SD (`{python} H.num(SG.get("sd_capb_twoway_confirmatory"), 2)` pp). A first-outturn CAPB would have been a noisy measure of the final value, but this does not say that the final value is free of error, and it does not by itself bias or invalidate the pre-registered estimate.
+
+## Revisions look like news, not classical noise
+
+If the first outturn were the final value plus independent noise, the reliability ratio var(final) / var(first) would be below one and the revision would be uncorrelated with the final value. The observed ratio is `{python} H.s4_ci("reliability", 2)`, above one at the point estimate with an interval that includes one, and the revision is correlated `{python} H.s4_ci("corr_rev_final", 2)` with the final value and `{python} H.s4_ci("corr_rev_first", 2)` with the first outturn. This is the pattern of revisions that add information (final equals first plus news), not of classical noise. The real process is probably a mixture, because re-estimation of potential output and methodological changes in the archive window (accounting basis, a level shift in 2020, the treatment of the pandemic) behave more like systematic shifts, and the sample cannot separate the two. Two implications follow. Classical noise in the *outcome* would widen the interval without biasing the coefficient on an error-free regressor, and the observed pattern is not of that kind; and the attenuation argument applies to analyses that use the CAPB or its lags as a regressor, not to the confirmatory model, in which the CAPB is the outcome and the exposure is calendar-based. The case that could matter for the headline is revision error that is associated with election timing, which the following comparison describes without testing.
+
+## Revisions in exposure and other years
+
+```{python}
+#| label: tbl-revisions-exposure
+#| tbl-cap: "Revisions by exposure status (descriptive and unadjusted: no controls, no country or year effects; pp of potential GDP). Intervals: country-clustered t(G-1). Source: reports/results/s4_revisions.json."
+strata = EX.get("strata", {})
+rows = []
+for k, lab in (("exposed", "Exposure year ($W^S > 0$)"), ("unexposed", "Not an exposure year ($W^S = 0$)")):
+    s = strata.get(k, {})
+    mr, ma = s.get("mean_revision", {}), s.get("mean_abs_revision", {})
+    rows.append({"Stratum": lab, "N": s.get("n"), "Countries": s.get("n_countries"),
+                 "Mean revision [95% interval]": f'{H.num(mr.get("mean"), 2)} {H.ival(mr.get("ci_lo"), mr.get("ci_hi"), 2)}',
+                 "Mean absolute revision [95% interval]": f'{H.num(ma.get("mean"), 2)} {H.ival(ma.get("ci_lo"), ma.get("ci_hi"), 2)}'})
+if strata:
+    H.show_table(pd.DataFrame(rows), align="lrrrr", widths=[34, 6, 10, 30, 34])
+else:
+    H.not_yet("the revision comparison by exposure")
+```
+
+```{python}
+#| include: false
+dm = EX.get("difference_mean_revision", {})
+da = EX.get("difference_mean_abs_revision", {})
+dmc, dac = dm.get("cr1", {}), da.get("cr1", {})
+```
+
+The difference in the mean revision between exposure years and other years is `{python} H.num(dmc.get("difference"), 2)` pp (`{python} H.ival(dmc.get("ci_lo"), dmc.get("ci_hi"), 2)`) and in the mean absolute revision `{python} H.num(dac.get("difference"), 2)` pp (`{python} H.ival(dac.get("ci_lo"), dac.get("ci_hi"), 2)`). This comparison is raw and descriptive. It could reflect a bias of first-outturn CAPB around elections, but it equally reflects which countries and years are exposed, it is not a replication of the election association, and it does not enter any family.
+
+## Limitations
+
+The CAPB is a model-based estimate, so a revision mixes new outturn data with re-estimation of potential output, and the decomposition is not identified here. AMECO methodology changed between vintages, so revisions are not pure data noise. The archived files are not guaranteed to be the originally released versions, so "first outturn" means first outturn in the archive. With eight years for each of 27 countries, country-level statistics are unstable and the percentile bootstrap is approximate. In an extended 2014--2024 window (`{python} H.num(EXT.get("n"), 0)` country-years, with final values only one to three years after the first outturn for 2022--2024), the mean absolute revision is `{python} H.num(EXT.get("mean_abs_revision"), 2)` pp and the reliability ratio `{python} H.num(EXT.get("reliability"), 2)`, so the picture does not change.

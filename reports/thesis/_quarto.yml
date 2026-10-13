@@ -24,6 +24,7 @@ book:
     - appendix-b-robustness.qmd
     - appendix-c-data-dictionary.qmd
     - appendix-d-reproducibility.qmd
+    - appendix-e-revisions.qmd
 
 bibliography: references.bib
 link-citations: true

@@ -260,3 +260,67 @@ else:
 ```
 
 @tbl-early reports, descriptively, the other election terms of M1. Early elections are chosen strategically and respond to fiscal and economic conditions, so these coefficients carry no causal reading and no test. The early-election term `{python} H.est_ci(s3.get("beta_E"), 2)` is negative with an interval that includes zero and is imprecise; it is of the same sign as $\beta_S$ and cannot be distinguished from it or from zero. This is not in contradiction with the finding of @afonso2026 that spending rises around regular but not early elections, because their outcome is expenditure growth and ours is the CAPB level. The unclassified-election term is estimated on very few country-years and is uninformative. The post-election term `{python} H.est_ci(s3.get("rho_Post"), 2)` is negative, with an interval that excludes zero. Because it is not part of any family and is not adjusted for multiplicity, we do not interpret it beyond noting its implication for the reading of $\beta_S$: the reference group for $\beta_S$ is country-years outside both the pre- and the post-election windows, so a general deterioration of the CAPB around elections, before and after, is compatible with both coefficients.
+
+## Exploratory analyses {#sec-exploratory}
+
+```{python}
+#| include: false
+xr = H.exp_rows()
+xm = H.EXP.get("multiplicity", {})
+xav = H.EXP.get("availability", {})
+xpc = H.EXP.get("power", {}).get("promotion_check", {})
+xmod = H.EXP.get("models", {})
+e6 = H.EXP.get("e6", {})
+xby = {r["model"]: r for r in xr}
+mdes = [H.exp_mde(r)[0] for r in xr]
+n_gt1 = sum(1 for m in mdes if m is not None and m > 1.0)
+n_gt075 = sum(1 for m in mdes if m is not None and m > 0.75)
+min_p = min((r["p_bootstrap"] for r in xr), default=None)
+e1 = xmod.get("E1", {})
+e1l = [f for f in e1.get("loo", {}).get("fits", []) if f.get("status") == "ok"]
+e1ladder = {k: v.get("targets", {}).get("gamma_F", {}) for k, v in e1.get("by_estimator", {}).items()}
+e1sens = e1.get("sensitivities", {})
+e4c = xmod.get("E4c", {}).get("groups", {}).get("targets", {})
+e3 = xmod.get("E3", {}).get("slopes", {}).get("targets", {})
+stab = e6.get("stability", {})
+cm = e6.get("cluster_means", {})
+mem = e6.get("membership", {})
+```
+
+The pre-registration (section 11) lists analyses that were deliberately kept outside the confirmatory and secondary families, and `docs/exploratory_spec.md` fixed their details on 2026-10-13, after the confirmatory, secondary and robustness results were known and before any exploratory result existed. They are labelled *exploratory* for three reasons: they were specified after the author had seen the headline estimates; their moderators (a de jure fiscal-rule index, debt and accession splits, a euro indicator) were not part of the frozen design; and the family below was fixed by hand rather than by a pre-registered rule. All use the pre-registered estimator V7 (feasible WLS with AR(1) GLS) and wild-cluster bootstrap-t inference with B = `{python} f'{H.EXP.get("n_boot", 0):,}'`, add one interaction with $W^S$ to the M1 design per model, and are associations only. Seven coefficients form the exploratory family: the rule-strength interaction (E1), its triple interaction with between-country ageing (E2), a hinge in the between-ageing interaction (E3), and four group differences in the $W^S$ association by debt (E4a between countries, E4b within years), EU accession cohort (E4c) and euro membership (E4d). Multiplicity is controlled by the Benjamini--Hochberg procedure at $q = 0.05$ over these seven $p$-values, with the Benjamini--Yekutieli adjustment beside it. No equivalence reading against the SESOI is applied, because the SESOI of `{python} H.num(sesoi, 1)` pp was set for $\beta_S$ only; the minimum detectable effect (MDE) is shown next to every interval instead.
+
+```{python}
+#| label: tbl-exploratory
+#| tbl-cap: "Exploratory family of seven coefficients (V7; pp of potential GDP per +1 SD of the moderator, or difference between two groups; 95% bootstrap-t intervals). Raw p: null-imposed wild-cluster bootstrap-t, unadjusted; q: Benjamini-Hochberg over the seven. MDE: effect detectable with 80% power at the estimated persistence, from the wild bootstrap for E1 and E2 and, marked with an asterisk, the size-adjusted CR1 value for E3 and E4 (indicative only). Source: reports/results/exploratory.json."
+rows = []
+short = {"E1": "$\\gamma_F$: $W^S$ x rule index (2016-2021)", "E2": "$\\delta_{BF}$: $W^S$ x ageing x rule index", "E3": "$\\delta_H$: ageing hinge at the median",
+         "E4a": "High- minus low-debt country", "E4b": "Debt above vs below year median", "E4c": "Accession member minus EU-14", "E4d": "Euro minus non-euro"}
+for r in xr:
+    mv, wild = H.exp_mde(r)
+    rows.append({"Model": r["model"], "Coefficient": short.get(r["model"], r["target"]), "N": r["n_obs"],
+                 "Estimate [95% interval]": H.est_ci(r), "Raw p": H.pval(r.get("p_bootstrap")), "BH q": H.pval(r.get("q_bh")),
+                 "MDE": H.num(mv, 2) + ("" if wild else "*")})
+if rows:
+    H.show_table(pd.DataFrame(rows), align="llrrrrr", widths=[6, 40, 6, 28, 8, 8, 8])
+else:
+    H.not_yet("the exploratory family")
+```
+
+```{python}
+#| output: asis
+H.figure("fig-exploratory", "exploratory_forest.png",
+         "Exploratory coefficients with 95% bootstrap-t intervals (V7; wild-cluster, B = 9,999; unit per row as stated). No coefficient is rejected by the Benjamini-Hochberg procedure over the seven. Associations only. Source: AMECO Spring 2026; Fiscal Governance Database 2025 update; Eurostat; author's calculations.",
+         width="90%")
+```
+
+@tbl-exploratory and @fig-exploratory give the family. The Benjamini--Hochberg procedure rejects `{python} H.cnt(xm.get("n_bh_reject"), xm.get("m_used"))` coefficients and the Benjamini--Yekutieli procedure `{python} H.cnt(xm.get("n_by_reject"), xm.get("m_used"))`; the smallest raw $p$-value is `{python} H.pval(min_p)`. The intervals are wide, and the MDE exceeds the project's not-powered line of 1.0 pp for `{python} H.cnt(n_gt1, len(mdes))` coefficients. The correct reading is therefore not that moderation is absent but that the design cannot detect heterogeneity of the size that would matter for the headline: the intervals are compatible with no moderation and with moderation as large as, or larger than, $\beta_S$ itself.
+
+The group difference between accession members and the EU-14 (E4c) is the only coefficient whose interval excludes zero before adjustment: `{python} H.est_ci(xby.get("E4c"), 2)`, raw $p$ = `{python} H.pval(xby.get("E4c", {}).get("p_bootstrap"))`, BH $q$ = `{python} H.pval(xby.get("E4c", {}).get("q_bh"))`. We treat it as a nominal pattern and not as a finding. It is one of seven post hoc contrasts, the null-imposed $p$-value does not reach 0.05, the interval just excludes zero, and the contrast compares 13 accession members with 14 older members, so that it is confounded with every other difference between the two groups (income, institutions, period of membership). For description only, the group-specific associations are `{python} H.est_ci(e4c.get("beta_S_D1"), 2)` for accession members and `{python} H.est_ci(e4c.get("beta_S_D0"), 2)` for the EU-14.
+
+**E1: fiscal-rule moderation.** The moderator is the lagged de jure design-strength score of national numerical fiscal rules (raw C-FRSI of the Fiscal Governance Database, 2025 update), which measures the design of rules and not their enforcement or compliance, and is retroactively revised by its producer. The index has gaps in the early 2010s (and for one country until 2016), so E1 uses 2016--2021 with N = `{python} xav.get("e1_rows")` country-years in `{python} xav.get("e1_countries")` countries, of which `{python} xav.get("e1_ws_positive_rows")` carry positive exposure; the within-country variation of the index rests on `{python} H.fact("e1_changes")` year-to-year changes. The coefficient per +1 SD of the index is `{python} H.est_ci(xby.get("E1"), 2)`; the feasible-WLS-only and OLS versions give `{python} H.est_ci(e1ladder.get("V3"), 2)` and `{python} H.est_ci(e1ladder.get("V0"), 2)`, and leaving out each country in turn gives estimates from `{python} H.num(min(f["estimate"] for f in e1l), 2)` to `{python} H.num(max(f["estimate"] for f in e1l), 2)` with the interval excluding zero in `{python} H.cnt(e1.get("loo", {}).get("n_exclude_zero_changes"), len(e1l))` fits (the fit without `{python} e1.get("loo", {}).get("most_influential", H.NA)`). The sign is not stable across sensitivities: the estimate is `{python} H.num(e1sens.get("noage", {}).get("targets", {}).get("gamma_F", {}).get("estimate"), 2)` without the ageing interactions and `{python} H.num(e1sens.get("window_2012_2021", {}).get("targets", {}).get("gamma_F", {}).get("estimate"), 2)` in the longer 2012--2021 window (which uses back-cast index values). The pre-registered promotion check asked whether E1 could return to the secondary family: its wild-bootstrap MDE would have to be at most `{python} H.num(xpc.get("lines_pp", {}).get("promotion"), 1)` pp per SD. It is `{python} H.num(xpc.get("V7", {}).get("wcb_mde_pp_per_sd_rho_hat"), 2)` pp (`{python} H.num(xpc.get("V7", {}).get("wcb_mde_pp_per_sd_rho0"), 2)` pp at zero persistence) for V7, and similar for the two alternatives, so the check fails and E1 stays exploratory. The E2 triple interaction (`{python} H.est_ci(xby.get("E2"), 2)`) was flagged as severely underpowered in advance and is an indication of how wide the uncertainty is, not a test.
+
+**E3: nonlinear ageing.** With a knot at the median of the between-country component, the change in the slope above the knot is `{python} H.est_ci(xby.get("E3"), 2)`; the descriptive slopes below and above the knot are `{python} H.est_ci(e3.get("slope_below"), 2)` and `{python} H.est_ci(e3.get("slope_above"), 2)`. The between component has 27 distinct values, and no departure from the linear ageing interaction can be established.
+
+**E6: country typology.** A $k$-means clustering of the 27 countries on five standardised country-level features (mean lagged debt, interest, CAPB, interquartile range of the CAPB, and old-age dependency) is descriptive only: it uses the outcome, carries no inference on membership, and its labels are not used in any model. The admissible partition with the highest silhouette has $k$ = `{python} e6.get("chosen_k")`, with a mean silhouette of `{python} H.num(e6.get("silhouette"), 2)`, which is weak structure on the Kaufman--Rousseeuw scale. It separates `{python} ", ".join(mem.get("2", []))` (mean debt `{python} H.num(cm.get("2", {}).get("mean_debt"), 0)`% of GDP, against `{python} H.num(cm.get("1", {}).get("mean_debt"), 0)`% for the other `{python} len(mem.get("1", []))`) from the rest. The partition is not stable under the clustering algorithm's starting values: only `{python} H.pct(stab.get("share_equal_to_reference"))` of `{python} stab.get("n_seeds")` single-start runs reproduce the reference partition (median adjusted Rand index `{python} H.num(stab.get("ari_median"), 2)`), although a Ward-linkage cut gives the identical partition (adjusted Rand index `{python} H.num(stab.get("ari_ward_vs_reference"), 2)`). We read it as a description of three high-debt, high-interest countries against the rest, not as a typology.
+
+**Not run.** `{python} "; ".join(f"{k}: {v}" for k, v in H.EXP.get("not_run", {}).items())`. The thesis therefore says nothing about E5, about the researcher's optional extension (E7, not chosen) or about heterogeneity by democratic age.

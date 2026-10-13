@@ -17,15 +17,15 @@ We group the threats by the type of validity they affect. Where a check exists i
 
 *Early elections.* Early elections respond to the economy and to government survival [@kayser2005; @strom2002]. They are entered separately and not interpreted, but the classification into scheduled and early depends on ETAD's codes and on the rules of @sec-calendar. Unclassified elections (including all elections of Cyprus and Malta) stay in the model as a separate regressor, and the dropped-unclassified variant is a robustness check.
 
-*Ageing.* The interaction with the between-country ageing level is a cross-country contrast and may proxy for unobserved country traits. The within-country interaction is not powered.
+*Ageing.* The interaction with the between-country ageing level is a cross-country contrast and may proxy for unobserved country traits. The within-country interaction is not powered, and the exploratory ageing interactions of @sec-exploratory (nonlinear and triple) are not detectable either.
 
 ## Measurement {#sec-lim-measure}
 
-*CAPB.* The outcome is a model estimate whose first-outturn revision, `{python} H.fact("revision")` pp on average, is as large as the effect of interest. The analysis uses one pinned ex post vintage (Spring 2026); a real-time replication is not feasible because only 2015--2021 can carry a real-time value, and the cyclical-adjustment method and the accounting basis changed in the archive window. The ex post gap embeds later information [@orphanides2002].
+*CAPB.* The outcome is a model estimate whose first-outturn revisions are of the same order as the effect of interest: the mean absolute revision is `{python} H.s4_ci("mean_abs_revision")` pp and the median absolute revision `{python} H.s4_ci("median_abs_revision")` pp, the revision standard deviation is about `{python} H.num(H.S4.get("signal", {}).get("sd_revision_over_abs_beta_S"), 1)` times $|\beta_S|$, and the revisions look like news rather than classical noise ([Appendix E](#sec-app-revisions)); the typical revision does not demonstrably exceed the SESOI. The analysis uses one pinned ex post vintage (Spring 2026); a real-time replication is not feasible because only 2015--2021 can carry a real-time value, and the cyclical-adjustment method and the accounting basis changed in the archive window. The ex post gap embeds later information [@orphanides2002].
 
 *Election calendar.* ETAD and ParlGov end in 2023, and the 12-month window needs elections through the end of the following year, so the sample ends in 2021. Right-censoring of this kind makes the sample a function of the data availability rather than of any outcome value, but it excludes the most recent elections. Matched elections in the two sources differ by at most a few days for nearly all pairs (one pair differs by 61 days), but ParlGov carries no early/scheduled flag, so the classification rests on ETAD alone.
 
-*Moderator.* The old-age dependency ratio is a demographic measure, not a measure of the electoral weight of older voters, and it moves slowly.
+*Moderator.* The old-age dependency ratio is a demographic measure, not a measure of the electoral weight of older voters, and it moves slowly. The fiscal-rule index of the exploratory analysis (E1, @sec-exploratory) is a de jure design-strength score, not enforcement or compliance, and is retroactively revised by its producer, so it reflects the knowledge of 2026 and not that of year $t$; its within-country variation in the E1 window rests on only `{python} H.fact("e1_changes")` year-to-year changes.
 
 ## Statistical validity {#sec-lim-stat}
 
@@ -36,6 +36,8 @@ We group the threats by the type of validity they affect. Where a check exists i
 *Power and the winner's curse.* The design's minimum detectable effect for $\beta_S$ (`{python} H.num(pw.get("beta_S", {}).get("rho"), 3)` pp at the estimated persistence) exceeds the estimate; an estimate that clears a significance filter is likely to be exaggerated. The within-country interaction is not powered at all.
 
 *Dynamics and persistence.* The CAPB is persistent (estimated at about 0.7), and the AR(1) correction was calibrated near that value; for the spending-share secondary outcomes with persistence above 0.85 neither the correction nor the bootstrap was validated. V7 does not model dynamics beyond AR(1) errors (no lagged dependent variable), by design [@nickell1981; @roodman2009].
+
+*Exploratory analyses.* The seven exploratory coefficients were specified after the confirmatory result was known, have minimum detectable effects above 1 pp for most of them, and none survives Benjamini--Hochberg adjustment; the E1 promotion check failed, and the nominal accession-versus-EU-14 pattern must not be read as a finding.
 
 *Specification freedom.* The pre-registration constrains the confirmatory analysis, not the design that preceded it. The robustness and secondary specifications were fixed after the confirmatory result (and before their own results), and the multiplicity corrections cover only the stated families.
 

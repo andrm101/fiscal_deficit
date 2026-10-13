@@ -51,6 +51,8 @@ def read_text(path: Path) -> str:
 M1 = load_json("m1_confirmatory.json")
 SEC = load_json("secondary.json")
 ROB = load_json("robustness.json")
+EXP = load_json("exploratory.json")
+S4 = load_json("s4_revisions.json")
 
 
 # ----------------------------------------------------------------------------- formatting
@@ -205,6 +207,7 @@ _FACTS = {
     "n_scoping": ("24", "docs/post_freeze_log.md", r"identified from 24 countries"),
     "irl": (f"{MINUS}27.6", "reports/tier1_descriptives.md", r"CAPB -27\.6 pp"),
     "g1_sd": ("1.25", "docs/decision_log.md", r"1\.25 pp"),
+    "e1_changes": ("30", "docs/exploratory_spec.md", r"30 consecutive-year changes"),
     "wcb_size": ("11\u201312", "docs/preregistration.md", r"11.12%"),
 }
 FACT_FAILS: list[str] = []
@@ -343,3 +346,33 @@ def spec_table(rows: list[dict[str, Any]], with_gamma: bool = True) -> pd.DataFr
 
 def sec_outcomes(role: str) -> list[dict[str, Any]]:
     return [o for o in SEC.get("outcomes", []) if o.get("role") == role and o.get("status") == "ok"]
+
+
+# ----------------------------------------------------------------------------- exploratory (E1-E6) and S4 accessors
+def exp_rows() -> list[dict[str, Any]]:
+    """The seven family coefficients of the exploratory run (with BH and BY q-values)."""
+    return [r for r in EXP.get("multiplicity", {}).get("rows", []) if r.get("status") == "ok"]
+
+
+def exp_mde(r: dict[str, Any]) -> tuple[float | None, bool]:
+    """MDE at the estimated persistence: (value, is_wild_bootstrap). Falls back to the size-adjusted CR1 value."""
+    m = r.get("mde", {}).get("ar1_rho_hat", {})
+    if m.get("wild_bootstrap_mde") is not None:
+        return m["wild_bootstrap_mde"], True
+    return m.get("cr1_mde_size_adjusted"), False
+
+
+def s4_stat(key: str) -> tuple[float | None, list[float] | None]:
+    """(estimate, [lo, hi]) of a primary-sample revision statistic."""
+    p = S4.get("primary", {})
+    return p.get("stats", {}).get(key), p.get("bootstrap_ci", {}).get(key)
+
+
+def s4_ci(key: str, d: int = 2, as_pct: bool = False) -> str:
+    """'estimate [lo, hi]' for a revision statistic."""
+    est, ci = s4_stat(key)
+    if est is None or not ci:
+        return NA
+    if as_pct:
+        return f"{pct(est)} [{pct(ci[0])}, {pct(ci[1])}]"
+    return f"{num(est, d)} {ival(ci[0], ci[1], d)}"
