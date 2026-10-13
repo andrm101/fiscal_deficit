@@ -1,0 +1,137 @@
+# Institutional background and data {#sec-data}
+
+```{python}
+#| include: false
+import pandas as pd
+import _helpers as H
+```
+
+This chapter describes the outcome, the election calendar, the construction of the exposure and moderator variables, the sample, and the data provenance. Everything here was fixed before any outcome was related to an election variable; the descriptive figures in @sec-descriptives are unconditional on elections except where stated.
+
+## Institutional background {#sec-background}
+
+The 27 member states of the European Union in 2023 are parliamentary, semi-presidential or presidential democracies with national legislative elections at constitutionally set intervals and with differing rules for dissolving parliament before term. Two features matter for the design. First, within the Union's fiscal framework, member states are subject to surveillance of their structural budget position, so that the CAPB is both an economic indicator and a policy target. Second, the EU-27 mixes long-established democracies and post-1989 democracies that joined the Union from 2004 onwards, with different histories of fiscal institutions; the accession members enter the panel with shorter series and, as the descriptives show, a lower level of population ageing in the 1990s (@sec-descriptives). These facts are the reason that country effects, year effects and, in robustness, leave-one-country-out and era checks are part of the design.
+
+## The outcome: the cyclically adjusted primary balance {#sec-outcome}
+
+The outcome `capb` is AMECO series `UBLGBP`: *net lending (+) or net borrowing ($-$) excluding interest of general government adjusted for the cyclical component, adjustment based on potential GDP, excessive deficit procedure* [@ameco2026]. It is measured in percentage points of potential GDP, with a surplus positive, in the Spring 2026 vintage (update of 3 June 2026), which is pinned: the source files are stored read-only and their SHA-256 values are recorded in a committed manifest. In that vintage the last two years (2026--2027) are forecasts, and no forecast year enters the estimation sample.
+
+Three features need stating. First, the series is a model estimate: it subtracts from the actual primary balance a cyclical component built from an estimated output gap and budgetary semi-elasticities [@mourre2014], and it is revised in each vintage. Second, AMECO's unit code is shared between series expressed in per cent of GDP and series expressed in per cent of potential GDP; the denominator is therefore asserted from the series label in an automated metadata test rather than inferred from the unit code. Third, the headline primary balance (`UBLGIE`, per cent of GDP) is a different series and enters only as a secondary outcome (@sec-secondary). Typical first-outturn revisions of the CAPB are `{python} H.fact("revision")` pp in mean absolute value; they are discussed in [Chapter 7](#sec-limitations) and in the revision analysis of `reports/gate5_realtime_feasibility.md`.
+
+## The election calendar {#sec-calendar}
+
+Election dates come from the Election Timing across Autocracy and Democracy dataset (ETAD v1.0.0; @higashijima2025), which records, among other fields, the date held, the scheduled date, the difference between them in days, two timing codes and a reason code for early elections. ParlGov (2024 stable release; @parlgov2024) is used as a cross-check on dates; it carries no early/scheduled flag, is released under CC0 and is frozen at June 2023. The calendar covers national lower-house elections of the 27 countries over 1990--2023: `{python} H.fact("el_total")` elections, of which `{python} H.fact("el_both")` appear in both sources. Elections are matched one-to-one, nearest date first, within 92 days. Cyprus and Malta are absent from ETAD and enter from ParlGov only.
+
+Each election is classified using ETAD's codes, in a fixed order: *unclassified* if the first timing code is missing or unknown or the second is missing; *delayed* if the second timing code indicates a later-than-scheduled election (unclassified when this contradicts the day difference or the reason code); *early* if it indicates an earlier-than-scheduled election (unclassified when this contradicts the day difference), or when the reason is a no-confidence vote or "other"; *scheduled* if the second code indicates an on-schedule election (with the reason-code exception just given, and unclassified when the first timing code is 2). ParlGov-only elections are unclassified. The result is `{python} H.fact("el_sched")` scheduled, `{python} H.fact("el_early")` early, `{python} H.fact("el_del")` delayed and `{python} H.fact("el_unc")` unclassified elections. Two caveats follow. The scheduled date in ETAD is judgement-coded, so a "scheduled" classification inherits that judgement, and for the most recent rows the schedule is extrapolated from term length. ETAD's coverage of 2023 is partial (see @sec-sample). Unclassified and delayed elections are not discarded: they stay in the model as separate regressors, so that they cannot contaminate the reference group; the delayed regressor is identically zero in the final sample, because the only delayed election (Croatia, January 2000) affects only Croatian country-years before 2002, which are not in the sample, and it is dropped automatically.
+
+## Exposure construction {#sec-exposure}
+
+Annual data pose a timing problem: a March election places most of its twelve pre-election months in the previous calendar year. Exposure is therefore fractional. For country $i$, year $t$ and election class $c \in \{S, E, D, U\}$ (scheduled, early, delayed, unclassified),
+
+$$
+W^{c}_{it} = \frac{\text{days of year } t \text{ inside the union of the 12-month pre-election windows of class-}c\text{ elections of } i}{\text{days in year } t} \in [0, 1],
+$$ {#eq-exposure}
+
+where the pre-election window is the 12 months before the election day. A variable $\mathit{Post}_{it}$ is defined in the same way for the 12 months after *any* election. The 12-month window is fixed by the annual budget cycle and was not tuned; windows of 6 and 18 months and a calendar-year dummy are robustness checks (@sec-robustness). The exposure module was written, and committed, before any outcome series was merged to it.
+
+Because $W^S_{it}$ is the share of a calendar year, its maximum in the sample is below one, and a typical exposed country-year has about half a year of exposure. The coefficient $\beta_S$ below is expressed per unit of $W^S$, that is, for a full year of exposure, which no observation attains; an estimate for a typical exposed country-year is correspondingly about half as large.
+
+```{python}
+#| label: tbl-exposure
+#| tbl-cap: "Distribution of the exposure variables in the confirmatory sample (share of a calendar year inside the window, 0 to 1). Source: Tier-1 descriptives (reports/tier1_descriptives.md)."
+rows = []
+for v, lab in [("W_S", "$W^S$ scheduled"), ("W_E", "$W^E$ early"), ("W_D", "$W^D$ delayed"), ("W_U", "$W^U$ unclassified"), ("Post", "Post (12 months after any election)")]:
+    r = H.tier1_exposure(v)
+    rows.append({
+        "Variable": lab,
+        "Share of country-years with exposure > 0 (%)": H.num(r.get("share_pos"), 1),
+        "Mean": H.num(r.get("mean"), 3),
+        "SD": H.num(r.get("sd"), 3),
+        "Maximum": H.num(r.get("max"), 3),
+        "Mean if > 0": H.num(r.get("mean_pos"), 3) if r.get("mean_pos") is not None else "none",
+    })
+H.show_table(pd.DataFrame(rows), widths=[34, 20, 8, 8, 9, 11])
+```
+
+## The moderator: population ageing {#sec-moderator}
+
+The moderator is the old-age dependency ratio `OLDDEP1` (persons aged 65 and over per 100 persons aged 15--64, on 1 January; Eurostat `demo_pjanind`; @eurostat2026), taken at $t-1$ so that it is predetermined with respect to the outcome year. In the model it is standardised to mean zero and standard deviation one on the estimation sample. The ratio has very little variation once country and year effects are removed: in the confirmatory sample the two-way standard deviation of the lagged ratio is `{python} H.fact("g1_sd")` pp, and common year effects account for more than 40% of its variance (@tbl-variance). Almost every country ages over the sample period, and the movement is largely a common trend that the year effects absorb. The interaction with the election exposure therefore draws mainly on cross-country differences in the *level* of ageing, which may proxy for other country traits. This is the reason for the within-between split in @sec-mundlak, and for the pre-registered wording that the within-country interaction is expected to be imprecise.
+
+## Sample {#sec-sample}
+
+The confirmatory sample is the 27 EU member states annually over 1995--2021: `{python} H.fact("n_obs")` country-years, unbalanced, with `{python} H.fact("balanced")` countries observed in all 27 years. The selection rule was fixed before the outcome was merged to the exposure: the start year is the earliest year with at least 22 jointly observed countries and every retained country with at least 20 observations (1995, which is also the floor imposed by the one-year lag of the moderator); the end year is the last year with complete exposure for all 27 countries. The `{python} H.fact("dropped")` excluded country-years are all series starts: Cyprus, Czechia and Slovenia 1995--96, Slovakia 1995 and Croatia 1995--2001.
+
+*Why the sample ends in 2021.* Exposure for year $t$ needs every election up to 31 December of year $t+1$, because the pre-election window is 12 months long. The election sources end in 2023 (ParlGov in June 2023; ETAD's 2023 coverage is demonstrably partial, with only 29 elections dated 2023 against about 56 per year in 2019--2022). Exposure is therefore complete for all 27 countries only up to 2021. For 2022, exposure is complete only on trust in ETAD for 22 countries, and 2023 is incomplete for all 27; the 2022 extension is a robustness check (@sec-robustness), and no election after 2023 is hand-coded. The sample includes the 2008--2012 crisis and the pandemic years 2020--2021, which are handled by year effects, era terms and crisis-exclusion checks.
+
+## Descriptive evidence {#sec-descriptives}
+
+```{python}
+#| output: asis
+H.figure("fig-capb-time", "t1_capb_over_time.png",
+         "Cross-country distribution of the CAPB by year (percentiles; pp of potential GDP), 1995-2021, with the crisis periods marked as calendar annotations only. Source: AMECO Spring 2026; Tier-1 descriptives.",
+         width="90%")
+```
+
+@fig-capb-time shows the cross-country distribution of the CAPB over time. The median declines in the early 2000s, falls to its lowest value in 2009, recovers to a positive level in the mid-2010s and falls again in 2020--2021. Common shocks of this size are absorbed by the year effects, and they are the main reason that the model includes them. The CAPB is also heavy-tailed and skewed: its mean is close to zero, with a minimum of about $-27.6$ pp (Ireland 2010, the largest absolute residual) and a maximum of about 10.6 pp (Greece 2016), and the Ireland 2010 observation is handled by a winsorising robustness check.
+
+```{python}
+#| label: tbl-variance
+#| tbl-cap: "Variance decomposition of the CAPB and of the lagged old-age dependency ratio, confirmatory sample (pp). Source: Tier-1 descriptives."
+vd = H.tier1_table("statistic", "capb")
+if vd is None:
+    H.not_yet("variance decomposition table of the Tier-1 descriptives")
+else:
+    keep = vd[vd["statistic"].str.contains("mean|between|within|two-way SD \\(country|variance share", regex=True)].copy()
+    keep.columns = ["Statistic", "CAPB", "Lagged OLDDEP1"]
+    H.show_table(keep, widths=[46, 10, 14])
+```
+
+@tbl-variance decomposes the variance. About a quarter of the variance of the CAPB is between countries and about one sixth is common to all countries in a year; the remaining variance, which is what the model must explain, has a two-way standard deviation of about 2.4 pp. Its persistence is substantial: the raw AR(1) coefficient of the two-way residual is about 0.60, and simulation-corrected persistence is about 0.7. This matters for power and for the choice of estimator (@sec-power).
+
+```{python}
+#| output: asis
+H.figure("fig-capb-heatmap", "f5_capb_country_year_heatmap.png",
+         "CAPB by country and year (pp of potential GDP; surplus positive), with scheduled-election years marked. Descriptive. Source: AMECO Spring 2026; Eurostat; ETAD; ParlGov.",
+         width="80%")
+```
+
+@fig-capb-heatmap displays all `{python} H.fact("n_obs")` country-years with the scheduled-election years marked. It makes visible the features that the econometric model must handle: the common downturns in 2009--2010 and 2020--2021, the idiosyncratic episodes (Ireland, Greece, Cyprus), the late start of several accession-country series, and the fact that scheduled elections fall in different years in different countries, which provides the identifying variation net of year effects.
+
+```{python}
+#| output: asis
+H.figure("fig-olddep", "t1_olddep1_trajectories.png",
+         "Old-age dependency ratio (OLDDEP1, persons 65+ per 100 aged 15-64) by country, lagged one year, 1995-2021. Source: Eurostat demo_pjanind; Tier-1 descriptives.",
+         width="90%")
+```
+
+@fig-olddep shows that all 27 countries have a higher lagged ratio in their last sample year than in their first, that the ratio is lower in the accession countries at the start of the period, and that the cross-country dispersion widens over time. Both facts are consistent with the variance shares in @tbl-variance: most of the variation is cross-sectional or common.
+
+```{python}
+#| output: asis
+H.figure("fig-calendar", "t1_election_calendar_counts.png",
+         "National lower-house elections per year by class (scheduled, early, delayed, unclassified), 1994-2023. Source: ETAD v1.0.0; ParlGov 2024; Tier-1 descriptives.",
+         width="90%")
+```
+
+@fig-calendar describes the calendar on its own. Early elections are a substantial minority of all elections (`{python} H.fact("el_early")` of `{python} H.fact("el_total")`). Their frequency differs strongly by country: Greece, Bulgaria, Spain, Denmark and the Netherlands have many, whereas Estonia, Finland, Lithuania, Romania, Hungary and Sweden have none in the window. Cyprus, Greece and Malta have no scheduled election in the window under the classification rules (Greece's elections are early or unclassified, Cyprus and Malta's are all unclassified), so $\beta_S$ is identified from `{python} H.fact("n_scoping")` countries.
+
+## Data provenance and licences {#sec-provenance}
+
+All inputs are static, manually acquired files that are hashed at acquisition; transformation, modelling and reporting run offline from them. Only a separate, opt-in acquisition tool may use the network, and it only writes immutable raw files and records their size, SHA-256, retrieval time and response headers. @tbl-licences summarises the sources and their terms as read from the providers' pages on 2026-10-10.
+
+| Dataset | Use | Terms as seen | Redistributed in the repository |
+|:--------------|:--------------|:--------------------|:----------------|
+| AMECO, Spring 2026 | Outcome and secondary balances | "Free of charge"; no licence text stated | No (re-acquire and check the SHA-256) |
+| ETAD v1.0.0 | Election dates and classification | Dataset licence not stated; the paper is CC BY-NC | No (re-acquire) |
+| ParlGov 2024 stable release | Cross-check of election dates | CC0 1.0 | Yes |
+| Eurostat extracts | Moderator, secondary outcomes, controls | Reuse with acknowledgement | Yes |
+| EC Fiscal Governance Database | Exploratory only (not reported) | No reuse statement on the page | No |
+
+: Data sources and terms (see `data/external/LICENSES.md`; this is a working record, not legal advice) {#tbl-licences}
+
+The analysis extract is derived from AMECO and is therefore not committed; only its SHA-256 is. The hash of the 715-row confirmatory extract is `{python} H.M1.get("extract_hash", H.NA)`, and the committed headline results carry the same hash. <!-- TODO: confirm the redistribution terms of AMECO, ETAD and the EC Fiscal Governance Database with the providers (open item R07) -->
+
+```{python}
+#| include: false
+H.fact_warning()
+```

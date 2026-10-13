@@ -1,0 +1,170 @@
+# Robustness details {#sec-app-robustness}
+
+```{python}
+#| include: false
+import pandas as pd
+import _helpers as H
+
+A = H.rob_section("A")
+B = H.rob_section("B")
+rowsL = [r for r in H.rob_rows("C") if r["id"].startswith("C4-loco")]
+```
+
+This appendix gives the tables behind @sec-robustness. All tables are read from `reports/results/robustness.json`; sections not present are marked as not yet available. Nothing here is used to select a specification.
+
+## Driscoll--Kraay, two-way clustering and CCE designs {#sec-app-dk}
+
+```{python}
+#| output: asis
+dk = A.get("dk_crosscheck_real", {})
+bw = dk.get("bandwidths", {})
+if dk:
+    parts = []
+    for m, v in bw.items():
+        parts.append(f"bandwidth m = {m}: maximum relative difference in standard errors {H.sci(v.get('max_rel_diff_se'), 1)}")
+    print("Driscoll--Kraay standard errors (Bartlett kernel; small-sample factor as in the project's CR1 convention; $t(26)$ critical values) were cross-checked against `linearmodels.PanelOLS(...).fit(cov_type='kernel')` on the real regressors: " + "; ".join(parts) + f"; coefficients agree to {H.sci(dk.get('max_rel_diff_coefficients'), 1)} relative difference. The two-way clustered variance matrix (Cameron--Gelbach--Miller) was not positive semi-definite and negative eigenvalues were set to zero before the standard errors were read (see the JSON for the eigenvalue).")
+else:
+    print("> **Not yet available:** Driscoll-Kraay cross-check.")
+```
+
+```{python}
+#| label: tbl-app-cce
+#| tbl-cap: "CCE designs (Pesaran 2006 pooled; country-specific coefficients on cross-sectional averages; year effects kept). Source: robustness.json, section A."
+cce = A.get("cce", {})
+rows = []
+for k, lab in [("lite", "CCE-lite"), ("full", "CCE-full")]:
+    c = cce.get(k)
+    if c:
+        rows.append({"Version": lab, "CSA variables": c.get("n_csa_variables"), "Added parameters": c.get("added_parameters"),
+                     "Total parameters": c.get("n_parameters_total"), "Residual df": c.get("residual_df"),
+                     "df exhausted": "yes" if c.get("df_exhausted") else "no"})
+if rows:
+    H.show_table(pd.DataFrame(rows), widths=[14, 14, 16, 16, 12, 12])
+else:
+    H.not_yet("CCE design table")
+```
+
+CCE-full adds 260 country-specific coefficients to a sample of 715 observations, so it should be read as a stress test of the specification, not as a preferred model; degrees of freedom are not exhausted (@tbl-app-cce).
+
+## Residual cross-sectional dependence {#sec-app-cd}
+
+```{python}
+#| label: tbl-app-cd
+#| tbl-cap: "Residual cross-sectional dependence: Pesaran CD, mean pairwise correlation and mean absolute pairwise correlation, with simulated benchmarks for independent AR(1) errors passed through the same projection. Source: robustness.json, section A."
+dep = A.get("dependence", [])
+rows = []
+for d in dep:
+    n1 = d.get("null_ar1", {})
+    rows.append({"Residuals": d.get("model"), "CD": H.num(d.get("cd"), 2), "Mean corr.": H.num(d.get("mean_corr"), 3),
+                 "Mean abs. corr.": H.num(d.get("mean_abs_corr"), 3),
+                 "AR(1) null: mean abs. corr.": H.num(n1.get("mean_abs_corr"), 3),
+                 "Excess vs null": H.num(d.get("excess_mean_abs_corr_vs_ar1"), 3)})
+if rows:
+    H.show_table(pd.DataFrame(rows), widths=[44, 8, 12, 14, 18, 14])
+else:
+    H.not_yet("residual dependence table")
+```
+
+A caveat applies to the Pesaran CD statistic. Residuals of models with year effects have, by construction, an average pairwise correlation of about $-1/(G-1)$ = `{python} H.num(-1/26, 3)` for $G = 27$ countries, which shifts the statistic to about $-3.7$ even under independence, so the standard normal $p$-value is not informative here. The statistic is therefore reported next to simulated benchmarks, and the mean absolute pairwise correlation is the more informative summary: its excess over the AR(1) benchmark is small for the OLS and V7 residuals, which is consistent with, but does not prove, adequate control of common shocks by the year effects.
+
+## Pre-registered diagnostics {#sec-app-diag}
+
+```{python}
+#| label: tbl-app-diag
+#| tbl-cap: "Pre-registered diagnostics (reported, never used to select a specification). Source: robustness.json, section B."
+rows = []
+mw = B.get("modified_wald", {})
+for k, lab in [("ols_fe_residuals", "Modified Wald, OLS-FE residuals"), ("v7_residuals", "Modified Wald, V7 residuals")]:
+    v = mw.get(k)
+    if v:
+        rows.append({"Test": lab, "Statistic": H.num(v.get("statistic"), 1), "Result": f"chi-square p {H.sci(v.get('p_value'))}; Monte Carlo p {H.pval(v.get('p_value_mc'), 4)} (null 95th percentile {H.num(v.get('null_q95_statistic'), 1)})"})
+w = B.get("wooldridge")
+if w:
+    rows.append({"Test": "Wooldridge serial correlation", "Statistic": f"F({w.get('df1')}, {w.get('df2')}) = {H.num(w.get('f_statistic'), 1)}", "Result": f"p {H.sci(w.get('p_value'))}; coefficient {H.num(w.get('coefficient'), 3)} (SE {H.num(w.get('se'), 3)}), {w.get('n_pairs')} residual pairs"})
+for k, lab in [("cips_capb_constant", "CIPS, CAPB, constant"), ("cips_capb_trend", "CIPS, CAPB, trend"), ("cips_moderator_lag_constant", "CIPS, lagged OLDDEP1, constant"), ("cips_moderator_lag_trend", "CIPS, lagged OLDDEP1, trend")]:
+    v = B.get(k)
+    if v:
+        rows.append({"Test": lab, "Statistic": H.num(v.get("cips"), 3), "Result": f"5% critical value {H.num(v.get('crit_5'), 2)} (simulated); p {H.pval(v.get('p_value_left_tail'), 3)}; unit root {'rejected' if v.get('reject_5pct') else 'not rejected'} at 5%"})
+h = B.get("hausman_mundlak")
+if h:
+    rows.append({"Test": "Hausman, Mundlak form", "Statistic": f"Wald = {H.num(h.get('wald'), 1)} (q = {h.get('q')})", "Result": f"F({h.get('q')}, {h.get('df2')}) p {H.sci(h.get('p_value_f'))}"})
+hc = B.get("hausman_classical")
+if hc:
+    rows.append({"Test": "Hausman, classical", "Statistic": f"H = {H.num(hc.get('statistic'), 2)} (df {hc.get('df')})", "Result": f"p {H.pval(hc.get('p_value'), 3)}; not interpretable: random-effects variance is {H.num(hc.get('re_effects_variance'), 1)} and {hc.get('n_negative_eigenvalues')} eigenvalues of V_FE - V_RE are negative"})
+if rows:
+    H.show_table(pd.DataFrame(rows), align="lll", widths=[34, 22, 70])
+else:
+    H.not_yet("section B diagnostics")
+```
+
+The modified Wald statistic over-rejects in short panels, which is why a Monte Carlo $p$-value under independent normal errors with this panel's layout is shown beside the chi-square value. The classical Hausman statistic is not interpretable here, and the Mundlak form is the Hausman result.
+
+```{python}
+#| label: tbl-app-vif
+#| tbl-cap: "Variance inflation factors of the M1 regressors (flag above 5). Source: robustness.json, section B."
+v = B.get("vif", {})
+if v:
+    df = pd.DataFrame({"Regressor": v.get("names", []), "VIF after partialling out country and year effects": [H.num(x, 2) for x in v.get("vif_within", [])],
+                       "VIF on raw columns": [H.num(x, 2) for x in v.get("vif_raw", [])]})
+    df["Regressor"] = df["Regressor"].str.replace("_", "\\_", regex=False)
+    H.show_table(df, widths=[30, 30, 20])
+else:
+    H.not_yet("VIF table")
+```
+
+```{python}
+#| label: tbl-app-bins
+#| tbl-cap: "Binned linearity and common support for the two interactions (three equal-count bins; OLS fixed effects, CR1). Source: robustness.json, section B."
+rows = []
+for k, lab in [("binned_between", "Between"), ("binned_within", "Within")]:
+    d = B.get(k, {})
+    for b in d.get("bins", []):
+        rows.append({"Component": lab, "Bin": b.get("bin"), "Range (SD units)": f"{H.num(b.get('component_min'), 2)} to {H.num(b.get('component_max'), 2)}",
+                     "Obs.": b.get("n_obs"), "Exposed countries": b.get("n_countries_exposed"),
+                     "Binned effect of $W^S$ [95% CI]": f"{H.num(b.get('binned_estimate'), 2)} {H.ival(b.get('binned_ci_lo'), b.get('binned_ci_hi'), 2)}",
+                     "Linear prediction": H.num(b.get("linear_prediction"), 2)})
+if rows:
+    H.show_table(pd.DataFrame(rows), widths=[12, 6, 20, 8, 12, 30, 12])
+else:
+    H.not_yet("binned linearity tables")
+```
+
+```{python}
+#| include: false
+lb, lw = B.get("binned_between", {}), B.get("binned_within", {})
+```
+
+Linearity tests (adding the second and third bin interactions) give $p$ = `{python} H.pval(lb.get("linearity_p"), 2)` for the between and `{python} H.pval(lw.get("linearity_p"), 2)` for the within component. No bin has thin support (fewer than five exposed countries), but each bin rests on only eight to ten countries.
+
+```{python}
+#| label: tbl-app-lead
+#| tbl-cap: "Lead placebo (V7; W^S_lead is the share of the year inside months 13-24 before a scheduled election). Source: robustness.json, section B."
+rows = []
+for k, lab in [("lead_placebo", "As specified (1995-2021)"), ("lead_placebo_to_2020", "To 2020")]:
+    d = B.get(k)
+    if d:
+        rows.append({"Sample": lab, "N": d.get("n_obs"), "Lead coefficient [95% interval]": H.est_ci(d.get("lead"), 3), "p": H.pval(d.get("lead", {}).get("p"), 3),
+                     "$\\beta_S$ in the augmented model": H.est_ci(d.get("beta_S"), 3), "$\\gamma_B$ in the augmented model": H.est_ci(d.get("gamma_B"), 3)})
+if rows:
+    H.show_table(pd.DataFrame(rows), widths=[36, 6, 28, 8, 28, 28])
+else:
+    H.not_yet("lead placebo")
+```
+
+## Leave-one-country-out fits {#sec-app-loco}
+
+```{python}
+#| label: tbl-app-loco
+#| tbl-cap: "Leave-one-country-out fits (V7, wild-cluster bootstrap-t with B = 999 each; pp of potential GDP). Source: robustness.json, section C."
+rows = []
+for r in rowsL:
+    b, g = r["targets"]["beta_S"], r["targets"]["gamma_B"]
+    rows.append({"Left out": r["id"].split("-")[-1], "$\\beta_S$ [95% interval]": H.est_ci(b, 3), "p": H.pval(b.get("p"), 3), "Reading": H.reading_of(b),
+                 "$\\gamma_B$ [95% interval]": H.est_ci(g, 3), "Reading ": H.reading_of(g)})
+if rows:
+    H.show_table(pd.DataFrame(rows), align="lrrlrl", widths=[8, 28, 8, 16, 28, 22])
+else:
+    H.not_yet("leave-one-out table")
+```
+
+Every fit is listed; none is selected, and the table is not a ranking. Bootstrap $p$-values for these fits use only 999 replications and are correspondingly coarse.

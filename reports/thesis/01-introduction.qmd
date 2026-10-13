@@ -1,0 +1,53 @@
+# Introduction {#sec-intro}
+
+```{python}
+#| include: false
+import _helpers as H
+
+bS, gB, gW = H.head("beta_S"), H.head("gamma_B"), H.head("gamma_W")
+kA, nA = H.rob_count("A", "beta_S", "excludes_zero")
+kAll, nAll = H.rob_count("all", "beta_S", "excludes_zero")
+sAll, _ = H.rob_count("all", "beta_S", "keeps_sign")
+sec_k = H.SEC.get("multiplicity", {}).get("n_bh_reject")
+sec_n = H.SEC.get("multiplicity", {}).get("n_family")
+pw = H.prereg_power()
+mde = pw.get("beta_S", {}).get("rho")
+```
+
+## Motivation {#sec-motivation}
+
+Elections create a recurring, calendar-based incentive to shift taxes, transfers and the timing of consolidation towards voters. The opportunistic and signalling models of the political business and budget cycle make this incentive precise [@nordhaus1975; @rogoff1990], and a large empirical literature asks whether governments act on it. The answer is conditional rather than uniform. Cycles are reported to depend on the age of the democracy, on transparency and polarisation, and on fiscal institutions [@brender2005; @alt2006; @klomp2013ae; @dehaan2013], and the two meta-analyses that summarise the field disagree on the size of the average effect: @philips2016 finds significant but small effects, whereas @mandon2019 find little systematic evidence once selective reporting by researchers is taken into account.
+
+Within the European Union, most studies use headline deficits, discretionary policy measures or expenditure composition [@mink2006; @buti2004; @efthyvoulou2012]. Studies that use a cyclically adjusted outcome are fewer. The cyclically adjusted primary balance (CAPB) is the budget balance excluding interest and net of the estimated cyclical component. It is a central indicator of fiscal surveillance in the Union [@mourre2014], and it is the quantity that a discretionary pre-election loosening would move, once the automatic response to the economic cycle has been removed. It is also a model-based estimate, revised with every forecast vintage, which makes measurement a first-order concern [@orphanides2002; @cimadomo2012].
+
+Population ageing adds a second motivation. It raises structural spending pressure on pensions, health and long-term care, and it changes the composition of the electorate. Ageing may therefore strengthen electoral pressure for transfers [@razin2002; @vlandas2026], or it may leave less discretionary room in an election year because age-related spending is institutionally rigid; the literature cautions against a simple gerontocracy reading [@tepe2009]. If scheduled elections are associated with weaker structural primary balances, and the association depends on the age structure, the finding bears on how credible fiscal surveillance is likely to be in an ageing Union. If no association is found by a design with adequate precision, that is also informative given the publication-bias concerns in the meta-analytic literature.
+
+## Research question and hypotheses {#sec-question}
+
+The central question, as pre-registered, is:
+
+> *Are scheduled national elections associated with deterioration in the cyclically adjusted primary balance of EU member states, and does the association vary with population ageing?*
+
+It is operationalised in three hypotheses, stated formally in @sec-hypotheses: H1 (a negative association of pre-election exposure to a scheduled election with the CAPB), H2B (heterogeneity of that association with a country's average ageing level, no direction pre-registered) and H2W (a descriptive estimate of how the association changes as a country ages relative to its own mean). The confirmatory family is exactly {H1, H2B}.
+
+## Contribution {#sec-contribution}
+
+The study makes five contributions, none of which is a novel discovery claim. The closest prior work either uses a structural balance but treats election timing as exogenous and never interacts the age structure [@bednar2019], or separates regular from early elections but uses expenditure and revenue components, reporting the CAPB only descriptively [@afonso2026]. In our (non-systematic) search we did not find a study that combines a scheduled-election exposure that treats early elections as endogenous, a CAPB outcome and an age-structure interaction in the EU-27; "not found" is not "absent".
+
+1. **A pre-registered and powered design.** The hypotheses, estimator, inference procedure and interpretation rule were frozen and made public before any outcome was related to an election variable (@sec-freeze). The power of the design was assessed by simulation on the real election calendar, and its limits are reported beside the results.
+2. **A conditional-on-timing exposure.** Scheduled elections enter through a fractional 12-month pre-election exposure; early, delayed and unclassified elections enter as separate regressors, so that strategically timed elections do not contaminate the reference group.
+3. **An ageing split that states what the data can support.** Only a small share of the variation in the old-age dependency ratio survives the removal of country and year effects. The moderator is therefore decomposed into between- and within-country components, and the thesis states which of the two can be learned about (@sec-moderator).
+4. **An explicit reading rule.** Each interval is read three ways (excludes zero, equivalent to zero within a smallest effect size of interest, or inconclusive), with the CAPB measurement error of about `{python} H.fact("revision")` pp stated beside every result (@sec-sesoi).
+5. **A reproducible pipeline.** Raw files are hashed, the analysis extract is hashed and frozen, and every number in the results chapters is read from committed result files at render time ([Appendix D](#sec-app-repro)).
+
+## Preview of findings {#sec-preview}
+
+The pre-registered result is modest and should be read with its limits. A full year of pre-election exposure to a scheduled election is associated with a CAPB lower by `{python} H.num(-bS.get("estimate"))` pp of potential GDP (95% interval `{python} H.ival(bS.get("ci_lo"), bS.get("ci_hi"))`; Holm-adjusted p = `{python} H.pval(bS.get("p_holm"))`). By the pre-registered reading, the interval excludes zero but is not equivalent to zero within the smallest effect size of interest of `{python} H.num(H.sesoi(), 1)` pp. The point estimate lies below the minimum detectable effect of the design (`{python} H.num(mde, 3)` pp at the estimated persistence), so estimates that clear a significance filter are expected to overstate the true association. The association with the between-country ageing component is `{python} H.est_ci(gB)` per standard deviation, which is equivalent to zero within the band; the within-country component is uninformative (`{python} H.est_ci(gW)`).
+
+Robustness tells a more cautious story than the headline alone. The sign of the election association is kept in `{python} H.cnt(sAll, nAll)` robustness specifications, but the 95% interval excludes zero in only `{python} H.cnt(kA, nA)` inference variants, so the headline is fragile to how cross-country dependence is handled and to the estimator, rather than to the sample (@sec-robustness). Of the ten secondary outcomes, `{python} H.cnt(sec_k, sec_n)` survives Benjamini--Hochberg adjustment, the change in the CAPB, and no spending or revenue component accounts clearly for the CAPB association (@sec-secondary).<!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): re-check the qualitative statements of this paragraph (fragility to inference, not to sample) against robustness.json after any re-run --> 
+
+We read these results as weak-to-moderate evidence of a modest negative association of pre-election exposure with the CAPB, estimated imprecisely and sensitive to inference choices, and as no evidence of a large ageing-related heterogeneity at the between-country level. They are not evidence of a causal effect of elections on fiscal policy.
+
+## Structure of the thesis {#sec-structure}
+
+[Chapter 2](#sec-literature) reviews the literature and states the hypotheses. [Chapter 3](#sec-data) describes the institutional background, data and sample. [Chapter 4](#sec-strategy) sets out the empirical strategy, the power analysis and the pre-registration mechanics. [Chapter 5](#sec-results) reports the confirmatory, robustness, secondary and early-election results. [Chapter 6](#sec-discussion) interprets them, [Chapter 7](#sec-limitations) lists threats to validity and [Chapter 8](#sec-conclusion) concludes. The appendices summarise the pre-registration ([Appendix A](#sec-app-prereg)), give robustness details ([Appendix B](#sec-app-robustness)), point to the data dictionary ([Appendix C](#sec-app-dictionary)) and give reproduction instructions ([Appendix D](#sec-app-repro)).

@@ -1,0 +1,22 @@
+# Data dictionary pointer {#sec-app-dictionary}
+
+The complete dictionary, with codes, labels, units, signs, timing, coverage and verification status for every variable, is kept with the data pipeline and not duplicated here. It lives in:
+
+- `reports/appendix_B_source_to_variable.md`: the source-to-variable table, with exact labels, denominators, coverage and the data traps (for example UBLGBP versus UBLGIE, the shared AMECO unit code, country-code differences across sources);
+- `config/contracts/contracts.toml`: the data contracts enforced in code; `config/countries.csv`: the single country crosswalk;
+- `reports/gold_panel_audit.md`: the schema of the 45 gold-panel columns, the gate results, the merge-loss audit and the serialisation of the extract hash;
+- `config/registry/*.toml`: the model registries (confirmatory, secondary, exploratory, predictive);
+- `data/raw/<source>/README.md` and `manifest.jsonl`: per-source provenance, release or vintage, retrieval date and SHA-256.
+
+The variables used in this thesis are:
+
+| Variable | Definition | Unit | Source |
+|:-------------|:--------------------------------------------|:-----------|:-------------------|
+| `capb` | Net lending excluding interest, adjusted for the cyclical component (potential-GDP basis), surplus positive; AMECO `UBLGBP`, Spring 2026 | pp of potential GDP | AMECO |
+| `W_S`, `W_E`, `W_D`, `W_U` | Share of the calendar year inside the union of 12-month pre-election windows of scheduled, early, delayed and unclassified elections | 0--1 | ETAD v1.0.0; ParlGov 2024 |
+| `Post` | Share of the calendar year inside the 12 months after any election | 0--1 | ETAD; ParlGov |
+| `olddep1_lag` | Persons aged 65+ per 100 aged 15--64 on 1 January, lagged one year | per 100 | Eurostat `demo_pjanind` |
+| `sec_*` | Secondary outcomes (headline primary balance, net lending, change in CAPB, primary expenditure, revenue, social benefits, COFOG functions) | % of GDP (CAPB change: pp of potential GDP) | AMECO; Eurostat `gov_10a_main`, `gov_10a_exp` |
+| `in_confirmatory` | Indicator of the 715-row confirmatory sample | 0/1 | Gold panel |
+
+: Variables used in the thesis {#tbl-dictionary}

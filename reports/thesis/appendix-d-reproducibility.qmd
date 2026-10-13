@@ -1,0 +1,59 @@
+# Reproducibility instructions {#sec-app-repro}
+
+```{python}
+#| include: false
+import pandas as pd
+import _helpers as H
+
+M1 = H.M1
+R = H.ROB
+S = H.SEC
+```
+
+## Environment {#sec-app-env}
+
+The project uses Python only (pinned in `requirements.lock`, Python 3.14.3) and Quarto with its Python engine for the thesis. Create the environment with `uv venv .venv --python 3.14` followed by `uv pip sync requirements.lock --python .venv`. Quarto is a separate binary; `scripts/quarto.py` locates it (set `QUARTO_PATH` to point to it) and points its Python engine at `.venv`. PDF output uses Quarto's bundled Typst.
+
+## Steps {#sec-app-steps}
+
+From the repository root (Windows paths; use `.venv/bin/python` elsewhere):
+
+1. Restore raw files whose redistribution terms are unverified (AMECO, ETAD and the EC workbook) with `src/ingest/acquire.py --manifest config/acquisition/<gate>.toml --allow-network`, which writes only immutable raw files and checks them against the committed SHA-256 manifests. Only this step uses the network.
+2. Build the gold panel and run the gates with `.venv/Scripts/python.exe src/features/panel.py`; the confirmatory extract hash must equal the value in the table below.
+3. Run the test suite with `.venv/Scripts/python.exe -m pytest tests -q` (the environment test fails with a clear message in any other interpreter).
+4. Verify the freeze with `.venv/Scripts/python.exe scripts/freeze.py check`; the confirmatory runner `src/models/py/m1.py` refuses to run on the real panel before the tag exists.
+5. The analyses are `src/models/py/m1.py` (confirmatory), `secondary.py` and `robustness.py`; they write `reports/results/*.json` and `*.md`. Seeds are fixed (42) and the bootstrap seed scheme is logged in each result file.
+6. Render this thesis with `.venv/Scripts/python.exe scripts/quarto.py render reports/thesis --to typst`; the PDF is written under `reports/thesis/_output/`. The results chapters read the committed result files and need neither the raw data nor the gold panel.
+
+## Provenance of the committed results {#sec-app-prov}
+
+```{python}
+#| label: tbl-provenance
+#| tbl-cap: "Hashes recorded in the committed result files. Source: reports/results/*.json."
+rows = [
+    ("Gold extract SHA-256 (headline)", M1.get("extract_hash")),
+    ("Gold extract SHA-256 (secondary)", S.get("extract_hash")),
+    ("Gold extract SHA-256 (robustness)", R.get("meta", {}).get("extract_hash")),
+    ("Registry SHA-256 (headline)", M1.get("registry_hash")),
+    ("Code hash, m1.py + power_variants.py (headline)", M1.get("code_hash")),
+    ("robustness.py SHA-256", R.get("meta", {}).get("robustness_py_sha256")),
+    ("secondary.py SHA-256", S.get("file_hashes", {}).get("secondary.py")),
+    ("Bootstrap replications (headline); seed", f"{M1.get('n_boot')}; {M1.get('seed')}"),
+    ("Package versions (headline)", ", ".join(f"{k} {v}" for k, v in M1.get("versions", {}).items())),
+]
+df = pd.DataFrame([(a, f"`{b}`" if b and len(str(b)) > 40 else (b or H.NA)) for a, b in rows], columns=["Item", "Value"])
+H.show_table(df, align="ll", widths=[44, 70])
+```
+
+```{python}
+#| include: false
+same_ext = len({M1.get("extract_hash"), S.get("extract_hash"), R.get("meta", {}).get("extract_hash")} - {None}) == 1
+same_code = R.get("meta", {}).get("headline_code_hash") == M1.get("code_hash")
+```
+
+The three result files carry `{python} "the same" if same_ext else "different"` extract hash, and the robustness file's recorded headline code hash is `{python} "equal to" if same_code else "different from"` the headline file's. The post-freeze log (`docs/post_freeze_log.md`) records that the headline run's registry hash, extract hash and the hashes of `m1.py` and `power_variants.py` equal the frozen manifest and that `git diff preregistration-v1 -- src config docs/preregistration.md` is empty.
+
+```{python}
+#| include: false
+H.fact_warning()
+```

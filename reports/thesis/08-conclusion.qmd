@@ -1,0 +1,22 @@
+# Conclusion {#sec-conclusion}
+
+```{python}
+#| include: false
+import _helpers as H
+
+bS, gB, gW = H.head("beta_S"), H.head("gamma_B"), H.head("gamma_W")
+kA, nA = H.rob_count("A", "beta_S", "excludes_zero")
+sAll, nAll = H.rob_count("all", "beta_S", "keeps_sign")
+sec_k = H.SEC.get("multiplicity", {}).get("n_bh_reject")
+sec_n = H.SEC.get("multiplicity", {}).get("n_family")
+```
+
+We asked whether scheduled national elections are associated with deterioration in the cyclically adjusted primary balance of EU member states, and whether the association varies with population ageing. We answered with a pre-registered design that was frozen, hashed and made public before any outcome was related to an election variable, and we reported every robustness specification that was run.
+
+The main finding is a modest negative association. A full year of pre-election exposure to a scheduled election is associated with a CAPB lower by `{python} H.num(-bS.get("estimate"), 2)` pp of potential GDP (95% interval `{python} H.ival(bS.get("ci_lo"), bS.get("ci_hi"))`; Holm-adjusted $p$ = `{python} H.pval(bS.get("p_holm"), 3)`). The sign is kept in `{python} H.cnt(sAll, nAll)` specifications. The exclusion of zero is not robust to the inference method: the interval excludes zero in only `{python} H.cnt(kA, nA)` inference variants, which is why we describe the evidence as moderate and fragile, not as established. The estimate is below the design's minimum detectable effect, so its magnitude is likely to be overstated. <!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): re-check this paragraph against robustness.json after any re-run -->
+
+We find no evidence that the association varies with a country's average level of ageing at a magnitude that matters: the interval for $\gamma_B$ (`{python} H.ival(gB.get("ci_lo"), gB.get("ci_hi"))`) lies within the pre-registered band of ±`{python} H.num(H.sesoi(), 1)` pp per standard deviation, although it is a cross-country contrast and not a statement about ageing itself. The within-country component, `{python} H.ival(gW.get("ci_lo"), gW.get("ci_hi"))`, is uninformative. Among ten secondary outcomes, `{python} H.cnt(sec_k, sec_n)` survives multiplicity adjustment (the change in the CAPB), and no spending or revenue component accounts clearly for the CAPB association.
+
+Three implications follow. For research on political budget cycles, the exercise illustrates how much of the headline of a small, imprecise association depends on estimator and inference choices, and why pre-registration, equivalence reading and full reporting of specifications are useful in this literature. For policy, the evidence is too weak, too imprecise and too conditional on a model-based, revised indicator to support a claim that elections cause fiscal loosening in the EU, or that ageing changes this. For future work, three extensions would increase learning most: a real-time or vintage-aware outcome, to address the revision problem (the typical revision of `{python} H.fact("revision")` pp is as large as the effect); a design with more precision on the within-country ageing component, which would need more elections or a more direct measure of electoral age composition; and heterogeneity-robust estimators for recurring exposures.
+
+Everything in the results chapters is generated from committed result files, and the pipeline from hashed raw inputs to the frozen extract and the results is documented in [Appendix D](#sec-app-repro).

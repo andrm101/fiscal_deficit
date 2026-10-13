@@ -1,0 +1,48 @@
+# Limitations and threats to validity {#sec-limitations}
+
+```{python}
+#| include: false
+import _helpers as H
+
+pw = H.prereg_power()
+```
+
+We group the threats by the type of validity they affect. Where a check exists in the thesis, it is referenced.
+
+## Identification and causal interpretation {#sec-lim-ident}
+
+*Predetermined, not exogenous.* Scheduled elections are fixed by constitutional calendars, but governments know the date and can plan around it; calendars correlate with institutions; some "scheduled" elections follow political disruption; and the scheduled date in ETAD is judgement-coded. The estimates are conditional associations. The lead placebo does not contradict the design but cannot establish the absence of anticipation [@rambachan2023].
+
+*Non-absorbing, recurring exposure.* Elections recur, so the heterogeneity-robust difference-in-differences estimators built for absorbing treatments [@dechaisemartin2020; @callaway2021; @borusyak2024] do not apply directly, and the two-way fixed-effects estimand is a weighted combination of comparisons whose weights are not controlled here. A heterogeneity-robust event-study module was considered and is not part of the thesis.
+
+*Early elections.* Early elections respond to the economy and to government survival [@kayser2005; @strom2002]. They are entered separately and not interpreted, but the classification into scheduled and early depends on ETAD's codes and on the rules of @sec-calendar. Unclassified elections (including all elections of Cyprus and Malta) stay in the model as a separate regressor, and the dropped-unclassified variant is a robustness check.
+
+*Ageing.* The interaction with the between-country ageing level is a cross-country contrast and may proxy for unobserved country traits. The within-country interaction is not powered.
+
+## Measurement {#sec-lim-measure}
+
+*CAPB.* The outcome is a model estimate whose first-outturn revision, `{python} H.fact("revision")` pp on average, is as large as the effect of interest. The analysis uses one pinned ex post vintage (Spring 2026); a real-time replication is not feasible because only 2015--2021 can carry a real-time value, and the cyclical-adjustment method and the accounting basis changed in the archive window. The ex post gap embeds later information [@orphanides2002].
+
+*Election calendar.* ETAD and ParlGov end in 2023, and the 12-month window needs elections through the end of the following year, so the sample ends in 2021. Right-censoring of this kind makes the sample a function of the data availability rather than of any outcome value, but it excludes the most recent elections. Matched elections in the two sources differ by at most a few days for nearly all pairs (one pair differs by 61 days), but ParlGov carries no early/scheduled flag, so the classification rests on ETAD alone.
+
+*Moderator.* The old-age dependency ratio is a demographic measure, not a measure of the electoral weight of older voters, and it moves slowly.
+
+## Statistical validity {#sec-lim-stat}
+
+*Few clusters.* With 27 clusters, inference rests on a wild-cluster bootstrap. Wild-bootstrap size for $\beta_S$ was about `{python} H.fact("wcb_size")`% under block-bootstrap noise carrying cross-country co-movement in simulation, and the confirmatory $p$-value may therefore be too small. The intervals are bootstrap-$t$ percentile intervals, not test-inversion intervals.
+
+*Cross-country dependence.* Year effects absorb common shocks but not heterogeneous responses to them. Driscoll--Kraay standard errors are valid for large T and T is 27; CCE augmentation consumes many degrees of freedom. The residual-dependence statistics, with the caveat for the Pesaran CD statistic in [Appendix B](#sec-app-robustness), do not settle the question.
+
+*Power and the winner's curse.* The design's minimum detectable effect for $\beta_S$ (`{python} H.num(pw.get("beta_S", {}).get("rho"), 3)` pp at the estimated persistence) exceeds the estimate; an estimate that clears a significance filter is likely to be exaggerated. The within-country interaction is not powered at all.
+
+*Dynamics and persistence.* The CAPB is persistent (estimated at about 0.7), and the AR(1) correction was calibrated near that value; for the spending-share secondary outcomes with persistence above 0.85 neither the correction nor the bootstrap was validated. V7 does not model dynamics beyond AR(1) errors (no lagged dependent variable), by design [@nickell1981; @roodman2009].
+
+*Specification freedom.* The pre-registration constrains the confirmatory analysis, not the design that preceded it. The robustness and secondary specifications were fixed after the confirmatory result (and before their own results), and the multiplicity corrections cover only the stated families.
+
+## External validity and scope {#sec-lim-external}
+
+The sample is the EU-27, a mixture of long-established democracies and post-1989 democracies, over 1995--2021, a period containing the euro-crisis and the pandemic. Cyprus, Greece and Malta have no scheduled election in the window by the classification rules, so $\beta_S$ is identified from `{python} H.fact("n_scoping")` countries. The findings should not be extended to non-EU countries, to presidential elections, to other fiscal indicators or to other periods. The thesis does not assess any government's intent.
+
+## Data and licences {#sec-lim-data}
+
+AMECO and ETAD terms of redistribution are not stated by the providers, so those raw files are not in the repository and are restored from the sources with a hash check. The Spring 2026 AMECO vintage is pinned, and the live database will change with later releases. <!-- TODO: confirm licence terms of AMECO, ETAD and the EC Fiscal Governance Database with the providers -->

@@ -1,0 +1,262 @@
+# Results {#sec-results}
+
+```{python}
+#| include: false
+import pandas as pd
+import _helpers as H
+
+bS, gB, gW = H.head("beta_S"), H.head("gamma_B"), H.head("gamma_W")
+vd = H.tier1_table("statistic", "capb")
+sd2 = H.tier1_value(vd, "two-way SD (country + year effects removed", "capb")
+xS = H.tier1_exposure("W_S")
+sesoi = H.sesoi()
+```
+
+All numbers in this chapter are read at render time from the committed result files (`reports/results/m1_confirmatory.json`, `secondary.json`, `robustness.json`); none is typed into the text. Estimates are associations in percentage points (pp) of potential GDP unless stated, and interaction coefficients are per +1 SD of the ageing component. Scheduled elections are predetermined, not exogenous.
+
+## Confirmatory results {#sec-confirmatory}
+
+```{python}
+#| label: tbl-headline
+#| tbl-cap: "Confirmatory results (V7, N = 715, 27 countries; pp of potential GDP). The family {H1, H2B} is adjusted by Holm; gamma_W is descriptive. Source: reports/results/m1_confirmatory.json."
+rows = []
+for lab, t in [("H1: $\\beta_S$ (full year of exposure)", bS), ("H2B: $\\gamma_B$ (per SD, between)", gB), ("H2W: $\\gamma_W$ (per SD, within)", gW)]:
+    rows.append({
+        "Target": lab,
+        "Estimate": H.num(t.get("estimate"), 3),
+        "95% bootstrap-t interval": H.ival(t.get("ci_lo"), t.get("ci_hi"), 3),
+        "p (wild bootstrap)": H.pval(t.get("p_bootstrap"), 4) if t.get("p_bootstrap") is not None else "not tested",
+        "p (Holm)": H.pval(t.get("p_holm"), 4) if t.get("p_holm") is not None else "not tested",
+        "Pre-registered reading": H.reading_of(t),
+    })
+H.show_table(pd.DataFrame(rows), widths=[34, 10, 22, 14, 12, 22])
+```
+
+@tbl-headline reports the pre-registered analysis, run once after the tag was public. The association of a full year of pre-election exposure to a scheduled election with the CAPB is `{python} H.num(bS.get("estimate"), 3)` pp (95% interval `{python} H.ival(bS.get("ci_lo"), bS.get("ci_hi"), 3)`; wild-bootstrap $p$ = `{python} H.pval(bS.get("p_bootstrap"), 4)`, Holm-adjusted $p$ = `{python} H.pval(bS.get("p_holm"), 4)`). By the pre-registered rule the interval excludes zero, and it is not contained in the equivalence band of ±`{python} H.num(sesoi, 1)` pp: its lower end lies `{python} H.num(abs(bS.get("ci_lo", 0)) - sesoi, 2)` pp beyond the band, so the data are compatible both with associations as small as `{python} H.num(abs(bS.get("ci_hi", 0)), 2)` pp and with associations larger than the SESOI. The criterion pre-registered for H1 (interval excluding zero with Holm-adjusted $p < 0.05$) is `{python} "met" if (bS.get("excludes_zero") and (bS.get("p_holm") or 1) < 0.05) else "not met"`; we return in @sec-robustness and in the Discussion to how much weight this deserves.
+
+For scale: the estimate is about `{python} H.num(abs(bS.get("estimate", 0)) / sd2 if sd2 else None, 2)` of the two-way standard deviation of the CAPB (`{python} H.num(sd2, 2)` pp). Because the maximum observed exposure is `{python} H.num(xS.get("max"), 2)` and a typical exposed country-year has an exposure of about `{python} H.num(xS.get("mean_pos"), 2)`, the implied association for a typical exposed country-year is about `{python} H.num((bS.get("estimate") or 0) * (xS.get("mean_pos") or 0), 2)` pp. The CR1 standard errors, shown for transparency only because they are not valid for this estimator, give $p$ = `{python} H.pval(bS.get("cr1_p"), 4)` for $\beta_S$; the bootstrap $p$-value is the larger of the two, as expected.
+
+For H2B, the association with the between-country ageing component is `{python} H.num(gB.get("estimate"), 3)` pp per standard deviation, with interval `{python} H.ival(gB.get("ci_lo"), gB.get("ci_hi"), 3)`. The interval does not exclude zero (Holm-adjusted $p$ = `{python} H.pval(gB.get("p_holm"), 4)`) and lies inside ±`{python} H.num(sesoi, 1)` pp, so the reading is "equivalent within the SESOI": the data do not support a between-country ageing heterogeneity of the size that the SESOI defines as relevant. The positive sign means that older countries show a weaker association, but no direction was pre-registered and this is a cross-country contrast. For H2W, the estimate is `{python} H.num(gW.get("estimate"), 3)` pp per standard deviation with interval `{python} H.ival(gW.get("ci_lo"), gW.get("ci_hi"), 3)`: the interval is about `{python} H.num((gW.get("ci_hi") or 0) - (gW.get("ci_lo") or 0), 1)` pp wide, and the estimate is uninformative, as the power analysis anticipated.
+
+```{python}
+#| output: asis
+H.figure("fig-headline", "f1_headline_estimates.png",
+         "Headline estimates and 95% bootstrap-t intervals for beta_S, gamma_B and gamma_W (V7; pp of potential GDP), with the SESOI band. Source: AMECO Spring 2026; Eurostat; ETAD; ParlGov; author's calculations.",
+         width="95%")
+```
+
+@fig-headline shows the three estimates against the equivalence band. The wide interval of $\gamma_W$ and the interval of $\beta_S$ that straddles the lower edge of the band are the visual summary of the chapter: the evidence is informative about the sign of $\beta_S$ and about the smallness of $\gamma_B$, and says little else.
+
+```{python}
+#| output: asis
+H.figure("fig-profile", "f2_election_window_profile.png",
+         "Raw mean CAPB (panel A, relative to the country mean) and year-on-year change in the CAPB (panel B) by year relative to a scheduled election, with 95% country-clustered intervals; descriptive, unadjusted, no test. Source: AMECO Spring 2026; ETAD; ParlGov; author's calculations.",
+         width="75%")
+```
+
+@fig-profile is a descriptive complement that carries no test: raw means by year relative to a scheduled election, without year effects or controls and with overlapping windows for elections that are close together. Its role is to show that the regression association is not the artefact of a single year or of a single country's trajectory, and not to provide independent evidence.
+
+```{python}
+#| output: asis
+H.figure("fig-partial", "f3_exposure_vs_capb_partial.png",
+         "Partial association of the CAPB with pre-election exposure W^S (Frisch-Waugh residuals after country and year effects and the other M1 regressors; OLS fixed-effects slope; descriptive). Source: AMECO Spring 2026; Eurostat; ETAD; ParlGov; author's calculations.",
+         width="75%")
+```
+
+@fig-partial displays the same association as a residual scatter. The slope drawn is the OLS fixed-effects coefficient, which differs slightly from the V7 estimate because V7 weights and AR(1)-corrects; the dispersion of the points around the slope is large relative to the slope, which is why the association is imprecisely estimated.
+
+## Robustness and inference sensitivity {#sec-robustness}
+
+The robustness suite was specified after the confirmatory result and before any of its own results were computed (`docs/robustness_spec.md`). It has four groups (A: inference sensitivities to cross-country dependence; B: pre-registered diagnostics; C: sample variants; D: definition variants), and all specifications are reported, without selecting or ranking among them.
+
+```{python}
+#| include: false
+groups = [("A", "A. Inference sensitivities"), ("C", "C. Sample variants (excl. leave-one-out)"), ("C-LOCO", "C. Leave-one-country-out fits"), ("D", "D. Definition variants"), ("all", "All specifications")]
+srows = []
+for g, lab in groups:
+    kb, nb = H.rob_count(g, "beta_S", "excludes_zero")
+    ks, _ = H.rob_count(g, "beta_S", "keeps_sign")
+    kg, ng = H.rob_count(g, "gamma_B", "excludes_zero")
+    kge, _ = H.rob_count(g, "gamma_B", "within_sesoi")
+    srows.append({"Group": lab, "Specifications": nb if nb is not None else H.NA,
+                  "$\\beta_S$ keeps sign": H.cnt(ks, nb), "$\\beta_S$ interval excludes 0": H.cnt(kb, nb),
+                  "$\\gamma_B$ interval excludes 0": H.cnt(kg, ng), "$\\gamma_B$ interval inside $\\pm$SESOI": H.cnt(kge, ng)})
+sumdf = pd.DataFrame(srows)
+rowsA, rowsC, rowsD = H.rob_rows("A"), [r for r in H.rob_rows("C") if not r["id"].startswith("C4-loco")], H.rob_rows("D")
+rowsL = [r for r in H.rob_rows("C") if r["id"].startswith("C4-loco")]
+kA, nA = H.rob_count("A", "beta_S", "excludes_zero")
+kC, nC = H.rob_count("C", "beta_S", "excludes_zero")
+kL, nL = H.rob_count("C-LOCO", "beta_S", "excludes_zero")
+kD, nD = H.rob_count("D", "beta_S", "excludes_zero")
+kAll, nAll = H.rob_count("all", "beta_S", "excludes_zero")
+sAll, _ = H.rob_count("all", "beta_S", "keeps_sign")
+v7A = [r for r in rowsA if r["label"].startswith("V7")]
+olsA = [r for r in rowsA if not r["label"].startswith("V7")]
+k7 = sum(1 for r in v7A if r["targets"]["beta_S"].get("excludes_zero"))
+kO = sum(1 for r in olsA if r["targets"]["beta_S"].get("excludes_zero"))
+```
+
+```{python}
+#| label: tbl-rob-summary
+#| tbl-cap: "Counts of robustness specifications by group (descriptive; specifications share one panel, many are nested, and several rows are one estimate under different inference). Source: reports/results/robustness.json."
+if rowsA or rowsC or rowsD:
+    H.show_table(sumdf, widths=[40, 14, 16, 20, 20, 24])
+else:
+    H.not_yet("robustness summary counts")
+```
+
+@tbl-rob-summary summarises the suite. The sign of $\beta_S$ is kept in `{python} H.cnt(sAll, nAll)` specifications. Whether the interval excludes zero is a different matter, and it varies sharply by group: it does so in `{python} H.cnt(kA, nA)` inference variants, `{python} H.cnt(kC, nC)` sample variants, `{python} H.cnt(kD, nD)` definition variants and `{python} H.cnt(kL, nL)` leave-one-country-out fits. The counts are descriptive; they are not a vote and not a probability, because the specifications are not independent.
+
+### Inference sensitivities {#sec-rob-inference}
+
+```{python}
+#| label: tbl-rob-inference
+#| tbl-cap: "Inference sensitivities for beta_S and gamma_B (pp of potential GDP; N = 715). Rows with OLS share the point estimate and differ in the inference method; bootstrap rows give bootstrap-t intervals, others estimate +- t(26) x SE. The bootstrap p-value (null imposed) and the interval (unrestricted) are different constructions, so near the margin they can disagree. Source: reports/results/robustness.json, section A."
+if rowsA:
+    H.show_table(H.spec_table(rowsA), align="lrrrll", widths=[44, 6, 26, 8, 16, 26])
+else:
+    H.not_yet("section A (inference sensitivities)")
+```
+
+```{python}
+#| output: asis
+H.figure("fig-inference-ladder", "f4_inference_ladder.png",
+         "Association of a full year of pre-election exposure with the CAPB under each inference specification (beta_S, pp of potential GDP; 95% intervals; headline V7 at the top; specifications neither ranked nor selected). Source: AMECO Spring 2026; Eurostat; ETAD; ParlGov; author's calculations.",
+         width="85%")
+```
+
+@tbl-rob-inference and @fig-inference-ladder show where the headline's exclusion of zero is lost. The `{python} len(olsA)` rows that use the OLS fixed-effects estimator, with CR1, wild-bootstrap, Driscoll--Kraay, two-way or CCE inference, have intervals excluding zero in `{python} H.cnt(kO, len(olsA))` cases; the rows that keep V7 and add CCE augmentation have intervals excluding zero in `{python} H.cnt(k7, len(v7A))` cases (in one of them the wild-bootstrap $p$-value is above 0.05 although the interval just excludes zero<!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): static remark, re-check against section A -->). The OLS point estimates are of the same sign and about the same size as the headline, but their intervals are wider. The reading therefore turns on the efficiency gain from the pre-registered estimator (weights and AR(1) correction), and on how cross-country dependence is handled in the standard errors, and less on the point estimate. We neither prefer nor dismiss any of these rows; the pre-registered estimator was chosen by a mechanical power rule before any effect was estimated, but its wild-bootstrap size under cross-country dependence is the known weak point (@sec-inference).
+
+### Sample and definition variants {#sec-rob-sample}
+
+```{python}
+#| label: tbl-rob-sample
+#| tbl-cap: "Sample and definition variants of the headline (V7, wild-cluster bootstrap-t; pp of potential GDP). The leave-one-country-out fits are summarised in the text and listed in Appendix B. Source: reports/results/robustness.json, sections C and D."
+rows_cd = rowsC + rowsD
+if rows_cd:
+    H.show_table(H.spec_table(rows_cd), align="lrrrll", widths=[44, 6, 26, 8, 16, 26])
+else:
+    H.not_yet("sections C and D (sample and definition variants)")
+```
+
+```{python}
+#| include: false
+notes = H.rob_section("C").get("notes", {})
+loco = notes.get("loco", {})
+lb, lg = loco.get("beta_S", {}), loco.get("gamma_B", {})
+ext = notes.get("extension_2022", {})
+not_excl = []
+for r in rowsA + rowsC + rowsD + rowsL:
+    t = r["targets"]["beta_S"]
+    if not t.get("excludes_zero"):
+        not_excl.append(r["label"] if not r["id"].startswith("C4-loco") else "leave out " + r["id"].split("-")[-1])
+cond = bool(kC is not None and nC and kC / nC >= 0.5 and kL is not None and nL and kL / nL >= 0.5 and nA and kA is not None and kA / nA < 0.5)
+verdict = (
+    "Taken together, the sign of the association is robust to every specification run. The exclusion of zero holds in most sample and definition variants "
+    "and in nearly all leave-one-country-out fits, but not across estimator and inference choices: it is lost under OLS-based inference that handles "
+    "cross-country dependence through the standard errors, so the headline is fragile to the inference method rather than to the sample."
+    if cond else
+    "The pattern of the robustness counts differs from the one assumed when this chapter was drafted; read the counts above rather than this sentence."
+)
+```
+
+@tbl-rob-sample reports the variants run with the pre-registered estimator. The 2022 extension (`{python} H.num(ext.get("n_obs"), 0)` country-years; five countries without a complete 2022 exposure) and the controls model (703 rows) leave the association and its interval close to the headline. Dropping the crisis years 2008--2012 moves the estimate further from zero, whereas dropping 2020--2021 leaves an interval that narrowly includes zero. The 6-month window gives a larger estimate and the 18-month window a smaller one, with the interval including zero; the calendar-year dummy gives a smaller coefficient with an interval excluding zero (the units differ, because the dummy is a whole-year exposure for any election year). Replacing the moderator by `OLDDEP3` or by median age changes $\beta_S$ little.
+
+The leave-one-country-out fits (B = 999 each) keep the sign in `{python} H.cnt(lb.get("n_same_sign"), loco.get("n_fits"))` fits, and the interval excludes zero in `{python} H.cnt(lb.get("n_interval_excludes_zero"), loco.get("n_fits"))`. The estimate ranges from `{python} H.num(lb.get("min"), 3)` (without `{python} lb.get("argmin", H.NA)`) to `{python} H.num(lb.get("max"), 3)` (without `{python} lb.get("argmax", H.NA)`); the largest shift occurs when `{python} lb.get("most_influential", H.NA)` is removed (`{python} H.num(lb.get("most_influential_shift"), 3)` pp). For $\gamma_B$ the range is `{python} H.num(lg.get("min"), 3)` to `{python} H.num(lg.get("max"), 3)`. No single country accounts for the headline.
+
+The specifications whose 95% interval for $\beta_S$ does *not* exclude zero are: `{python} "; ".join(not_excl) if not_excl else "none"`. <!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): this list is generated at render time; re-read it after any re-run of the robustness suite -->
+
+`{python} verdict` We therefore regard the confirmatory finding as fragile with respect to inference, and as stable in sign and in rough magnitude. <!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): the preceding sentence is conditional on the render-time counts; re-check the wording after any re-run -->
+
+```{python}
+#| output: asis
+H.figure("fig-robustness-forest", "robustness_forest.png",
+         "beta_S and gamma_B across all robustness specifications (pp of potential GDP; 95% intervals). Specifications are shown, not ranked. Source: AMECO Spring 2026; Eurostat; ETAD; ParlGov; author's calculations.",
+         width="85%")
+```
+
+@fig-robustness-forest shows all specifications. The interval for $\gamma_B$ excludes zero in only `{python} H.cnt(*H.rob_count("all", "gamma_B", "excludes_zero"))` specifications, in each case in the positive direction.<!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): direction remark is static -->
+
+### Diagnostics {#sec-rob-diagnostics}
+
+```{python}
+#| include: false
+B = H.rob_section("B")
+mw = B.get("modified_wald", {}).get("v7_residuals", {})
+wo = B.get("wooldridge", {})
+lp = B.get("lead_placebo", {})
+lp20 = B.get("lead_placebo_to_2020", {})
+haus = B.get("hausman_mundlak", {})
+vif = B.get("vif", {})
+cips = B.get("cips_capb_trend", {})
+lin_b = B.get("binned_between", {})
+lin_w = B.get("binned_within", {})
+```
+
+The pre-registered diagnostics describe the data and were not used to choose any specification; their full tables are in [Appendix B](#sec-app-robustness). In brief, the diagnostics are in line with the design choices. Groupwise heteroskedasticity is pronounced (modified Wald statistic for the V7 residuals `{python} H.num(mw.get("statistic"), 0)`, Monte Carlo $p$ = `{python} H.pval(mw.get("p_value_mc"), 4)`), which supports the weighting step. Serial correlation is present (Wooldridge test, $F$ = `{python} H.num(wo.get("f_statistic"), 1)` on (`{python} wo.get("df1", H.NA)`, `{python} wo.get("df2", H.NA)`) degrees of freedom, $p$ = `{python} H.sci(wo.get("p_value"))`), which supports the AR(1) correction. The Mundlak-form Hausman test rejects the null that the country means are irrelevant ($p$ = `{python} H.sci(haus.get("p_value_f"))`), which supports fixed effects. The CIPS panel unit-root test with a trend rejects a unit root for the CAPB at 5% (CIPS = `{python} H.num(cips.get("cips"), 2)`), whereas the lagged old-age dependency ratio cannot reject one, so that the within-country ageing term should be read with this in mind. Variance inflation factors flag the 2016--2021 era interaction (`{python} ", ".join(vif.get("flagged_within", [])) or "none"`); the within-ageing interaction is close to the threshold. Binned estimates give no evidence against linearity of the interactions (linearity $F$-test $p$ = `{python} H.pval(lin_b.get("linearity_p"), 2)` for the between and `{python} H.pval(lin_w.get("linearity_p"), 2)` for the within component), although each bin rests on few countries.
+
+The lead placebo is the diagnostic closest to a test of anticipation. Adding the share of the year inside months 13--24 before a scheduled election gives a lead coefficient of `{python} H.est_ci(lp.get("lead"))` pp ($p$ = `{python} H.pval(lp.get("lead", {}).get("p"), 3)`), and `{python} H.est_ci(lp20.get("lead"))` pp when the sample ends in 2020 (the lead window of 2021 reaches into 2023, where the calendar is incomplete). The lead is indistinguishable from zero, but with an interval wider than the headline interval it cannot rule out associations of the size of $\beta_S$. A placebo of this kind cannot establish the absence of anticipation, and it does not make scheduled elections exogenous [@rambachan2023].
+
+## Secondary outcomes {#sec-secondary}
+
+```{python}
+#| include: false
+fam = H.sec_outcomes("family")
+weaker = {"S1a": -1, "S1b": -1, "S1c": -1, "S1e": -1, "S1d": 1, "S1f-1": 1, "S1f-2": 1, "S1g-1": 1, "S1g-2": 1, "S1g-3": 1}
+n_weak = sum(1 for o in fam if weaker.get(o["id"]) and o["targets"]["beta_S"]["estimate"] * weaker[o["id"]] > 0)
+n_excl = sum(1 for o in fam if (o["targets"]["beta_S"]["ci_lo"] > 0 or o["targets"]["beta_S"]["ci_hi"] < 0))
+hi_rho = [o["id"] for o in fam if (o.get("diagnostics", {}).get("rho_nickell") or 0) >= 0.85]
+byid = {o["id"]: o for o in fam}
+def b(i): return byid.get(i, {}).get("targets", {}).get("beta_S", {}).get("estimate")
+mult = H.SEC.get("multiplicity", {})
+bh_ids = [o["id"] for o in fam if o["targets"]["beta_S"].get("bh_reject")]
+```
+
+The pre-registration pre-specifies the same model for ten further outcomes (`docs/secondary_spec.md`): balances (headline primary balance, net lending, the change in the CAPB), primary expenditure, revenue, social benefits in cash and in kind, and three COFOG functions (social protection, old age, health). The outcomes other than the change in the CAPB are *not* cyclically adjusted, so a match or a mismatch with the CAPB result mixes policy and cyclical effects. Multiplicity is controlled by Benjamini--Hochberg over the ten $\beta_S$ tests; the headline $\beta_S$, $\gamma_B$ and $\gamma_W$ of the CAPB model are reproduced exactly (self-check passed).
+
+```{python}
+#| label: tbl-secondary
+#| tbl-cap: "beta_S for the ten secondary outcomes (V7 on each outcome's own sample; pp of GDP, except the change in CAPB in pp of potential GDP). BH: Benjamini-Hochberg at q = 0.05 over the ten tests. Source: reports/results/secondary.json."
+rows = []
+for o in fam:
+    t = o["targets"]["beta_S"]
+    rows.append({
+        "ID": o["id"], "Outcome": o["label"], "N": o["n_obs"],
+        "$\\beta_S$ [95% interval]": H.est_ci(t),
+        "p": H.pval(t.get("p_bootstrap")), "BH q": H.pval(t.get("q_bh")),
+        "BH": "reject" if t.get("bh_reject") else "no",
+    })
+if rows:
+    H.show_table(pd.DataFrame(rows), align="llrrrrl", widths=[7, 40, 6, 28, 8, 8, 8])
+else:
+    H.not_yet("secondary outcomes")
+```
+
+```{python}
+#| output: asis
+H.figure("fig-secondary", "secondary_forest.png",
+         "beta_S for the secondary outcomes with 95% bootstrap-t intervals. Source: AMECO Spring 2026; Eurostat; ETAD; ParlGov; author's calculations.",
+         width="90%")
+```
+
+@tbl-secondary and @fig-secondary show that the Benjamini--Hochberg adjustment rejects `{python} H.cnt(mult.get("n_bh_reject"), mult.get("n_family"))` outcomes (`{python} ", ".join(bh_ids) or "none"`, the change in the CAPB; the Benjamini--Yekutieli adjustment rejects `{python} H.cnt(mult.get("n_by_reject"), mult.get("n_family"))`). The unadjusted intervals exclude zero for `{python} n_excl` of ten outcomes. `{python} n_weak` of the ten point estimates are in the direction of a weaker budget (a lower balance, lower revenue or higher spending). The balance outcomes have the same sign as the CAPB result, with smaller point estimates and intervals that include zero for the level of the headline primary balance and of net lending: `{python} H.num(b("S1a"), 2)` and `{python} H.num(b("S1b"), 2)` pp of GDP, against `{python} H.num(bS.get("estimate"), 2)` for the CAPB. The change in the CAPB has an association of `{python} H.num(b("S1c"), 2)` pp of potential GDP, a different quantity that is not directly comparable in size. On the composition side, $\beta_S$ is `{python} H.num(b("S1d"), 2, True)` pp of GDP for primary expenditure and `{python} H.num(b("S1e"), 2)` pp for revenue; the difference of the two, `{python} H.num((b("S1e") or 0) - (b("S1d") or 0), 2)` pp, is arithmetic on two separate fits and not a decomposition of the balance. No spending or revenue component clearly drives the CAPB association: the intervals for primary expenditure and revenue include zero, and the one component whose interval excludes zero before adjustment, social protection spending (COFOG GF10), has the opposite sign to a pre-election expansion.
+
+A caution applies to the persistence of the spending-share series: `{python} ", ".join(hi_rho) or "no outcome"` have a Nickell-corrected persistence of at least 0.85, where the AR(1) correction and the bootstrap were not validated (the pre-registered power study used a persistence of about 0.7). Those intervals deserve less weight. The $\gamma_B$ and $\gamma_W$ estimates for the secondary outcomes are descriptive and are in `reports/results/secondary.md`.
+
+## Early elections and the post-election window {#sec-early}
+
+```{python}
+#| label: tbl-early
+#| tbl-cap: "Descriptive terms from the headline CAPB fit (no test, no multiplicity adjustment; pp of potential GDP). Early elections are endogenous. Source: reports/results/secondary.json, S3."
+s3 = H.SEC.get("s3", {}).get("targets", {})
+rows = []
+for k, lab in [("beta_E", "$\\beta_E$: early-election exposure $W^E$"), ("beta_U", "$\\beta_U$: unclassified-election exposure $W^U$"), ("rho_Post", "$\\rho_P$: share of the year within 12 months after any election")]:
+    if k in s3:
+        rows.append({"Term": lab, "Estimate [95% bootstrap-t interval]": H.est_ci(s3[k], 3)})
+if rows:
+    H.show_table(pd.DataFrame(rows), widths=[54, 36])
+else:
+    H.not_yet("the early-election terms (S3)")
+```
+
+@tbl-early reports, descriptively, the other election terms of M1. Early elections are chosen strategically and respond to fiscal and economic conditions, so these coefficients carry no causal reading and no test. The early-election term `{python} H.est_ci(s3.get("beta_E"), 2)` is negative with an interval that includes zero and is imprecise; it is of the same sign as $\beta_S$ and cannot be distinguished from it or from zero. This is not in contradiction with the finding of @afonso2026 that spending rises around regular but not early elections, because their outcome is expenditure growth and ours is the CAPB level. The unclassified-election term is estimated on very few country-years and is uninformative. The post-election term `{python} H.est_ci(s3.get("rho_Post"), 2)` is negative, with an interval that excludes zero. Because it is not part of any family and is not adjusted for multiplicity, we do not interpret it beyond noting its implication for the reading of $\beta_S$: the reference group for $\beta_S$ is country-years outside both the pre- and the post-election windows, so a general deterioration of the CAPB around elections, before and after, is compatible with both coefficients.

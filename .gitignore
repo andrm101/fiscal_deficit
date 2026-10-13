@@ -45,3 +45,11 @@ data/processed/*
 !data/processed/gold/
 data/processed/gold/*
 !data/processed/gold/panel_country_year.sha256
+
+# Thesis build artefacts (Quarto)
+reports/thesis/_output/
+reports/thesis/.quarto/
+reports/thesis/*_files/
+reports/thesis/_figures/
+reports/thesis/__pycache__/
+reports/thesis/*.typ

@@ -1,0 +1,27 @@
+# Pre-registration summary {#sec-app-prereg}
+
+```{python}
+#| include: false
+import _helpers as H
+```
+
+The full document is `docs/preregistration.md`; it became binding with the git tag `{python} H.fact("tag")` (commit `{python} H.fact("tag_commit")`). This appendix summarises its content. Where a number is reported in the results chapters it is read from the committed result files; the entries below restate the registered design.
+
+| Section | Registered content |
+|:-------------|:-----------------------------------------------------------------------|
+| 1. Question and hypotheses | Are scheduled national elections associated with deterioration in the CAPB of EU member states, and does the association vary with population ageing? H1 ($\beta_S$, expected negative, two-sided), H2B ($\gamma_B \neq 0$, no direction), H2W ($\gamma_W$, descriptive only). Confirmatory family {H1, H2B}, Holm at 0.05. |
+| 2. Sample and data | EU-27, annual, 1995--2021, N = `{python} H.fact("n_obs")`. Outcome AMECO UBLGBP, Spring 2026, pp of potential GDP, surplus positive; forecasts excluded. Election dates ETAD v1.0.0 with ParlGov 2024 as a cross-check. Moderator `OLDDEP1`, lagged one year. Extract hash fixed. |
+| 3. Exposure | Fractional 12-month pre-election windows by class (scheduled, early, delayed, unclassified) and a post-election share; classification rules in the order given in @sec-calendar; unclassified and delayed elections stay as separate regressors; no election after 2023 hand-coded. |
+| 4. Model M1 | @eq-m1: country and year effects, $\beta_S$, $\beta_E$, $\beta_U$, post term, Mundlak-split interaction, era terms centred at the exposure-weighted mean, no controls. |
+| 5. Estimator V7 | Feasible WLS with AR(1) GLS (Nickell-corrected persistence), re-estimated in every bootstrap sample; selected by a mechanical rule from power simulations. |
+| 6. Inference | Null-imposed wild-cluster bootstrap-$t$ (27 clusters, Rademacher, B = 9,999, seed 42); unrestricted percentile-$t$ intervals; CR1 shown but not valid; Holm over {H1, H2B}. Known size limitation of about `{python} H.fact("wcb_size")`%; Driscoll--Kraay and CCE sensitivities. |
+| 7. Interpretation rule | SESOI 0.5 pp (confirmed 2026-10-12); three-way reading (excludes zero, equivalent, inconclusive); the CAPB revision of `{python} H.fact("revision")` pp stated beside every result. |
+| 8. Power | Minimum detectable effects of @tbl-power; an inconclusive result is the most likely outcome and a legitimate finding. |
+| 9. Diagnostics | Modified Wald, Wooldridge, Pesaran CD, CIPS, VIF, Hausman with Mundlak terms, binned linearity and common support, lead placebo; reported, never used to select a specification. |
+| 10. Secondary analyses | Ten outcomes with Benjamini--Hochberg; early-election term; robustness moderators, sample variants, controls model, alternative windows, crisis exclusions, Driscoll--Kraay and CCE. |
+| 11. Exploratory and descriptive | Fiscal-rule moderation (restricted, exploratory), triple interaction, nonlinear ageing, heterogeneity by debt and accession group, CAPB revisions as a measurement-error appendix, a predictive module. Not reported in this thesis. <!-- TODO: exploratory analyses E1-E6 and the predictive module are not part of this draft --> |
+| 12. Disclosure | Outcome used for coverage, unconditional descriptives and residual-based noise calibration only; no statistic relating the outcome to any election variable computed before the freeze. |
+| 13. Reproducibility | Python 3.14.3 with `requirements.lock`; the confirmatory runner refuses to run on the real panel before the tag exists; code and report hashes in `docs/freeze_manifest.json`. |
+| 14. Deviations | After the tag, every change is recorded in `docs/amendments.md`; none was needed. |
+
+: Pre-registration summary {#tbl-prereg}

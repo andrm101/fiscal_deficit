@@ -1,0 +1,22 @@
+# Abstract {.unnumbered}
+
+<!-- TODO: supervisor name, programme, institution line and submission date for the title page (not supplied) -->
+<!-- TODO: official length limit and formatting rules of the programme (not supplied; the plan assumes 60-80 pages of main text, a provisional planning ceiling) -->
+
+```{python}
+#| include: false
+import _helpers as H
+
+bS, gB, gW = H.head("beta_S"), H.head("gamma_B"), H.head("gamma_W")
+kA, nA = H.rob_count("A", "beta_S", "excludes_zero")
+kAll, nAll = H.rob_count("all", "beta_S", "excludes_zero")
+sAll, _ = H.rob_count("all", "beta_S", "keeps_sign")
+sec_k = H.SEC.get("multiplicity", {}).get("n_bh_reject")
+sec_n = H.SEC.get("multiplicity", {}).get("n_family")
+```
+
+Political budget cycle research asks whether governments loosen fiscal policy before elections, but the evidence is conditional and its size is disputed. We ask whether scheduled national elections are associated with a lower cyclically adjusted primary balance (CAPB; AMECO series UBLGBP, percentage points of potential GDP) in the EU-27 over 1995--2021 (`{python} H.fact("n_obs")` country-years), and whether this association varies with population ageing. Scheduled elections are treated as predetermined, not exogenous, and all results are associations. The analysis was pre-registered: the plan, estimator and interpretation rule were frozen under the git tag `preregistration-v1` before any outcome was related to an election variable. The confirmatory model is a two-way fixed-effects regression with fractional 12-month pre-election exposure, a within-between split of the old-age dependency ratio, a feasible weighted least squares and AR(1) generalised least squares estimator, and wild-cluster bootstrap-t inference with 27 clusters.
+
+A full year of pre-election exposure to a scheduled election is associated with a CAPB lower by `{python} H.num(-bS.get("estimate"))` percentage points of potential GDP (95% bootstrap-t interval `{python} H.ival(bS.get("ci_lo"), bS.get("ci_hi"))`; Holm-adjusted p = `{python} H.pval(bS.get("p_holm"))`). The interval excludes zero but is not contained in the pre-registered equivalence band of ±`{python} H.num(H.sesoi(), 1)` pp, and the estimate lies below the design's minimum detectable effect, so its magnitude is imprecise and may be overstated. The association with the between-country component of ageing is small and equivalent to zero within the band (`{python} H.est_ci(gB)`); the within-country component is not informative (`{python} H.est_ci(gW)`). The sign of the election association is kept in `{python} H.cnt(sAll, nAll)` robustness specifications, but its interval excludes zero in only `{python} H.cnt(kA, nA)` inference variants, so the headline is fragile to the treatment of cross-country dependence. Of ten secondary outcomes, `{python} H.cnt(sec_k, sec_n)` survives Benjamini--Hochberg adjustment (the change in the CAPB), and no spending or revenue component accounts clearly for the CAPB association. The CAPB is a model estimate whose typical first-outturn revision (`{python} H.fact("revision")` pp) is as large as the effects sought.
+
+**Keywords:** political budget cycles; cyclically adjusted primary balance; population ageing; scheduled elections; EU-27; pre-registration; wild-cluster bootstrap.

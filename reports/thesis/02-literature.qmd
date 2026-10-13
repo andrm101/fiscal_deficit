@@ -1,0 +1,75 @@
+# Literature review and hypotheses {#sec-literature}
+
+```{python}
+#| include: false
+import _helpers as H
+```
+
+Read depth varies across the sources discussed here. Bednář (2019) and Carnazza, Liberati and Sacchi (2025) were read in full, and Afonso, Alves and Leal (2026) from the extracted text; for all other studies we rely on abstracts and bibliographic records, and results are reported at the level of detail the abstract supports. The literature matrix with the verification status of each record is in `reports/appendix_A_literature_matrix.md`.
+
+## Political budget cycles: theory and conditional evidence {#sec-lit-pbc}
+
+The opportunistic political business cycle assumes that incumbents manipulate policy before elections to improve their re-election chances [@nordhaus1975]. In the signalling model of @rogoff1990 the manipulation shifts to fiscal instruments, because voters cannot observe competence directly. Surveys organise the field into opportunistic, partisan and common-pool strands [@eslava2011], and later reviews stress that cycles are conditional rather than universal [@dehaan2013].
+
+Three conditioning themes recur. The first is democratic experience: @brender2005 attribute the deficit cycle in a large cross-section to new democracies, and report that it disappears when they are excluded. The second is transparency and polarisation: in 19 OECD countries, electoral cycles in the fiscal balance are found where transparency is low and where polarisation is high, and not otherwise [@alt2006]. The third is heterogeneity across countries and over time: @klomp2013ae reject pooling across about 70 democracies and find that fiscal policy responds to upcoming elections in the short run and conditionally, and in a companion study find that fiscal policy is hardly affected by elections in most of 65 democracies [@klomp2013pc]. @shi2006 ask directly whether cycles differ across countries and why.
+
+The meta-analytic evidence is mixed. @philips2016 pool 1,198 estimates from 88 studies and report that spending and debt tend to rise and revenues and balances to fall around elections, with effects that are significant but small. @mandon2019 pool 1,037 regressions from 46 studies and find little, if any, systematic evidence of manipulation by leaders once selective reporting by researchers is considered. These two results define the prior against which our estimates should be read: a small average effect, with a real risk that published effects are inflated.
+
+## Election timing and conditional cycles in the EU {#sec-lit-eu}
+
+For the euro area, @mink2006 find that the deficit increases in the election year but not in the year before, and @buti2004 report an expansionary bias and a discretionary boost at elections in the early years of EMU. @efthyvoulou2012 find manipulation in the EU-27 for 1997--2008 that is larger and more robust in the euro area. @golinelli2006 use real-time data and find strong evidence of a cycle, but only when the macroeconomic context is favourable, and report that many results do not carry over to ex post data; this is a direct warning about the data vintage used in cycle studies (@sec-lit-measure). At the level of individual measures, @strobl2021 find that governments in Western Europe are less likely to introduce austerity measures as elections approach, with strategic timing concentrated in particular cabinet types.
+
+Whether an election is scheduled or called early matters for interpretation. Early elections are chosen strategically and respond to the economy and to government survival [@kayser2005; @strom2002], so that the timing of an early election is endogenous to fiscal conditions. Scheduled elections are predetermined by constitutional calendars, but they are not exogenous in the strict sense: governments know the date and may plan around it, calendars correlate with institutions, and some "scheduled" elections follow political disruption. @afonso2026 distinguish regular from early elections for the EU-27 in quarterly data for 2000--2024: primary expenditure rises around regular elections (about 0.49 pp of GDP in the baseline) and not around early ones, and high-debt countries deviate. This is the empirical motivation for our scheduled-only headline exposure, with early elections entered separately.
+
+Fiscal institutions are a further conditioner. National fiscal rules in the EU are associated with less pro-cyclical policy [@debrun2008], and strong rules dampen budget cycles in a cross-country panel [@gootjes2021]; a meta-analysis cautions that the constraining effect of rules is weakened by endogeneity and publication bias [@heinemann2018]. Because the EC Fiscal Governance Database did not pass our pre-specified audit, fiscal-rule moderation is exploratory in this thesis and is not reported.
+
+## Structural-balance studies and the measurement problem {#sec-lit-measure}
+
+@bednar2019 is the closest study with a structural-balance outcome. For 28 EU countries over 1995--2016, the outcome is the IMF World Economic Outlook general-government structural balance including interest, in per cent of potential GDP (not a primary balance and not an AMECO CAPB). The coefficient on the first lag of an election-year dummy is $-0.414$ (standard error 0.174, N = 464) in a two-step system GMM with 20 instruments for 28 countries. Election timing is treated as exogenous, scheduled and early elections are not distinguished, and an age-structure control enters but is never interacted with elections. Two points about this study are contested or unresolved in our reading of the full text: the text describes the effect as occurring in "the year before" elections although a first lag of an election-year dummy flags the year after, and the eight reported heterogeneity groups were selected from more than thirty candidate characteristics, which carries a forking-paths risk. We therefore use the 0.41 pp figure as a benchmark for the order of magnitude, not as a replication target.
+
+@carnazza2025 study 19 euro-area countries over 1995--2019 and use a real-time CAPB level as the outcome. Their finding is that the pro-cyclicality of the CAPB (a coefficient of about $-0.22$ on the real-time output gap) is not removed by macroeconomic, institutional or political variables. An election-date variable and turnout enter without timing structure, and age dependency enters as a control that is never interacted. It is therefore not a test of an election-year effect and cannot be cited as a political-budget-cycle null: it is a null on the stability of cyclical responsiveness, with several political variables significant in levels and imprecise elsewhere.
+
+Measurement is the shared difficulty. The CAPB depends on an estimated output gap and on estimated budgetary semi-elasticities [@mourre2014], and end-of-sample revisions of output-gap estimates can be as large as the gap itself [@orphanides2002]. With real-time plans, countries often appear counter-cyclical where ex post data show pro-cyclical outcomes [@cimadomo2012]. Our primary data are ex post (one pinned vintage), and the real-time comparison is reduced to a descriptive appendix of revisions ([Chapter 7](#sec-limitations)).
+
+## Ageing and the political economy of fiscal policy {#sec-lit-ageing}
+
+Ageing enters the political economy of budgets through voters and through spending. In median-voter models an older population increases the size of the welfare state [@razin2002]. Empirically, @tepe2009 find in 18 OECD countries that ageing raises aggregate pension spending but freezes or lowers individual benefit generosity, and argue against a simple gerontocracy reading. @vlandas2026 argues that elderly voters care more about pensions and are less likely to penalise governments for low growth, so that "grey power" protects pension budget shares, and @haelg2022 find that ageing is positively associated with social expenditure across OECD countries. These studies concern spending levels, preferences or voting; none is an electoral-cycle study of the fiscal balance. The two mechanisms (stronger electoral pressure for transfers; rigid age-related spending that leaves less election-year room) have opposite implications for the sign of an election-by-ageing interaction. The sign is therefore not predicted and the test is two-sided.
+
+## Gap {#sec-gap}
+
+Drawing these strands together, the literature documents election-related loosening in EU headline deficits and in expenditure around regular elections, finds that the evidence is conditional and possibly inflated by selective reporting, has one structural-balance study with exogenous timing and an uninteracted age control [@bednar2019], and has one CAPB study with political variables but no election-year test [@carnazza2025]. We did not find a study combining all of (i) a scheduled-election exposure that treats early elections as endogenous, (ii) a CAPB outcome and (iii) an age-structure interaction in the EU-27. The search used Crossref, OpenAlex, RePEc and the web and is not a systematic review. The contribution is accordingly framed as a careful, pre-specified and powered replication-plus-extension.
+
+## Hypotheses {#sec-hypotheses}
+
+The hypotheses are reproduced as pre-registered (`docs/preregistration.md`, section 1).
+
+| ID | Statement | Status |
+|:--|:----------------------------------------------|:----------------|
+| **H1** | $\beta_S$: more pre-election exposure to a scheduled election is associated with a lower CAPB (expected sign negative; tested two-sided) | Confirmatory, Holm family of two |
+| **H2B** | $\gamma_B \neq 0$: the association differs with a country's average ageing level (cross-country heterogeneity; potentially confounded by other country traits). No direction is pre-registered | Confirmatory, Holm family of two |
+| **H2W** | $\gamma_W$: whether the association changes as a country ages relative to its own mean | Descriptive only: estimate and interval, no test, no Holm adjustment (decision D-C: not powered) |
+
+: Pre-registered hypotheses {#tbl-hypotheses}
+
+The confirmatory family is exactly {H1, H2B}, adjusted by Holm's procedure at a familywise level of 0.05. H2W is descriptive because its minimum detectable effect (1.09 pp per standard deviation) exceeds any plausible effect.
+
+## Methods in the literature: streams, contested points and further reading {#sec-lit-methods}
+
+@tbl-methods places each non-trivial methodological choice in its literature stream, flags where it is contested, and names a further reading. The choices themselves are specified in [Chapter 4](#sec-strategy).
+
+| Choice | Literature stream | Contested point | Further reading |
+|:----------------|:----------------|:------------------------|:----------------|
+| Two-way fixed effects with a fractional, recurring exposure | Panel studies of political budget cycles | Heterogeneity-robust estimators were built for absorbing treatments and do not apply directly to recurring elections | @dechaisemartin2020; @callaway2021; @borusyak2024 |
+| Within-between (Mundlak) split of the moderator | Correlated random effects | The between component is a cross-country contrast and may proxy for unobserved country traits | @mundlak1978; @bell2015 |
+| Interaction diagnostics (binned linearity, common support) | Political methodology | Multiplicative interaction models rest on linearity and common support that are rarely checked | @hainmueller2019 |
+| Feasible WLS with AR(1) GLS and a Nickell correction; no lagged dependent variable or GMM | Dynamic-panel econometrics | The within estimator is biased with a lagged outcome; instrument proliferation makes GMM fragile | @nickell1981; @roodman2009 |
+| Wild-cluster bootstrap-t with 27 clusters | Few-cluster inference | Size under cross-country dependence; our own simulation finds about `{python} H.fact("wcb_size")`% against a nominal 5% under block-bootstrap noise | @cameron2008; @roodman2019 |
+| Driscoll--Kraay standard errors, CCE augmentation, CD and CIPS tests | Cross-sectional dependence in panels | Driscoll--Kraay relies on large T (here T = 27); CCE consumes many degrees of freedom | @driscoll1998; @pesaran2006; @pesaran2007; @pesaran2015 |
+| Fixed-effects versus random-effects comparison | Specification testing | The classical Hausman statistic is not interpretable when the random-effects variance is zero | @hausman1978 |
+| Holm (confirmatory) and Benjamini--Hochberg (secondary) multiplicity control | Multiple testing | BH assumes independence or positive dependence; outcomes here are strongly related | @bh1995 |
+| Lead placebo for pre-trends | Credibility of parallel-trend assumptions | A placebo cannot prove the absence of anticipation | @rambachan2023 |
+| Equivalence reading against a smallest effect size of interest | Equivalence testing | The choice of the threshold is a judgement | none verified; see @sec-sesoi |
+
+: Methodological choices, literature streams and further reading {#tbl-methods}
+
+<!-- TODO: add references for Holm's step-down procedure, Benjamini-Yekutieli, Cameron-Gelbach-Miller (2011) on two-way clustering, and for pre-registration; they are named in docs/*.md but are not in the verified literature matrix -->

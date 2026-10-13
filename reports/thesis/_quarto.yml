@@ -1,0 +1,53 @@
+project:
+  type: book
+  output-dir: _output
+
+book:
+  title: "Scheduled Elections, Population Ageing and the Cyclically Adjusted Primary Balance in the EU-27"
+  subtitle: "A pre-registered panel study, 1995-2021"
+  # TODO: confirm the author name as it should appear on the title page
+  author: "Andrei Manoloiu"
+  date: "2026-10-13"
+  output-file: "thesis"
+  chapters:
+    - index.qmd
+    - 01-introduction.qmd
+    - 02-literature.qmd
+    - 03-data.qmd
+    - 04-strategy.qmd
+    - 05-results.qmd
+    - 06-discussion.qmd
+    - 07-limitations.qmd
+    - 08-conclusion.qmd
+  appendices:
+    - appendix-a-preregistration.qmd
+    - appendix-b-robustness.qmd
+    - appendix-c-data-dictionary.qmd
+    - appendix-d-reproducibility.qmd
+
+bibliography: references.bib
+link-citations: true
+
+format:
+  typst:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    section-numbering: "1.1"
+    include-in-header: header.typ
+    papersize: a4
+    margin:
+      x: 2.5cm
+      y: 2.5cm
+    fontsize: 10.5pt
+    keep-typ: true
+    bibliographystyle: chicago-author-date
+
+execute:
+  echo: false
+  warning: false
+  message: false
+  error: false
+  freeze: false
+
+jupyter: python3
