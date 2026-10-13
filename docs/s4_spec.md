@@ -1,0 +1,52 @@
+# S4 specification: CAPB revisions and measurement error (descriptive appendix)
+
+Dated 2026-10-13. Written before any S4 statistic was computed by `src/evaluate/revisions.py`. Tracks GitHub issue 30 and the registry line "S4: CAPB revisions as a measurement-error appendix; a real-time election replication is not planned" (`docs/preregistration.md` section 11; `docs/decision_log.md`, 2026-10-10 entries). Gate 5 (`reports/gate5_realtime_feasibility.md`) has already shown that T3 passed and has produced a first descriptive revision table; S4 fixes the definitions and the full statistic list so that the appendix is not a by-product of what the numbers happen to show.
+
+S4 is descriptive. It estimates no election effect, applies no correction to the pre-registered headline (beta_S = -0.379 pp, V7), and uses the language of association only. All quantities are in percentage points (pp) of potential GDP (AMECO item `UBLGBP`, "Percentage of potential GDP at current prices"; surplus positive).
+
+## 1. Definitions
+
+**Vintages.** The 26 archived AMECO vintages (Autumn 2014 to Autumn 2025; `data/raw/ameco_archive/`) in the long table `data/interim/ameco_vintage_capb.csv`, plus the pinned Spring 2026 snapshot (vintage order 99).
+
+**First outturn.** For country c and year y, the first outturn is the value of `UBLGBP` in the earliest archived vintage in which year y is *no longer a forecast* and the value is observed. AMECO carries no forecast flag, so the rule is structural: the last two years of the columns of a Spring vintage and the last three years of an Autumn vintage are forecasts (AMECO Reference Metadata). Winter vintages are treated like Autumn (three forecast years; assumption: the previous year's outturn reaches AMECO only from Spring). Hence year y is non-forecast in a vintage if `y <= last_year_with_data(vintage) - horizon(season)`, where the horizon is 2 (Spring) or 3 (Autumn, Winter). The implementation is `ameco_vintages.first_release_table` (frozen module, import only). With this rule the first outturn of year y is the Spring y+1 vintage for every country-year in 2014-2024 (verified and reported by the code, not assumed). Autumn y+1 and later vintages are never the first outturn.
+
+**Final.** The Spring 2026 vintage used in the confirmatory analysis (`data/raw/ameco/2026_spring/`). The code verifies that, for the sample, the final value equals the CAPB column of the gold panel (`m1.load_real_panel`, tag-guarded and hash-checked).
+
+**Revision.** `revision = final - first outturn` (pp of potential GDP). Positive: the first outturn understated the surplus (overstated the deficit) relative to the final.
+
+**Sample.** The primary sample is every country-year with a first outturn and a final value in 2014-2021 (the years of the confirmatory sample, 1995-2021, for which a first outturn exists in the archive; the first outturn of 2014 is Spring 2015 because Autumn 2014 holds 2014 as a forecast). Gate 5 gives 216 country-years (27 countries by 8 years). The sensitivity sample extends the window to 2014-2024 (27 by 11 = 297), the last year with a first outturn in the archive (Spring 2025); 2022-2024 lie outside the confirmatory sample. Election exposure `W_S` exists only for the confirmatory sample, so the exposure comparison uses the primary sample.
+
+**Change in CAPB.** For the sign-of-change statistic, the first-outturn change is `CAPB(y) - CAPB(y-1)` both read from the first-outturn vintage of year y (the vintage a contemporaneous analyst would have had), and the final change is `CAPB(y) - CAPB(y-1)` read from Spring 2026. A pair is defined only if year y-1 is observed in both vintages.
+
+**Election-exposure year.** `exposed = (W_S > 0)` in the frozen gold panel (the pre-registered scheduled-election exposure of country-year (c, y)); unexposed = `W_S = 0`. Descriptive stratum only.
+
+## 2. Statistics (all in the primary sample unless stated)
+
+1. N, number of countries, distribution of the first-outturn vintage.
+2. Revision: mean, mean absolute, SD (ddof = 1), median, median absolute, quantiles (1, 5, 10, 25, 50, 75, 90, 95, 99 per cent) of the revision and of the absolute revision.
+3. Sign changes: (a) share of country-years with `sign(first) * sign(final) < 0` (level sign change; exact zeros never count); (b) share with `sign(change_first) * sign(change_final) < 0` among pairs with both changes defined (sign of the change).
+4. Association of first and final: Pearson correlation; OLS of final on first (slope, intercept); OLS of first on final (slope) for the error-in-variables reading; correlation of the revision with the first outturn and with the final.
+5. Revision size by country (27 countries, 8 years each) and by year (2014-2021 and the extension years), each with n, mean, SD, mean absolute, share above the SESOI, share with a level sign change.
+6. By election exposure (`W_S > 0` versus `W_S = 0`): n, mean revision, mean absolute revision, and the difference of the mean revisions (exposed minus unexposed). Intervals: country-clustered CR1 t(G - 1) 95 per cent interval and a country-cluster (pairs) bootstrap percentile 95 per cent interval. Labelled descriptive and unadjusted: no controls, no country or year effects, no hypothesis test is reported. A non-zero difference could reflect a real-time bias around elections but could equally reflect composition (which countries, which years, the 2020 and 2021 revisions); it is not a replication of the election effect and does not enter the confirmatory family.
+7. Revisions against the smallest effect size of interest (SESOI = 0.5 pp, `sesoi_pp` in `reports/results/m1_confirmatory.json`): share of country-years with `|revision| > 0.5`. Rule fixed in advance for the wording: the statement "the typical revision exceeds the SESOI" is made only for a location statistic (mean absolute revision, median absolute revision) whose 95 per cent country-cluster bootstrap interval lies entirely above 0.5; for a statistic whose interval contains 0.5 the report says that it does not distinguish the typical revision from the SESOI, and it reports both statistics side by side without choosing the more favourable one.
+8. Noise-to-signal: the revision SD and the mean absolute revision as multiples of |beta_S| (read from `m1_confirmatory.json`), and the revision SD divided by (i) the pooled cross-sectional SD of the final CAPB in the primary sample, (ii) the pooled SD of CAPB in the full confirmatory sample (715), (iii) the within-country SD (CAPB minus the country mean) and the two-way (country and year) demeaned SD in the 715 sample, the variation that a fixed-effects design uses.
+9. Reliability and attenuation illustration: `reliability = var(final) / var(first)` in the primary sample. Reasoning (stated in words, no correction): if the first outturn were the final value plus classical noise independent of the final, then `var(first) = var(final) + var(noise)` and the reliability would lie below one and would be the factor by which an OLS slope on the first outturn *used as a regressor* shrinks towards zero. The opposite polar case treats the revision as news orthogonal to the first outturn (`final = first + news`); then `var(final) >= var(first)` and no attenuation arises. The report states which pattern the sample resembles using the correlations of item 4 and says that the actual process is probably a mixture. In the headline model CAPB is the *outcome*; classical noise in an outcome does not bias a coefficient on an error-free regressor (here the calendar-based exposure) but widens its interval; the attenuation illustration therefore applies to analyses that use CAPB (or its lags) as a regressor, and to any real-time re-analysis. Non-classical error (revisions correlated with exposure) is what item 6 examines descriptively.
+10. Comparison with Gate 5 (216 country-years, first outturn, Spring 2026): mean absolute 0.64, SD 0.98, level sign change 9.7 per cent, correlation 0.93. The code prints the comparison; if the S4 values differ at the rounding shown, the report says so and explains the cause (sample or definition); no agreement is forced.
+
+## 3. Uncertainty
+
+All intervals are 95 per cent. Cluster resampling is by country (27 clusters), B = 9999 draws, seed 42, percentile intervals, for: mean revision, mean absolute revision, median absolute revision, SD, share above the SESOI, level sign-change share, correlation, slope, reliability. Parametric CR1 t(G - 1) intervals are given for the mean revision and for the exposure contrast. The percentile bootstrap with 27 clusters is approximate; the intervals describe the sampling variation of the country panel, not the model uncertainty of the AMECO estimates.
+
+## 4. Outputs
+
+`src/evaluate/revisions.py` (code), `tests/test_revisions.py` (synthetic checks: statistics on small hand-made vintage tables, the first-outturn rule, ROM and GRC area-code mapping), `reports/results/s4_revisions.md` and `.json` (every number in the markdown comes from the code), `reports/figures/s4_revisions.png` (300 dpi; panel A: final against first outturn with the 45-degree line and the +-0.5 pp band; panel B: histogram of the revisions with +-0.5 pp marked). Frozen files are imported and never edited.
+
+## 5. Limitations to be stated in the results
+
+1. CAPB is a model-based estimate (potential output and budget semi-elasticities); a revision mixes new outturn data with re-estimation of the model. The decomposition is not identified here.
+2. AMECO methodology changes between vintages (ESA 95 to ESA 2010 in Autumn 2015, the Spring 2020 level shift, COVID treatment), so the revision is not pure data noise and the archive is not a homogeneous series (Gate 5, section 4).
+3. The archived chapter 17 files are not guaranteed to be the originally released versions (Gate 5, section 8); the first outturn is "first outturn in the archive".
+4. The real-time panel covers 2015-2021 for elections (189 of 715 country-years; 51 elections), so it cannot support a replication of the election effect; S4 does not attempt one.
+5. The forecast/outturn rule is structural (no AMECO flag); country-specific exceptions were not checked.
+6. Eight years per country and 27 countries: country-level statistics are unstable and the cluster bootstrap has few clusters.
+7. The reliability ratio and the sign-change share are descriptive features of this panel; they are not estimates of a structural measurement-error parameter.

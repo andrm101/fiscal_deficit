@@ -1,0 +1,950 @@
+{
+ "meta": {
+  "spec": "docs/s4_spec.md",
+  "spec_sha256": "333a6d483ad918dbcedc95f12ce81a07267b643a98bd8c46a3d3ea23d29618be",
+  "sesoi_pp": 0.5,
+  "n_boot": 9999,
+  "seed": 42,
+  "level": 0.95,
+  "primary_window": [
+   2014,
+   2021
+  ],
+  "extended_window": [
+   2014,
+   2024
+  ],
+  "interim_csv_sha256": "8d2540cac56bdcb1cefde4999486065197c6603ec8b97fa0d8e36c95ea31b9f5",
+  "forecast_years_by_season": {
+   "winter": 3,
+   "spring": 2,
+   "autumn": 3
+  },
+  "final_vintage": "Spring 2026",
+  "versions": {
+   "numpy": "2.4.4",
+   "pandas": "3.0.2",
+   "scipy": "1.17.1"
+  },
+  "gold_extract_hash": "2fcf20d4ca687f613d6743214b7be176ceb638b483f513eeed005bd1f73a5bb4"
+ },
+ "checks": {
+  "n_rows": 216,
+  "n_matched_to_panel": 216,
+  "max_abs_panel_minus_final": 0.0
+ },
+ "primary": {
+  "n": 216,
+  "n_countries": 27,
+  "years": [
+   2014,
+   2021
+  ],
+  "first_vintage_counts": {
+   "Spring 2015": 27,
+   "Spring 2016": 27,
+   "Spring 2017": 27,
+   "Spring 2018": 27,
+   "Spring 2019": 27,
+   "Spring 2020": 27,
+   "Spring 2021": 27,
+   "Spring 2022": 27
+  },
+  "stats": {
+   "n": 216,
+   "mean_revision": 0.1400922685185185,
+   "mean_abs_revision": 0.6388056018518519,
+   "sd_revision": 0.9749914400377693,
+   "median_revision": 0.047184999999999866,
+   "median_abs_revision": 0.4214499999999999,
+   "share_abs_gt_sesoi": 0.4212962962962963,
+   "share_sign_change_level": 0.09722222222222222,
+   "n_delta": 216,
+   "share_sign_change_delta": 0.14814814814814814,
+   "sd_first": 2.5025831452659055,
+   "sd_final": 2.708837631150271,
+   "corr_first_final": 0.9330244024047011,
+   "slope_final_on_first": 1.0099211356059876,
+   "intercept_final_on_first": 0.13938734427500293,
+   "slope_first_on_final": 0.8619826883415987,
+   "reliability": 1.1716257753958068,
+   "corr_rev_first": 0.02546531767343525,
+   "corr_rev_final": 0.3834561742982992
+  },
+  "bootstrap_ci": {
+   "mean_revision": [
+    -0.04259772916666663,
+    0.3613790046296295
+   ],
+   "mean_abs_revision": [
+    0.49361317361111123,
+    0.8144162916666665
+   ],
+   "sd_revision": [
+    0.6999917062025008,
+    1.2170813435050825
+   ],
+   "median_revision": [
+    -0.05549999999999994,
+    0.17992000000000008
+   ],
+   "median_abs_revision": [
+    0.3413400000000002,
+    0.497305
+   ],
+   "share_abs_gt_sesoi": [
+    0.3472222222222222,
+    0.5
+   ],
+   "share_sign_change_level": [
+    0.05555555555555555,
+    0.14351851851851852
+   ],
+   "share_sign_change_delta": [
+    0.10185185185185185,
+    0.19907407407407407
+   ],
+   "corr_first_final": [
+    0.9032554780082319,
+    0.9554318235432272
+   ],
+   "slope_final_on_first": [
+    0.9101067055092027,
+    1.0904775110239102
+   ],
+   "intercept_final_on_first": [
+    -0.04807693241190237,
+    0.33942122801441865
+   ],
+   "slope_first_on_final": [
+    0.803947382140491,
+    0.9528157006708059
+   ],
+   "reliability": [
+    0.9655596001531745,
+    1.3456691371422416
+   ],
+   "corr_rev_first": [
+    -0.23383530643310932,
+    0.23095095396610196
+   ],
+   "corr_rev_final": [
+    0.13630357634190335,
+    0.5424431020306524
+   ]
+  },
+  "mean_revision_cr1": {
+   "mean": 0.1400922685185185,
+   "ci_lo": -0.07613041064796752,
+   "ci_hi": 0.3563149476850045,
+   "n": 216,
+   "n_clusters": 27
+  },
+  "quantiles": {
+   "revision": {
+    "0.01": -2.0450269999999997,
+    "0.05": -0.9304950000000003,
+    "0.1": -0.7679549999999999,
+    "0.25": -0.363775,
+    "0.5": 0.047184999999999866,
+    "0.75": 0.4919249999999997,
+    "0.9": 1.154215,
+    "0.95": 1.9118749999999998,
+    "0.99": 3.638666999999994
+   },
+   "abs_revision": {
+    "0.01": 0.003338000000000407,
+    "0.05": 0.03448249999999997,
+    "0.1": 0.06610000000000003,
+    "0.25": 0.18957000000000002,
+    "0.5": 0.4214499999999999,
+    "0.75": 0.7785275,
+    "0.9": 1.48354,
+    "0.95": 2.1681774999999996,
+    "0.99": 3.8478179999999997
+   }
+  },
+  "top_revisions": [
+   {
+    "eurostat_code": "EL",
+    "year": 2015,
+    "first": 0.3022,
+    "final": 5.57543,
+    "revision": 5.27323
+   },
+   {
+    "eurostat_code": "PT",
+    "year": 2014,
+    "first": 3.0682,
+    "final": -0.78652,
+    "revision": -3.85472
+   },
+   {
+    "eurostat_code": "IE",
+    "year": 2019,
+    "first": 0.5597,
+    "final": 4.41425,
+    "revision": 3.85455
+   },
+   {
+    "eurostat_code": "EL",
+    "year": 2014,
+    "first": 4.8696,
+    "final": 8.67927,
+    "revision": 3.8096700000000006
+   },
+   {
+    "eurostat_code": "SI",
+    "year": 2015,
+    "first": 0.2261,
+    "final": 2.89575,
+    "revision": 2.66965
+   },
+   {
+    "eurostat_code": "CY",
+    "year": 2014,
+    "first": -3.2491,
+    "final": -0.65802,
+    "revision": 2.59108
+   },
+   {
+    "eurostat_code": "IE",
+    "year": 2020,
+    "first": -3.6026,
+    "final": -1.0935,
+    "revision": 2.5091
+   },
+   {
+    "eurostat_code": "MT",
+    "year": 2017,
+    "first": 5.207,
+    "final": 2.72606,
+    "revision": -2.48094
+   }
+  ]
+ },
+ "extended": {
+  "n": 297,
+  "n_countries": 27,
+  "years": [
+   2014,
+   2024
+  ],
+  "first_vintage_counts": {
+   "Spring 2015": 27,
+   "Spring 2016": 27,
+   "Spring 2017": 27,
+   "Spring 2018": 27,
+   "Spring 2019": 27,
+   "Spring 2020": 27,
+   "Spring 2021": 27,
+   "Spring 2022": 27,
+   "Spring 2023": 27,
+   "Spring 2024": 27,
+   "Spring 2025": 27
+  },
+  "stats": {
+   "n": 297,
+   "mean_revision": 0.07763363636363636,
+   "mean_abs_revision": 0.5811482491582491,
+   "sd_revision": 0.8946799666324763,
+   "median_revision": 0.00279000000000007,
+   "median_abs_revision": 0.37532000000000004,
+   "share_abs_gt_sesoi": 0.3872053872053872,
+   "share_sign_change_level": 0.08080808080808081,
+   "n_delta": 297,
+   "share_sign_change_delta": 0.1414141414141414,
+   "sd_first": 2.528046819314308,
+   "sd_final": 2.7356273171234187,
+   "corr_first_final": 0.9452439888734866,
+   "slope_final_on_first": 1.0228589350296846,
+   "intercept_final_on_first": 0.08149060061170049,
+   "slope_first_on_final": 0.8735184959551925,
+   "reliability": 1.1709642552115491,
+   "corr_rev_first": 0.06459120596185829,
+   "corr_rev_final": 0.38673745974013346
+  },
+  "bootstrap_ci": {
+   "mean_revision": [
+    -0.05695636026936025,
+    0.23224205723905694
+   ],
+   "mean_abs_revision": [
+    0.4605724360269361,
+    0.7221415555555555
+   ],
+   "sd_revision": [
+    0.6643964882700852,
+    1.1034578932721681
+   ],
+   "median_revision": [
+    -0.06808249999999888,
+    0.09140999999999999
+   ],
+   "median_abs_revision": [
+    0.30142,
+    0.4492400000000001
+   ],
+   "share_abs_gt_sesoi": [
+    0.31986531986531985,
+    0.45791245791245794
+   ],
+   "share_sign_change_level": [
+    0.04713804713804714,
+    0.11784511784511785
+   ],
+   "share_sign_change_delta": [
+    0.10101010101010101,
+    0.18518518518518517
+   ],
+   "corr_first_final": [
+    0.9236457815382438,
+    0.9634249051742136
+   ],
+   "slope_final_on_first": [
+    0.9370836547891492,
+    1.0917122027523884
+   ],
+   "intercept_final_on_first": [
+    -0.06490562461088728,
+    0.224314439760807
+   ],
+   "slope_first_on_final": [
+    0.8221069253484686,
+    0.9449202656840696
+   ],
+   "reliability": [
+    0.9979957090689305,
+    1.3206072321652487
+   ],
+   "corr_rev_first": [
+    -0.17772528437039053,
+    0.2587952611077115
+   ],
+   "corr_rev_final": [
+    0.16722600265718884,
+    0.5384935953704817
+   ]
+  },
+  "mean_revision_cr1": {
+   "mean": 0.07763363636363636,
+   "ci_lo": -0.07773266247855833,
+   "ci_hi": 0.23299993520583107,
+   "n": 297,
+   "n_clusters": 27
+  },
+  "quantiles": {
+   "revision": {
+    "0.01": -2.0464303999999998,
+    "0.05": -0.9303220000000003,
+    "0.1": -0.7808319999999997,
+    "0.25": -0.36172000000000004,
+    "0.5": 0.00279000000000007,
+    "0.75": 0.3932,
+    "0.9": 0.9729080000000025,
+    "0.95": 1.7494199999999993,
+    "0.99": 2.7152508000000233
+   },
+   "abs_revision": {
+    "0.01": 0.005217199999999949,
+    "0.05": 0.033723999999999955,
+    "0.1": 0.060110000000000045,
+    "0.25": 0.17586000000000013,
+    "0.5": 0.37532000000000004,
+    "0.75": 0.7494099999999999,
+    "0.9": 1.214308000000001,
+    "0.95": 2.041374,
+    "0.99": 3.8114652000000016
+   }
+  },
+  "top_revisions": [
+   {
+    "eurostat_code": "EL",
+    "year": 2015,
+    "first": 0.3022,
+    "final": 5.57543,
+    "revision": 5.27323
+   },
+   {
+    "eurostat_code": "PT",
+    "year": 2014,
+    "first": 3.0682,
+    "final": -0.78652,
+    "revision": -3.85472
+   },
+   {
+    "eurostat_code": "IE",
+    "year": 2019,
+    "first": 0.5597,
+    "final": 4.41425,
+    "revision": 3.85455
+   },
+   {
+    "eurostat_code": "EL",
+    "year": 2014,
+    "first": 4.8696,
+    "final": 8.67927,
+    "revision": 3.8096700000000006
+   },
+   {
+    "eurostat_code": "SI",
+    "year": 2015,
+    "first": 0.2261,
+    "final": 2.89575,
+    "revision": 2.66965
+   },
+   {
+    "eurostat_code": "CY",
+    "year": 2014,
+    "first": -3.2491,
+    "final": -0.65802,
+    "revision": 2.59108
+   },
+   {
+    "eurostat_code": "IE",
+    "year": 2020,
+    "first": -3.6026,
+    "final": -1.0935,
+    "revision": 2.5091
+   },
+   {
+    "eurostat_code": "MT",
+    "year": 2017,
+    "first": 5.207,
+    "final": 2.72606,
+    "revision": -2.48094
+   }
+  ]
+ },
+ "by_year": [
+  {
+   "year": 2014,
+   "n": 27,
+   "mean_revision": 0.1299040740740741,
+   "sd_revision": 1.421308556369688,
+   "mean_abs_revision": 0.9377077777777777,
+   "median_abs_revision": 0.49143,
+   "share_abs_gt_sesoi": 0.48148148148148145,
+   "share_sign_change_level": 0.2222222222222222,
+   "n_exposed": 10.0,
+   "in_confirmatory_sample": true
+  },
+  {
+   "year": 2015,
+   "n": 27,
+   "mean_revision": 0.3466455555555556,
+   "sd_revision": 1.2963519352942028,
+   "mean_abs_revision": 0.7180048148148148,
+   "median_abs_revision": 0.32502,
+   "share_abs_gt_sesoi": 0.37037037037037035,
+   "share_sign_change_level": 0.1111111111111111,
+   "n_exposed": 11.0,
+   "in_confirmatory_sample": true
+  },
+  {
+   "year": 2016,
+   "n": 27,
+   "mean_revision": 0.20722185185185185,
+   "sd_revision": 0.5915179755252714,
+   "mean_abs_revision": 0.4580774074074074,
+   "median_abs_revision": 0.3514599999999999,
+   "share_abs_gt_sesoi": 0.4074074074074074,
+   "share_sign_change_level": 0.1111111111111111,
+   "n_exposed": 9.0,
+   "in_confirmatory_sample": true
+  },
+  {
+   "year": 2017,
+   "n": 27,
+   "mean_revision": -0.1772525925925926,
+   "sd_revision": 0.818177595492627,
+   "mean_abs_revision": 0.5768496296296296,
+   "median_abs_revision": 0.40060000000000007,
+   "share_abs_gt_sesoi": 0.4074074074074074,
+   "share_sign_change_level": 0.14814814814814814,
+   "n_exposed": 10.0,
+   "in_confirmatory_sample": true
+  },
+  {
+   "year": 2018,
+   "n": 27,
+   "mean_revision": 0.04217999999999994,
+   "sd_revision": 0.8075943189021806,
+   "mean_abs_revision": 0.53598,
+   "median_abs_revision": 0.3175300000000001,
+   "share_abs_gt_sesoi": 0.3333333333333333,
+   "share_sign_change_level": 0.037037037037037035,
+   "n_exposed": 12.0,
+   "in_confirmatory_sample": true
+  },
+  {
+   "year": 2019,
+   "n": 27,
+   "mean_revision": 0.43399962962962957,
+   "sd_revision": 0.9176631995600459,
+   "mean_abs_revision": 0.6722433333333334,
+   "median_abs_revision": 0.42872999999999983,
+   "share_abs_gt_sesoi": 0.4074074074074074,
+   "share_sign_change_level": 0.07407407407407407,
+   "n_exposed": 10.0,
+   "in_confirmatory_sample": true
+  },
+  {
+   "year": 2020,
+   "n": 27,
+   "mean_revision": 0.45194000000000006,
+   "sd_revision": 0.8851197945258814,
+   "mean_abs_revision": 0.7562118518518519,
+   "median_abs_revision": 0.5782400000000001,
+   "share_abs_gt_sesoi": 0.6296296296296297,
+   "share_sign_change_level": 0.037037037037037035,
+   "n_exposed": 7.0,
+   "in_confirmatory_sample": true
+  },
+  {
+   "year": 2021,
+   "n": 27,
+   "mean_revision": -0.3139003703703704,
+   "sd_revision": 0.5428944899580218,
+   "mean_abs_revision": 0.45537,
+   "median_abs_revision": 0.3413400000000002,
+   "share_abs_gt_sesoi": 0.3333333333333333,
+   "share_sign_change_level": 0.037037037037037035,
+   "n_exposed": 9.0,
+   "in_confirmatory_sample": true
+  },
+  {
+   "year": 2022,
+   "n": 27,
+   "mean_revision": -0.1470818518518518,
+   "sd_revision": 0.7424847473959783,
+   "mean_abs_revision": 0.6244440740740741,
+   "median_abs_revision": 0.57511,
+   "share_abs_gt_sesoi": 0.5555555555555556,
+   "share_sign_change_level": 0.1111111111111111,
+   "n_exposed": null,
+   "in_confirmatory_sample": false
+  },
+  {
+   "year": 2023,
+   "n": 27,
+   "mean_revision": -0.10188888888888883,
+   "sd_revision": 0.6964862274265528,
+   "mean_abs_revision": 0.44843851851851846,
+   "median_abs_revision": 0.2855599999999998,
+   "share_abs_gt_sesoi": 0.2962962962962963,
+   "share_sign_change_level": 0.0,
+   "n_exposed": null,
+   "in_confirmatory_sample": false
+  },
+  {
+   "year": 2024,
+   "n": 27,
+   "mean_revision": -0.017797407407407376,
+   "sd_revision": 0.2964646895252918,
+   "mean_abs_revision": 0.2093033333333334,
+   "median_abs_revision": 0.20698000000000005,
+   "share_abs_gt_sesoi": 0.037037037037037035,
+   "share_sign_change_level": 0.0,
+   "n_exposed": null,
+   "in_confirmatory_sample": false
+  }
+ ],
+ "by_country": [
+  {
+   "eurostat_code": "EL",
+   "n": 8,
+   "mean_revision": 2.0973249999999997,
+   "sd_revision": 1.6791903852920145,
+   "mean_abs_revision": 2.0973249999999997,
+   "median_abs_revision": 1.7110099999999997,
+   "share_abs_gt_sesoi": 0.875,
+   "share_sign_change_level": 0.125
+  },
+  {
+   "eurostat_code": "IE",
+   "n": 8,
+   "mean_revision": 0.57539625,
+   "sd_revision": 2.0655834128880426,
+   "mean_abs_revision": 1.6293487500000001,
+   "median_abs_revision": 1.5852,
+   "share_abs_gt_sesoi": 0.75,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "CY",
+   "n": 8,
+   "mean_revision": 1.11930875,
+   "sd_revision": 0.9779000643278943,
+   "mean_abs_revision": 1.1772962500000002,
+   "median_abs_revision": 1.1792450000000003,
+   "share_abs_gt_sesoi": 0.625,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "MT",
+   "n": 8,
+   "mean_revision": 0.02404000000000006,
+   "sd_revision": 1.5661352304045413,
+   "mean_abs_revision": 1.1628075000000002,
+   "median_abs_revision": 1.14226,
+   "share_abs_gt_sesoi": 0.625,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "SI",
+   "n": 8,
+   "mean_revision": 0.92448625,
+   "sd_revision": 1.0031026097483389,
+   "mean_abs_revision": 0.9741787499999999,
+   "median_abs_revision": 0.5817099999999998,
+   "share_abs_gt_sesoi": 0.625,
+   "share_sign_change_level": 0.125
+  },
+  {
+   "eurostat_code": "PT",
+   "n": 8,
+   "mean_revision": -0.5751862500000001,
+   "sd_revision": 1.3748506653964536,
+   "mean_abs_revision": 0.77360875,
+   "median_abs_revision": 0.444905,
+   "share_abs_gt_sesoi": 0.375,
+   "share_sign_change_level": 0.125
+  },
+  {
+   "eurostat_code": "ES",
+   "n": 8,
+   "mean_revision": 0.032512499999999944,
+   "sd_revision": 0.8071722233956199,
+   "mean_abs_revision": 0.69211,
+   "median_abs_revision": 0.6280550000000001,
+   "share_abs_gt_sesoi": 0.75,
+   "share_sign_change_level": 0.125
+  },
+  {
+   "eurostat_code": "LU",
+   "n": 8,
+   "mean_revision": 0.3121662499999999,
+   "sd_revision": 0.8487279489235221,
+   "mean_abs_revision": 0.6572037500000001,
+   "median_abs_revision": 0.4249200000000001,
+   "share_abs_gt_sesoi": 0.375,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "BG",
+   "n": 8,
+   "mean_revision": 0.0017999999999999405,
+   "sd_revision": 0.8612021072895724,
+   "mean_abs_revision": 0.6268024999999999,
+   "median_abs_revision": 0.47786,
+   "share_abs_gt_sesoi": 0.5,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "EE",
+   "n": 8,
+   "mean_revision": -0.13441624999999996,
+   "sd_revision": 0.7271114696805926,
+   "mean_abs_revision": 0.6184737499999999,
+   "median_abs_revision": 0.62584,
+   "share_abs_gt_sesoi": 0.625,
+   "share_sign_change_level": 0.125
+  },
+  {
+   "eurostat_code": "IT",
+   "n": 8,
+   "mean_revision": 0.016862499999999975,
+   "sd_revision": 0.8828775733078736,
+   "mean_abs_revision": 0.6015025,
+   "median_abs_revision": 0.39042999999999994,
+   "share_abs_gt_sesoi": 0.25,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "DK",
+   "n": 8,
+   "mean_revision": 0.29664374999999993,
+   "sd_revision": 0.6000795485823406,
+   "mean_abs_revision": 0.5441137499999998,
+   "median_abs_revision": 0.574535,
+   "share_abs_gt_sesoi": 0.5,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "PL",
+   "n": 8,
+   "mean_revision": 0.32982124999999995,
+   "sd_revision": 0.4331473001329917,
+   "mean_abs_revision": 0.47889375,
+   "median_abs_revision": 0.535385,
+   "share_abs_gt_sesoi": 0.5,
+   "share_sign_change_level": 0.25
+  },
+  {
+   "eurostat_code": "HR",
+   "n": 8,
+   "mean_revision": 0.32729125000000003,
+   "sd_revision": 0.6383742254785645,
+   "mean_abs_revision": 0.47875125,
+   "median_abs_revision": 0.26478999999999997,
+   "share_abs_gt_sesoi": 0.25,
+   "share_sign_change_level": 0.125
+  },
+  {
+   "eurostat_code": "FI",
+   "n": 8,
+   "mean_revision": -0.14723375000000008,
+   "sd_revision": 0.5977595025698045,
+   "mean_abs_revision": 0.47382875,
+   "median_abs_revision": 0.4296600000000001,
+   "share_abs_gt_sesoi": 0.375,
+   "share_sign_change_level": 0.375
+  },
+  {
+   "eurostat_code": "FR",
+   "n": 8,
+   "mean_revision": -0.35231250000000003,
+   "sd_revision": 0.49351756531918034,
+   "mean_abs_revision": 0.43531,
+   "median_abs_revision": 0.29849,
+   "share_abs_gt_sesoi": 0.375,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "LT",
+   "n": 8,
+   "mean_revision": -0.16233625000000007,
+   "sd_revision": 0.5446075925166538,
+   "mean_abs_revision": 0.43460624999999997,
+   "median_abs_revision": 0.5275799999999998,
+   "share_abs_gt_sesoi": 0.5,
+   "share_sign_change_level": 0.125
+  },
+  {
+   "eurostat_code": "AT",
+   "n": 8,
+   "mean_revision": 0.08262499999999999,
+   "sd_revision": 0.5069157114776156,
+   "mean_abs_revision": 0.424705,
+   "median_abs_revision": 0.3832750000000001,
+   "share_abs_gt_sesoi": 0.375,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "LV",
+   "n": 8,
+   "mean_revision": 0.14959375000000003,
+   "sd_revision": 0.5019796148660535,
+   "mean_abs_revision": 0.42245875,
+   "median_abs_revision": 0.429605,
+   "share_abs_gt_sesoi": 0.375,
+   "share_sign_change_level": 0.25
+  },
+  {
+   "eurostat_code": "SE",
+   "n": 8,
+   "mean_revision": -0.38198624999999997,
+   "sd_revision": 0.4781560087591705,
+   "mean_abs_revision": 0.41168125,
+   "median_abs_revision": 0.17405499999999993,
+   "share_abs_gt_sesoi": 0.375,
+   "share_sign_change_level": 0.25
+  },
+  {
+   "eurostat_code": "HU",
+   "n": 8,
+   "mean_revision": -0.3869087500000001,
+   "sd_revision": 0.33850280941807354,
+   "mean_abs_revision": 0.39947375,
+   "median_abs_revision": 0.334495,
+   "share_abs_gt_sesoi": 0.25,
+   "share_sign_change_level": 0.125
+  },
+  {
+   "eurostat_code": "DE",
+   "n": 8,
+   "mean_revision": -0.36150124999999994,
+   "sd_revision": 0.3283347246522975,
+   "mean_abs_revision": 0.37583874999999994,
+   "median_abs_revision": 0.3051800000000001,
+   "share_abs_gt_sesoi": 0.25,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "NL",
+   "n": 8,
+   "mean_revision": 0.16662499999999994,
+   "sd_revision": 0.4651200229433873,
+   "mean_abs_revision": 0.3523225,
+   "median_abs_revision": 0.20359500000000003,
+   "share_abs_gt_sesoi": 0.125,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "CZ",
+   "n": 8,
+   "mean_revision": -0.12053750000000003,
+   "sd_revision": 0.3640152661143289,
+   "mean_abs_revision": 0.30648999999999993,
+   "median_abs_revision": 0.1970599999999999,
+   "share_abs_gt_sesoi": 0.25,
+   "share_sign_change_level": 0.125
+  },
+  {
+   "eurostat_code": "SK",
+   "n": 8,
+   "mean_revision": -0.1136062500000001,
+   "sd_revision": 0.4138825813453272,
+   "mean_abs_revision": 0.30495375,
+   "median_abs_revision": 0.29440999999999995,
+   "share_abs_gt_sesoi": 0.375,
+   "share_sign_change_level": 0.375
+  },
+  {
+   "eurostat_code": "RO",
+   "n": 8,
+   "mean_revision": 0.13884999999999997,
+   "sd_revision": 0.36707433050308175,
+   "mean_abs_revision": 0.22249000000000002,
+   "median_abs_revision": 0.11306,
+   "share_abs_gt_sesoi": 0.125,
+   "share_sign_change_level": 0.0
+  },
+  {
+   "eurostat_code": "BE",
+   "n": 8,
+   "mean_revision": -0.07683124999999999,
+   "sd_revision": 0.19701741028487083,
+   "mean_abs_revision": 0.17117624999999997,
+   "median_abs_revision": 0.17004,
+   "share_abs_gt_sesoi": 0.0,
+   "share_sign_change_level": 0.0
+  }
+ ],
+ "exposure": {
+  "strata": {
+   "exposed": {
+    "n": 78,
+    "n_countries": 24,
+    "mean_revision": {
+     "mean": -0.07356076923076928,
+     "ci_lo": -0.2780268681998624,
+     "ci_hi": 0.1309053297383238,
+     "n": 78,
+     "n_clusters": 24
+    },
+    "mean_abs_revision": {
+     "mean": 0.4862584615384614,
+     "ci_lo": 0.3747401187520313,
+     "ci_hi": 0.5977768043248916,
+     "n": 78,
+     "n_clusters": 24
+    },
+    "sd_revision": 0.7317976385529051,
+    "share_sign_change_level": 0.11538461538461539
+   },
+   "unexposed": {
+    "n": 138,
+    "n_countries": 27,
+    "mean_revision": {
+     "mean": 0.26085268115942023,
+     "ci_lo": -0.04421821580853802,
+     "ci_hi": 0.5659235781273785,
+     "n": 138,
+     "n_clusters": 27
+    },
+    "mean_abs_revision": {
+     "mean": 0.7250278985507246,
+     "ci_lo": 0.4883578843595964,
+     "ci_hi": 0.9616979127418528,
+     "n": 138,
+     "n_clusters": 27
+    },
+    "sd_revision": 1.072455970666538,
+    "share_sign_change_level": 0.08695652173913043
+   }
+  },
+  "difference_mean_revision": {
+   "cr1": {
+    "difference": -0.3344134503901897,
+    "se": 0.18704714928855992,
+    "ci_lo": -0.7188943721670531,
+    "ci_hi": 0.05006747138667361,
+    "n": 216,
+    "n_clusters": 27
+   },
+   "bootstrap_ci": [
+    -0.6949251997187549,
+    0.015599156535410767
+   ]
+  },
+  "difference_mean_abs_revision": {
+   "cr1": {
+    "difference": -0.23876943701226305,
+    "se": 0.12198207623344086,
+    "ci_lo": -0.48950718569687995,
+    "ci_hi": 0.011968311672353849,
+    "n": 216,
+    "n_clusters": 27
+   },
+   "bootstrap_ci": [
+    -0.47528825968916943,
+    -0.014406185397538263
+   ]
+  },
+  "n_bootstrap_draws_valid": 9999
+ },
+ "signal": {
+  "beta_S": -0.37940192367871645,
+  "beta_S_ci_lo": -0.6911761405947665,
+  "beta_S_ci_hi": -0.06927413744983729,
+  "sd_final_revision_sample": 2.708837631150271,
+  "sd_within_final_revision_sample": 2.121035615774167,
+  "sd_capb_confirmatory": 3.095954027778983,
+  "sd_capb_within_country_confirmatory": 2.6994704815093526,
+  "sd_capb_twoway_confirmatory": 2.3850410272887808,
+  "n_confirmatory": 715,
+  "sd_revision_over_abs_beta_S": 2.569811535440204,
+  "mean_abs_revision_over_abs_beta_S": 1.6837173508714272,
+  "sd_revision_over_sd_final_revision_sample": 0.3599298196487888,
+  "sd_revision_over_sd_capb_confirmatory": 0.314924392057986,
+  "sd_revision_over_sd_within_confirmatory": 0.36117877439897883,
+  "sd_revision_over_sd_twoway_confirmatory": 0.40879441019348023,
+  "abs_beta_S_over_sd_revision": 0.38913359451034685
+ },
+ "gate5": [
+  {
+   "statistic": "mean_abs_revision",
+   "gate5_table": 0.639,
+   "gate5_quoted": 0.64,
+   "s4": 0.6388056018518519,
+   "agrees_with_table": true,
+   "agrees_with_quoted": true
+  },
+  {
+   "statistic": "sd_revision",
+   "gate5_table": 0.975,
+   "gate5_quoted": 0.98,
+   "s4": 0.9749914400377693,
+   "agrees_with_table": true,
+   "agrees_with_quoted": false
+  },
+  {
+   "statistic": "share_sign_change_level",
+   "gate5_table": 0.097,
+   "gate5_quoted": 0.097,
+   "s4": 0.09722222222222222,
+   "agrees_with_table": true,
+   "agrees_with_quoted": true
+  },
+  {
+   "statistic": "corr_first_final",
+   "gate5_table": 0.933,
+   "gate5_quoted": 0.93,
+   "s4": 0.9330244024047011,
+   "agrees_with_table": true,
+   "agrees_with_quoted": true
+  }
+ ]
+}
