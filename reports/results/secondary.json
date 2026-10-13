@@ -1,0 +1,1462 @@
+{
+  "source": "real_gold_panel",
+  "status": "complete",
+  "n_boot": 9999,
+  "seed": 42,
+  "seed_key": 42,
+  "ci_level": 0.95,
+  "bh_alpha": 0.05,
+  "family": [
+    "S1a",
+    "S1b",
+    "S1c",
+    "S1d",
+    "S1e",
+    "S1f-1",
+    "S1f-2",
+    "S1g-1",
+    "S1g-2",
+    "S1g-3"
+  ],
+  "min_obs_per_country": 5,
+  "versions": {
+    "numpy": "2.4.4",
+    "pandas": "3.0.2",
+    "scipy": "1.17.1"
+  },
+  "file_hashes": {
+    "secondary.py": "54b5d50de7755b57c9d43fb156e5a3b66b188e0d6958575bdf00ed10e0d17629",
+    "m1.py": "01fd7b728e3583921d6ad1d9920b5743a0fa83c4d92dbf93e1f72fd816925c85",
+    "power_variants.py": "f0bdd1105e791276f3ef6c8de7eeea1621a8f313e05eb18c0b6cd81f4a20051e",
+    "power.py": "838b9535c474f27171165edf4229584669106ff017137c5c1e0c6760ac3b0de6",
+    "docs/secondary_spec.md": "bb7f3bb994a6d870fbcdd98262e1f3cc820a03813941ec754e3d7a5a5e97252d",
+    "config/registry/secondary.toml": "5db7830e8160e748b0dc39088abe12d86c494481c3032200a255cb53e75d7334"
+  },
+  "extract_hash": "2fcf20d4ca687f613d6743214b7be176ceb638b483f513eeed005bd1f73a5bb4",
+  "estimator": "V7: GlsEstimator(wls=True, ar1=True) on M1 with centred era terms, no controls",
+  "outcomes": [
+    {
+      "id": "S1a",
+      "column": "sec_primary_balance_edp",
+      "label": "Primary balance (EDP, AMECO UBLGIE)",
+      "unit": "pp of GDP",
+      "group": "Balances",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 0,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 715,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.7116542324308281,
+        "sd_within_z": 0.7025298950673122,
+        "sd_a_pp": 4.549100270070163
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": -0.23448064837927932,
+          "cr1_se": 0.13993497974836058,
+          "ci_lo": -0.5434514706492851,
+          "ci_hi": 0.0727331454386819,
+          "p_bootstrap": 0.1522,
+          "role": "family",
+          "q_bh": 0.3044,
+          "q_by": 0.8915779365079365,
+          "bh_reject": false,
+          "by_reject": false
+        },
+        "gamma_B": {
+          "estimate": 0.1747160588069699,
+          "cr1_se": 0.1411127407218893,
+          "ci_lo": -0.09618775465409202,
+          "ci_hi": 0.44417483672960323,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": 0.0035398505152118343,
+          "cr1_se": 0.3832887698812255,
+          "ci_lo": -0.9961428107184668,
+          "ci_hi": 1.0012762983776342,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.6722534695475904,
+        "resid_sd_min": 0.9226088445186641,
+        "resid_sd_max": 5.494734393866453,
+        "resid_sd_min_country": "FR",
+        "resid_sd_max_country": "IE",
+        "resid_sd_median": 2.011586814576122
+      }
+    },
+    {
+      "id": "S1b",
+      "column": "sec_net_lending_b9",
+      "label": "Net lending (B9)",
+      "unit": "pp of GDP",
+      "group": "Balances",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 0,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 715,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.7116542324308281,
+        "sd_within_z": 0.7025298950673122,
+        "sd_a_pp": 4.549100270070163
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": -0.17171769722650898,
+          "cr1_se": 0.13992511268729418,
+          "ci_lo": -0.4950910616478032,
+          "ci_hi": 0.15240540282614146,
+          "p_bootstrap": 0.3125,
+          "role": "family",
+          "q_bh": 0.44642857142857145,
+          "q_by": 1.0,
+          "bh_reject": false,
+          "by_reject": false
+        },
+        "gamma_B": {
+          "estimate": 0.09612793990984118,
+          "cr1_se": 0.15807554663559042,
+          "ci_lo": -0.2314801950183803,
+          "ci_hi": 0.4210231467314111,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": -0.1981227030759042,
+          "cr1_se": 0.34944483961315037,
+          "ci_lo": -1.0099661562436824,
+          "ci_hi": 0.6225551754375744,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.6011453896374561,
+        "resid_sd_min": 1.1098319552660416,
+        "resid_sd_max": 5.796448561505653,
+        "resid_sd_min_country": "FR",
+        "resid_sd_max_country": "IE",
+        "resid_sd_median": 1.8094673577934979
+      }
+    },
+    {
+      "id": "S1c",
+      "column": "sec_d_capb",
+      "label": "Change in CAPB",
+      "unit": "pp of potential GDP",
+      "group": "Balances",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 22,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 693,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.718190951630483,
+        "sd_within_z": 0.6958460727747922,
+        "sd_a_pp": 4.527300751052227
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": -0.7044484145136243,
+          "cr1_se": 0.19194322220592416,
+          "ci_lo": -1.1690382623825102,
+          "ci_hi": -0.23723757764232206,
+          "p_bootstrap": 0.0007,
+          "role": "family",
+          "q_bh": 0.007,
+          "q_by": 0.020502777777777776,
+          "bh_reject": true,
+          "by_reject": true
+        },
+        "gamma_B": {
+          "estimate": 0.032292396148839934,
+          "cr1_se": 0.20638591418453756,
+          "ci_lo": -0.5595394561037222,
+          "ci_hi": 0.6295474015255574,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": -0.2247507557949886,
+          "cr1_se": 0.5325747583874618,
+          "ci_lo": -1.7287711476892464,
+          "ci_hi": 1.277935036352727,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": -0.13007823320823772,
+        "resid_sd_min": 0.767871981701626,
+        "resid_sd_max": 5.192461581364772,
+        "resid_sd_min_country": "FR",
+        "resid_sd_max_country": "IE",
+        "resid_sd_median": 1.5761746276605049
+      }
+    },
+    {
+      "id": "S1d",
+      "column": "sec_primary_expenditure",
+      "label": "Primary expenditure (TE - D41PAY)",
+      "unit": "pp of GDP",
+      "group": "Primary expenditure",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 0,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 715,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.7116542324308281,
+        "sd_within_z": 0.7025298950673122,
+        "sd_a_pp": 4.549100270070163
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": 0.13052939308844366,
+          "cr1_se": 0.16865968145041435,
+          "ci_lo": -0.23369991702539486,
+          "ci_hi": 0.5004623717102782,
+          "p_bootstrap": 0.4827,
+          "role": "family",
+          "q_bh": 0.5378888888888889,
+          "q_by": 1.0,
+          "bh_reject": false,
+          "by_reject": false
+        },
+        "gamma_B": {
+          "estimate": -0.03955368568678745,
+          "cr1_se": 0.19526391150529354,
+          "ci_lo": -0.4412326219278211,
+          "ci_hi": 0.3619287458184927,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": -0.03586560702860239,
+          "cr1_se": 0.3504465152123987,
+          "ci_lo": -0.8594516712469594,
+          "ci_hi": 0.7554591125081879,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.7433772390792611,
+        "resid_sd_min": 1.487094672399625,
+        "resid_sd_max": 7.530709918336874,
+        "resid_sd_min_country": "NL",
+        "resid_sd_max_country": "IE",
+        "resid_sd_median": 2.1323687901939645
+      }
+    },
+    {
+      "id": "S1e",
+      "column": "sec_revenue",
+      "label": "Total revenue (TR)",
+      "unit": "pp of GDP",
+      "group": "Revenue",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 0,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 715,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.7116542324308281,
+        "sd_within_z": 0.7025298950673122,
+        "sd_a_pp": 4.549100270070163
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": -0.17476838743874948,
+          "cr1_se": 0.0976364196711495,
+          "ci_lo": -0.3995797899207916,
+          "ci_hi": 0.05476918532448896,
+          "p_bootstrap": 0.1278,
+          "role": "family",
+          "q_bh": 0.3044,
+          "q_by": 0.8915779365079365,
+          "bh_reject": false,
+          "by_reject": false
+        },
+        "gamma_B": {
+          "estimate": 0.08229299504610839,
+          "cr1_se": 0.09861356976177356,
+          "ci_lo": -0.13815416076890308,
+          "ci_hi": 0.302368736853857,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": 0.21416480811754063,
+          "cr1_se": 0.21625761665258933,
+          "ci_lo": -0.3109884890274746,
+          "ci_hi": 0.7233606272332238,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.7934636934412758,
+        "resid_sd_min": 0.7901286740633388,
+        "resid_sd_max": 4.611822546150258,
+        "resid_sd_min_country": "AT",
+        "resid_sd_max_country": "IE",
+        "resid_sd_median": 1.550860271706271
+      }
+    },
+    {
+      "id": "S1f-1",
+      "column": "sec_social_benefits_d62",
+      "label": "Social benefits other than in kind (D62PAY)",
+      "unit": "pp of GDP",
+      "group": "Social benefits",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 0,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 715,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.7116542324308281,
+        "sd_within_z": 0.7025298950673122,
+        "sd_a_pp": 4.549100270070163
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": -0.0975816453377978,
+          "cr1_se": 0.06553477197364355,
+          "ci_lo": -0.25726851802636025,
+          "ci_hi": 0.058416649310531796,
+          "p_bootstrap": 0.2322,
+          "role": "family",
+          "q_bh": 0.387,
+          "q_by": 1.0,
+          "bh_reject": false,
+          "by_reject": false
+        },
+        "gamma_B": {
+          "estimate": -0.11259627663318833,
+          "cr1_se": 0.07267181991314624,
+          "ci_lo": -0.3418994901306273,
+          "ci_hi": 0.11388021934784337,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": 0.11605998517748171,
+          "cr1_se": 0.1613775980952688,
+          "ci_lo": -0.22696733805327646,
+          "ci_hi": 0.4601899914047827,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.9273844175756565,
+        "resid_sd_min": 0.4377067649136988,
+        "resid_sd_max": 2.6837089710390565,
+        "resid_sd_min_country": "CZ",
+        "resid_sd_max_country": "EL",
+        "resid_sd_median": 1.374086890117734
+      }
+    },
+    {
+      "id": "S1f-2",
+      "column": "sec_social_transfers_kind_d632",
+      "label": "Social transfers in kind (D632PAY)",
+      "unit": "pp of GDP",
+      "group": "Social benefits",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 0,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 715,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.7116542324308281,
+        "sd_within_z": 0.7025298950673122,
+        "sd_a_pp": 4.549100270070163
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": 0.020267522626233336,
+          "cr1_se": 0.01235400604881995,
+          "ci_lo": -0.004706697515679623,
+          "ci_hi": 0.04523730266851614,
+          "p_bootstrap": 0.1222,
+          "role": "family",
+          "q_bh": 0.3044,
+          "q_by": 0.8915779365079365,
+          "bh_reject": false,
+          "by_reject": false
+        },
+        "gamma_B": {
+          "estimate": 0.02951425064543985,
+          "cr1_se": 0.01469172642990345,
+          "ci_lo": -0.012202070620661396,
+          "ci_hi": 0.07055715904326011,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": -0.04093260019641222,
+          "cr1_se": 0.031217605487048532,
+          "ci_lo": -0.11015243662401279,
+          "ci_hi": 0.02886618709748677,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.8577202598830551,
+        "resid_sd_min": 0.14266994464219923,
+        "resid_sd_max": 1.216194538857241,
+        "resid_sd_min_country": "SI",
+        "resid_sd_max_country": "NL",
+        "resid_sd_median": 0.2742341260758773
+      }
+    },
+    {
+      "id": "S1g-1",
+      "column": "sec_cofog_gf10",
+      "label": "COFOG social protection (GF10)",
+      "unit": "pp of GDP",
+      "group": "COFOG",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 14,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 701,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.6931407342133274,
+        "sd_within_z": 0.7208022770317872,
+        "sd_a_pp": 4.454008772203874
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": -0.14036612876094615,
+          "cr1_se": 0.04750990297456535,
+          "ci_lo": -0.24733879087400584,
+          "ci_hi": -0.030253518258611153,
+          "p_bootstrap": 0.0377,
+          "role": "family",
+          "q_bh": 0.1885,
+          "q_by": 0.5521105158730159,
+          "bh_reject": false,
+          "by_reject": false
+        },
+        "gamma_B": {
+          "estimate": 0.034534967660274286,
+          "cr1_se": 0.06490777042154805,
+          "ci_lo": -0.1153871825007172,
+          "ci_hi": 0.18460768540506747,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": 0.015330489718945265,
+          "cr1_se": 0.12851335997186739,
+          "ci_lo": -0.2712432915160465,
+          "ci_hi": 0.30160484938335347,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.95,
+        "resid_sd_min": 0.5287580227733846,
+        "resid_sd_max": 2.472281065064569,
+        "resid_sd_min_country": "CZ",
+        "resid_sd_max_country": "EL",
+        "resid_sd_median": 1.407708612667612
+      }
+    },
+    {
+      "id": "S1g-2",
+      "column": "sec_cofog_gf1002",
+      "label": "COFOG old age (GF1002)",
+      "unit": "pp of GDP",
+      "group": "COFOG",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 78,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 637,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.734784367307952,
+        "sd_within_z": 0.6783007692461009,
+        "sd_a_pp": 4.438770521631683
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": -0.0167480098426122,
+          "cr1_se": 0.03846372615291708,
+          "ci_lo": -0.10574173006284594,
+          "ci_hi": 0.07121020303044974,
+          "p_bootstrap": 0.7062,
+          "role": "family",
+          "q_bh": 0.7062,
+          "q_by": 1.0,
+          "bh_reject": false,
+          "by_reject": false
+        },
+        "gamma_B": {
+          "estimate": 0.041976475860948846,
+          "cr1_se": 0.03037680251603583,
+          "ci_lo": -0.015569099060315013,
+          "ci_hi": 0.09968685949305414,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": 0.06721358677806279,
+          "cr1_se": 0.07238953494439371,
+          "ci_lo": -0.1099821016588239,
+          "ci_hi": 0.24695327164936953,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.8952208474355833,
+        "resid_sd_min": 0.3088891254701096,
+        "resid_sd_max": 1.6990445191791752,
+        "resid_sd_min_country": "DK",
+        "resid_sd_max_country": "PT",
+        "resid_sd_median": 0.7248800810053071
+      }
+    },
+    {
+      "id": "S1g-3",
+      "column": "sec_cofog_gf07",
+      "label": "COFOG health (GF07)",
+      "unit": "pp of GDP",
+      "group": "COFOG",
+      "role": "family",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 14,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 701,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.6931407342133274,
+        "sd_within_z": 0.7208022770317872,
+        "sd_a_pp": 4.454008772203874
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": 0.021024727130824174,
+          "cr1_se": 0.02759498461954211,
+          "ci_lo": -0.04187088763570339,
+          "ci_hi": 0.08397240361761273,
+          "p_bootstrap": 0.4841,
+          "role": "family",
+          "q_bh": 0.5378888888888889,
+          "q_by": 1.0,
+          "bh_reject": false,
+          "by_reject": false
+        },
+        "gamma_B": {
+          "estimate": 0.016304229141635006,
+          "cr1_se": 0.031242391496088665,
+          "ci_lo": -0.059632070234911495,
+          "ci_hi": 0.09603761137255679,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": 0.030087199155597485,
+          "cr1_se": 0.03183991476834573,
+          "ci_lo": -0.03387588569468339,
+          "ci_hi": 0.09312149322156447,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.8563520401456635,
+        "resid_sd_min": 0.22242386812880727,
+        "resid_sd_max": 0.9313506255892867,
+        "resid_sd_min_country": "FR",
+        "resid_sd_max_country": "IE",
+        "resid_sd_median": 0.4378797429527204
+      }
+    },
+    {
+      "id": "C-te",
+      "column": "sec_total_expenditure",
+      "label": "Total expenditure (TE)",
+      "unit": "pp of GDP",
+      "group": "Descriptive context",
+      "role": "context",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 0,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 715,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.7116542324308281,
+        "sd_within_z": 0.7025298950673122,
+        "sd_a_pp": 4.549100270070163
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": 0.103678763540743,
+          "cr1_se": 0.18142155809076357,
+          "ci_lo": -0.32379393931079115,
+          "ci_hi": 0.538754887618405,
+          "role": "context"
+        },
+        "gamma_B": {
+          "estimate": 0.14203830356927188,
+          "cr1_se": 0.21410492623412183,
+          "ci_lo": -0.35217464026765705,
+          "ci_hi": 0.6503244536704191,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": 0.056380810633531855,
+          "cr1_se": 0.3340203583157214,
+          "ci_lo": -0.6099994844672221,
+          "ci_hi": 0.7169255678427358,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.7353107695446195,
+        "resid_sd_min": 1.3994949047064216,
+        "resid_sd_max": 7.65522964987816,
+        "resid_sd_min_country": "AT",
+        "resid_sd_max_country": "IE",
+        "resid_sd_median": 2.1864548527810217
+      }
+    },
+    {
+      "id": "C-d41",
+      "column": "sec_interest_d41pay",
+      "label": "Interest (D41PAY)",
+      "unit": "pp of GDP",
+      "group": "Descriptive context",
+      "role": "context",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 0,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 715,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.7116542324308281,
+        "sd_within_z": 0.7025298950673122,
+        "sd_a_pp": 4.549100270070163
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": -0.04370867262736683,
+          "cr1_se": 0.02464877141937296,
+          "ci_lo": -0.11044181287171138,
+          "ci_hi": 0.023685133803765385,
+          "role": "context"
+        },
+        "gamma_B": {
+          "estimate": 0.04303839556290946,
+          "cr1_se": 0.022230924889788294,
+          "ci_lo": -0.00834187434615391,
+          "ci_hi": 0.09538235694626805,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": 0.1410041809195622,
+          "cr1_se": 0.07055133950684048,
+          "ci_lo": -0.04374664112252011,
+          "ci_hi": 0.3257165477128332,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.8329716577627155,
+        "resid_sd_min": 0.3097693719203579,
+        "resid_sd_max": 2.487777353866933,
+        "resid_sd_min_country": "FI",
+        "resid_sd_max_country": "BG",
+        "resid_sd_median": 0.7512624765528569
+      }
+    },
+    {
+      "id": "C-cofog",
+      "column": "sec_cofog_total",
+      "label": "COFOG total",
+      "unit": "pp of GDP",
+      "group": "Descriptive context",
+      "role": "context",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 14,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 701,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.6931407342133274,
+        "sd_within_z": 0.7208022770317872,
+        "sd_a_pp": 4.454008772203874
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": 0.12857316680336195,
+          "cr1_se": 0.18472926852743649,
+          "ci_lo": -0.3198084576123556,
+          "ci_hi": 0.5806688042560544,
+          "role": "context"
+        },
+        "gamma_B": {
+          "estimate": 0.07807676759642455,
+          "cr1_se": 0.22030681524175413,
+          "ci_lo": -0.4334922863593803,
+          "ci_hi": 0.5999515516437801,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": -0.07957773839595582,
+          "cr1_se": 0.3423285186993295,
+          "ci_lo": -0.8461834906201042,
+          "ci_hi": 0.6721890629101389,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.7338106587680294,
+        "resid_sd_min": 1.4328106072086684,
+        "resid_sd_max": 7.659906145162059,
+        "resid_sd_min_country": "AT",
+        "resid_sd_max_country": "IE",
+        "resid_sd_median": 2.18790156485163
+      }
+    },
+    {
+      "id": "C-cyc",
+      "column": "sec_cyclical_component",
+      "label": "Cyclical component (AMECO UBLGCP)",
+      "unit": "pp of potential GDP",
+      "group": "Descriptive context",
+      "role": "context",
+      "rows_in_confirmatory": 715,
+      "rows_without_outcome": 0,
+      "countries_excluded": {},
+      "rows_dropped_short_countries": 0,
+      "n_runs": 27,
+      "countries_with_gaps": 0,
+      "n_obs": 715,
+      "n_countries": 27,
+      "year_min": 1995,
+      "year_max": 2021,
+      "countries": [
+        "AT",
+        "BE",
+        "BG",
+        "CY",
+        "CZ",
+        "DE",
+        "DK",
+        "EE",
+        "EL",
+        "ES",
+        "FI",
+        "FR",
+        "HR",
+        "HU",
+        "IE",
+        "IT",
+        "LT",
+        "LU",
+        "LV",
+        "MT",
+        "NL",
+        "PL",
+        "PT",
+        "RO",
+        "SE",
+        "SI",
+        "SK"
+      ],
+      "regressors_dropped_constant": [
+        "W_D"
+      ],
+      "era_terms": [
+        "WS_x_era_2008_2015",
+        "WS_x_era_2016_2021"
+      ],
+      "scale": {
+        "sd_between_z": 0.7116542324308281,
+        "sd_within_z": 0.7025298950673122,
+        "sd_a_pp": 4.549100270070163
+      },
+      "status": "ok",
+      "targets": {
+        "beta_S": {
+          "estimate": 0.1337266551507011,
+          "cr1_se": 0.07021246472493789,
+          "ci_lo": -0.0374402557346768,
+          "ci_hi": 0.31157036393097054,
+          "role": "context"
+        },
+        "gamma_B": {
+          "estimate": -0.09650777874947966,
+          "cr1_se": 0.07766722574495794,
+          "ci_lo": -0.29180542949786253,
+          "ci_hi": 0.0943237160415322,
+          "role": "descriptive"
+        },
+        "gamma_W": {
+          "estimate": -0.0005404338113557325,
+          "cr1_se": 0.17520541269125872,
+          "ci_lo": -0.4633205691844018,
+          "ci_hi": 0.46894129189151124,
+          "role": "descriptive"
+        }
+      },
+      "diagnostics": {
+        "rho_nickell": 0.7369827635425251,
+        "resid_sd_min": 0.6191652937414935,
+        "resid_sd_max": 2.867253623027868,
+        "resid_sd_min_country": "BE",
+        "resid_sd_max_country": "EL",
+        "resid_sd_median": 0.8173337803596713
+      }
+    }
+  ],
+  "multiplicity": {
+    "complete": true,
+    "n_family_done": 10,
+    "n_family": 10,
+    "m_used": 10,
+    "alpha": 0.05,
+    "n_bh_reject": 1,
+    "n_by_reject": 1
+  },
+  "s3": {
+    "n_obs": 715,
+    "n_countries": 27,
+    "targets": {
+      "beta_S": {
+        "estimate": -0.37940192367871645,
+        "cr1_se": 0.13312193050740026,
+        "ci_lo": -0.6911761405947665,
+        "ci_hi": -0.06927413744983729,
+        "p_bootstrap": 0.0181,
+        "role": "headline reproduction (self-check)"
+      },
+      "gamma_B": {
+        "estimate": 0.2066037839733819,
+        "cr1_se": 0.13170654350009503,
+        "ci_lo": -0.06905787246641823,
+        "ci_hi": 0.4882267285580253,
+        "role": "descriptive"
+      },
+      "gamma_W": {
+        "estimate": -0.27083440010090054,
+        "cr1_se": 0.45045557429840843,
+        "ci_lo": -1.4972840787443067,
+        "ci_hi": 0.9641927288759157,
+        "role": "descriptive"
+      },
+      "beta_E": {
+        "estimate": -0.5272676407706105,
+        "cr1_se": 0.27258047159194454,
+        "ci_lo": -1.1613858314966188,
+        "ci_hi": 0.0917531345202568,
+        "role": "descriptive"
+      },
+      "beta_U": {
+        "estimate": 0.8406621830309817,
+        "cr1_se": 0.9342123781108354,
+        "ci_lo": -3.4152329565260118,
+        "ci_hi": 5.249803990071926,
+        "role": "descriptive"
+      },
+      "rho_Post": {
+        "estimate": -0.4995094770147013,
+        "cr1_se": 0.15089601733365424,
+        "ci_lo": -0.8153959091714829,
+        "ci_hi": -0.17683729969808554,
+        "role": "descriptive"
+      }
+    },
+    "diagnostics": {
+      "rho_nickell": 0.6226532782714382,
+      "resid_sd_min": 1.031251695532268,
+      "resid_sd_max": 5.291651136320578,
+      "resid_sd_min_country": "PL",
+      "resid_sd_max_country": "IE",
+      "resid_sd_median": 1.899298967178271
+    },
+    "descriptions": {
+      "beta_E": "coefficient of W_E (early-election exposure); early elections are endogenous",
+      "beta_U": "coefficient of W_U (unclassified-election exposure)",
+      "rho_Post": "coefficient of Post (share of the year within 12 months after any election)"
+    },
+    "self_check": {
+      "comparable_n_boot": true,
+      "headline_n_boot": 9999,
+      "max_abs_difference": 0.0,
+      "tolerance": 1e-08,
+      "passed": true,
+      "per_target": {
+        "beta_S": {
+          "max_abs_difference": 0.0,
+          "diff_estimate": 0.0,
+          "diff_ci_lo": 0.0,
+          "diff_ci_hi": 0.0,
+          "diff_p_bootstrap": 0.0
+        },
+        "gamma_B": {
+          "max_abs_difference": 0.0,
+          "diff_estimate": 0.0,
+          "diff_ci_lo": 0.0,
+          "diff_ci_hi": 0.0
+        },
+        "gamma_W": {
+          "max_abs_difference": 0.0,
+          "diff_estimate": 0.0,
+          "diff_ci_lo": 0.0,
+          "diff_ci_hi": 0.0
+        }
+      }
+    }
+  }
+}

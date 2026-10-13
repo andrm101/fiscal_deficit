@@ -263,7 +263,16 @@ def test_results_artefacts_are_detected(tmp_path):
 
 
 def test_real_repository_has_no_results_artefacts():
-    assert freeze.check_no_results(ROOT).status == "PASS"
+    """Before the tag the working tree must hold no results; after it, the tagged commit must have held none.
+
+    The working-tree check only describes the pre-freeze state, so it stops applying once the tag exists
+    (the confirmatory run then legitimately writes ``reports/results``).
+    """
+    tagged = subprocess.run(["git", "-C", str(ROOT), "ls-tree", "-r", "--name-only", freeze.TAG], capture_output=True, text=True, check=False)
+    if tagged.returncode != 0:
+        assert freeze.check_no_results(ROOT).status == "PASS"
+        return
+    assert not [name for name in tagged.stdout.splitlines() if name.startswith("reports/results/")]
 
 
 def test_preregistration_document_requirements(tmp_path):
