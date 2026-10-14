@@ -5,6 +5,9 @@
 import _helpers as H
 
 pw = H.prereg_power()
+kA, nA = H.rob_count("A", "beta_S", "excludes_zero")
+mdes = [H.exp_mde(r)[0] for r in H.exp_rows()]
+n_gt1 = sum(1 for m in mdes if m is not None and m > 1.0)
 ```
 
 We group the threats by the type of validity they affect. Where a check exists in the thesis, it is referenced.
@@ -21,7 +24,7 @@ We group the threats by the type of validity they affect. Where a check exists i
 
 ## Measurement {#sec-lim-measure}
 
-*CAPB.* The outcome is a model estimate whose first-outturn revisions are of the same order as the effect of interest: the mean absolute revision is `{python} H.s4_ci("mean_abs_revision")` pp and the median absolute revision `{python} H.s4_ci("median_abs_revision")` pp, the revision standard deviation is about `{python} H.num(H.S4.get("signal", {}).get("sd_revision_over_abs_beta_S"), 1)` times $|\beta_S|$, and the revisions look like news rather than classical noise ([Appendix E](#sec-app-revisions)); the typical revision does not demonstrably exceed the SESOI. The analysis uses one pinned ex post vintage (Spring 2026); a real-time replication is not feasible because only 2015--2021 can carry a real-time value, and the cyclical-adjustment method and the accounting basis changed in the archive window. The ex post gap embeds later information [@orphanides2002].
+*CAPB.* The outcome is a model estimate whose first-outturn revisions are of the same order as the association of interest: the mean absolute revision is `{python} H.s4_ci("mean_abs_revision")` pp and the median absolute revision `{python} H.s4_ci("median_abs_revision")` pp, the revision standard deviation is about `{python} H.num(H.S4.get("signal", {}).get("sd_revision_over_abs_beta_S"), 1)` times $|\beta_S|$, and the revisions look like news rather than classical noise ([Appendix E](#sec-app-revisions)); the typical revision does not demonstrably exceed the SESOI. The analysis uses one pinned ex post vintage (Spring 2026); a real-time replication is not feasible because only 2015--2021 can carry a real-time value, and the cyclical-adjustment method and the accounting basis changed in the archive window. The ex post gap embeds later information [@orphanides2002].
 
 *Election calendar.* ETAD and ParlGov end in 2023, and the 12-month window needs elections through the end of the following year, so the sample ends in 2021. Right-censoring of this kind makes the sample a function of the data availability rather than of any outcome value, but it excludes the most recent elections. Matched elections in the two sources differ by at most a few days for nearly all pairs (one pair differs by 61 days), but ParlGov carries no early/scheduled flag, so the classification rests on ETAD alone.
 
@@ -31,13 +34,15 @@ We group the threats by the type of validity they affect. Where a check exists i
 
 *Few clusters.* With 27 clusters, inference rests on a wild-cluster bootstrap. Wild-bootstrap size for $\beta_S$ was about `{python} H.fact("wcb_size")`% under block-bootstrap noise carrying cross-country co-movement in simulation, and the confirmatory $p$-value may therefore be too small. The intervals are bootstrap-$t$ percentile intervals, not test-inversion intervals.
 
-*Cross-country dependence.* Year effects absorb common shocks but not heterogeneous responses to them. Driscoll--Kraay standard errors are valid for large T and T is 27; CCE augmentation consumes many degrees of freedom. The residual-dependence statistics, with the caveat for the Pesaran CD statistic in [Appendix B](#sec-app-robustness), do not settle the question.
+*Cross-country dependence.* Year effects absorb common shocks but not heterogeneous responses to them. Driscoll--Kraay standard errors are valid for large T and T is 27; CCE augmentation consumes many degrees of freedom. The residual-dependence statistics, with the caveat for the Pesaran CD statistic in [Appendix B](#sec-app-robustness), do not settle the question. The statistical evidence for the headline depends on it: the interval for $\beta_S$ excludes zero in only `{python} H.cnt(kA, nA)` inference variants (@sec-rob-inference), so the headline is `{python} H.evidence_core()`.
 
-*Power and the winner's curse.* The design's minimum detectable effect for $\beta_S$ (`{python} H.num(pw.get("beta_S", {}).get("rho"), 3)` pp at the estimated persistence) exceeds the estimate; an estimate that clears a significance filter is likely to be exaggerated. The within-country interaction is not powered at all.
+*Power and the winner's curse.* The design's minimum detectable effect for $\beta_S$ (`{python} H.num(pw.get("beta_S", {}).get("rho"), 3)` pp at the estimated persistence) exceeds the estimate; an estimate that clears a significance filter is probably exaggerated (winner's-curse caution). The within-country interaction is not powered at all.
 
 *Dynamics and persistence.* The CAPB is persistent (estimated at about 0.7), and the AR(1) correction was calibrated near that value; for the spending-share secondary outcomes with persistence above 0.85 neither the correction nor the bootstrap was validated. V7 does not model dynamics beyond AR(1) errors (no lagged dependent variable), by design [@nickell1981; @roodman2009].
 
-*Exploratory analyses.* The seven exploratory coefficients were specified after the confirmatory result was known, have minimum detectable effects above 1 pp for most of them, and none survives Benjamini--Hochberg adjustment; the E1 promotion check failed, and the nominal accession-versus-EU-14 pattern must not be read as a finding.
+*Exploratory analyses.* The seven exploratory coefficients were specified after the confirmatory result was known, have minimum detectable effects above 1 pp for `{python} H.cnt(n_gt1, len(mdes))` of them, and none survives Benjamini--Hochberg adjustment; the E1 promotion check failed, and the nominal accession-versus-EU-14 pattern must not be read as a finding.
+
+*Predictive module.* The target and all features are the final Spring 2026 vintage, so the exercise is pseudo-out-of-sample and not real-time; there are only 13 forecast years in the primary block (12 degrees of freedom in the Diebold--Mariano test), so the null for the political and demographic block has limited power; block H has two forecast years and is not pristine; the election columns measure the statutory schedule with error and cannot see early elections; SHAP was not run; and the results are associations, not causal (@sec-predictive).
 
 *Specification freedom.* The pre-registration constrains the confirmatory analysis, not the design that preceded it. The robustness and secondary specifications were fixed after the confirmatory result (and before their own results), and the multiplicity corrections cover only the stated families.
 

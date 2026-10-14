@@ -8,7 +8,7 @@ The complete dictionary, with codes, labels, units, signs, timing, coverage and 
 - `config/registry/*.toml`: the model registries (confirmatory, secondary, exploratory, predictive);
 - `data/raw/<source>/README.md` and `manifest.jsonl`: per-source provenance, release or vintage, retrieval date and SHA-256.
 
-The variables used in this thesis are:
+The variables used in this thesis are listed in @tbl-dictionary:
 
 | Variable | Definition | Unit | Source |
 |:-------------|:--------------------------------------------|:-----------|:-------------------|
@@ -18,5 +18,7 @@ The variables used in this thesis are:
 | `olddep1_lag` | Persons aged 65+ per 100 aged 15--64 on 1 January, lagged one year | per 100 | Eurostat `demo_pjanind` |
 | `sec_*` | Secondary outcomes (headline primary balance, net lending, change in CAPB, primary expenditure, revenue, social benefits, COFOG functions) | % of GDP (CAPB change: pp of potential GDP) | AMECO; Eurostat `gov_10a_main`, `gov_10a_exp` |
 | `in_confirmatory` | Indicator of the 715-row confirmatory sample | 0/1 | Gold panel |
+| `Wk_next`, `Wk_now`, `Postk_next`, `Postk_now` | Predictive module only: known-at-origin pre- and post-election exposure of the forecast year and of the origin year, from elections already held plus the statutory next date (last election date plus term length); not the frozen realised exposure | 0--1 | ETAD; ParlGov |
+| `sec_d_capb` | Next-year change in the CAPB (forecast year row), the target of the predictive module and secondary outcome S1c | pp of potential GDP | AMECO |
 
 : Variables used in the thesis {#tbl-dictionary}

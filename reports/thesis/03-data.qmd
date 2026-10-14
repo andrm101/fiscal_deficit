@@ -34,7 +34,7 @@ $$ {#eq-exposure}
 
 where the pre-election window is the 12 months before the election day. A variable $\mathit{Post}_{it}$ is defined in the same way for the 12 months after *any* election. The 12-month window is fixed by the annual budget cycle and was not tuned; windows of 6 and 18 months and a calendar-year dummy are robustness checks (@sec-robustness). The exposure module was written, and committed, before any outcome series was merged to it.
 
-Because $W^S_{it}$ is the share of a calendar year, its maximum in the sample is below one, and a typical exposed country-year has about half a year of exposure. The coefficient $\beta_S$ below is expressed per unit of $W^S$, that is, for a full year of exposure, which no observation attains; an estimate for a typical exposed country-year is correspondingly about half as large.
+Because $W^S_{it}$ in @eq-exposure is the share of a calendar year, its maximum in the sample is below one, and a typical exposed country-year has about half a year of exposure. The coefficient $\beta_S$ below is expressed per unit of $W^S$, that is, for a full year of exposure, which no observation attains; an estimate for a typical exposed country-year is correspondingly about half as large.
 
 ```{python}
 #| label: tbl-exposure
@@ -53,6 +53,8 @@ for v, lab in [("W_S", "$W^S$ scheduled"), ("W_E", "$W^E$ early"), ("W_D", "$W^D
 H.show_table(pd.DataFrame(rows), widths=[34, 20, 8, 8, 9, 11])
 ```
 
+@tbl-exposure gives the distribution of the exposure variables; the delayed class is never positive in the sample, which is why it is dropped.
+
 ## The moderator: population ageing {#sec-moderator}
 
 The moderator is the old-age dependency ratio `OLDDEP1` (persons aged 65 and over per 100 persons aged 15--64, on 1 January; Eurostat `demo_pjanind`; @eurostat2026), taken at $t-1$ so that it is predetermined with respect to the outcome year. In the model it is standardised to mean zero and standard deviation one on the estimation sample. The ratio has very little variation once country and year effects are removed: in the confirmatory sample the two-way standard deviation of the lagged ratio is `{python} H.fact("g1_sd")` pp, and common year effects account for more than 40% of its variance (@tbl-variance). Almost every country ages over the sample period, and the movement is largely a common trend that the year effects absorb. The interaction with the election exposure therefore draws mainly on cross-country differences in the *level* of ageing, which may proxy for other country traits. This is the reason for the within-between split in @sec-mundlak, and for the pre-registered wording that the within-country interaction is expected to be imprecise.
@@ -61,7 +63,7 @@ The moderator is the old-age dependency ratio `OLDDEP1` (persons aged 65 and ove
 
 The confirmatory sample is the 27 EU member states annually over 1995--2021: `{python} H.fact("n_obs")` country-years, unbalanced, with `{python} H.fact("balanced")` countries observed in all 27 years. The selection rule was fixed before the outcome was merged to the exposure: the start year is the earliest year with at least 22 jointly observed countries and every retained country with at least 20 observations (1995, which is also the floor imposed by the one-year lag of the moderator); the end year is the last year with complete exposure for all 27 countries. The `{python} H.fact("dropped")` excluded country-years are all series starts: Cyprus, Czechia and Slovenia 1995--96, Slovakia 1995 and Croatia 1995--2001.
 
-*Why the sample ends in 2021.* Exposure for year $t$ needs every election up to 31 December of year $t+1$, because the pre-election window is 12 months long. The election sources end in 2023 (ParlGov in June 2023; ETAD's 2023 coverage is demonstrably partial, with only 29 elections dated 2023 against about 56 per year in 2019--2022). Exposure is therefore complete for all 27 countries only up to 2021. For 2022, exposure is complete only on trust in ETAD for 22 countries, and 2023 is incomplete for all 27; the 2022 extension is a robustness check (@sec-robustness), and no election after 2023 is hand-coded. The sample includes the 2008--2012 crisis and the pandemic years 2020--2021, which are handled by year effects, era terms and crisis-exclusion checks.
+*Why the sample ends in 2021.* Exposure for year $t$ needs every election up to 31 December of year $t+1$, because the pre-election window is 12 months long. The election sources end in 2023 (ParlGov in June 2023; ETAD's 2023 coverage is demonstrably partial, with only 29 elections dated 2023 against about 56 per year in 2019--2022, all countries; reports/gate3_calendar_and_sample.md). Exposure is therefore complete for all 27 countries only up to 2021. For 2022, exposure is complete only on trust in ETAD for 22 countries, and 2023 is incomplete for all 27; the 2022 extension is a robustness check (@sec-robustness), and no election after 2023 is hand-coded. The sample includes the 2008--2012 crisis and the pandemic years 2020--2021, which are handled by year effects, era terms and crisis-exclusion checks.
 
 ## Descriptive evidence {#sec-descriptives}
 
@@ -72,7 +74,7 @@ H.figure("fig-capb-time", "t1_capb_over_time.png",
          width="90%")
 ```
 
-@fig-capb-time shows the cross-country distribution of the CAPB over time. The median declines in the early 2000s, falls to its lowest value in 2009, recovers to a positive level in the mid-2010s and falls again in 2020--2021. Common shocks of this size are absorbed by the year effects, and they are the main reason that the model includes them. The CAPB is also heavy-tailed and skewed: its mean is close to zero, with a minimum of about $-27.6$ pp (Ireland 2010, the largest absolute residual) and a maximum of about 10.6 pp (Greece 2016), and the Ireland 2010 observation is handled by a winsorising robustness check.
+@fig-capb-time shows the cross-country distribution of the CAPB over time. The median declines in the early 2000s, falls to its lowest value in 2009, recovers to a positive level in the mid-2010s and falls again in 2020--2021. Common shocks of this size are absorbed by the year effects, and they are the main reason that the model includes them. The CAPB is also heavy-tailed and skewed: its mean is close to zero, with a minimum of about $-27.6$ pp (Ireland 2010, the largest absolute residual) and a maximum of about 10.6 pp (Greece 2016), and the Ireland 2010 observation is handled by a winsorising robustness check.<!-- CHECKED-STATIC (2026-10-14 against reports/tier1_descriptives.md: minimum -27.62 (IE 2010), maximum 10.58 (EL 2016)) -->
 
 ```{python}
 #| label: tbl-variance
@@ -86,7 +88,7 @@ else:
     H.show_table(keep, widths=[46, 10, 14])
 ```
 
-@tbl-variance decomposes the variance. About a quarter of the variance of the CAPB is between countries and about one sixth is common to all countries in a year; the remaining variance, which is what the model must explain, has a two-way standard deviation of about 2.4 pp. Its persistence is substantial: the raw AR(1) coefficient of the two-way residual is about 0.60, and simulation-corrected persistence is about 0.7. This matters for power and for the choice of estimator (@sec-power).
+@tbl-variance decomposes the variance. About a quarter of the variance of the CAPB is between countries and about one sixth is common to all countries in a year; the remaining variance, which is what the model must explain, has a two-way standard deviation of about 2.4 pp. Its persistence is substantial: the raw AR(1) coefficient of the two-way residual is about 0.60, and simulation-corrected persistence is about 0.7.<!-- CHECKED-STATIC (2026-10-14 against reports/tier1_descriptives.md: variance shares 0.240 / 0.167; two-way SD 2.383; AR(1) 0.601; corrected 0.70) --> This matters for power and for the choice of estimator (@sec-power).
 
 ```{python}
 #| output: asis
@@ -113,7 +115,7 @@ H.figure("fig-calendar", "t1_election_calendar_counts.png",
          width="90%")
 ```
 
-@fig-calendar describes the calendar on its own. Early elections are a substantial minority of all elections (`{python} H.fact("el_early")` of `{python} H.fact("el_total")`). Their frequency differs strongly by country: Greece, Bulgaria, Spain, Denmark and the Netherlands have many, whereas Estonia, Finland, Lithuania, Romania, Hungary and Sweden have none in the window. Cyprus, Greece and Malta have no scheduled election in the window under the classification rules (Greece's elections are early or unclassified, Cyprus and Malta's are all unclassified), so $\beta_S$ is identified from `{python} H.fact("n_scoping")` countries.
+@fig-calendar describes the calendar on its own. Early elections are a substantial minority of all elections (`{python} H.fact("el_early")` of `{python} H.fact("el_total")`). Their frequency differs strongly by country: Greece, Bulgaria, Spain, Denmark and the Netherlands have many, whereas Estonia, Finland, Lithuania, Romania and Sweden have none and Hungary none dated 1994 or later (its single early election is from 1990).<!-- CHECKED-STATIC (2026-10-14 against data/interim/election_calendar_eu27.csv, class_primary by country) --> Cyprus, Greece and Malta have no scheduled election in the window under the classification rules (Greece's elections are early or unclassified, Cyprus and Malta's are all unclassified), so $\beta_S$ is identified from `{python} H.fact("n_scoping")` countries.
 
 ## Data provenance and licences {#sec-provenance}
 

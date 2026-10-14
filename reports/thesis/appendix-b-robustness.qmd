@@ -65,7 +65,7 @@ else:
     H.not_yet("residual dependence table")
 ```
 
-A caveat applies to the Pesaran CD statistic. Residuals of models with year effects have, by construction, an average pairwise correlation of about $-1/(G-1)$ = `{python} H.num(-1/26, 3)` for $G = 27$ countries, which shifts the statistic to about $-3.7$ even under independence, so the standard normal $p$-value is not informative here. The statistic is therefore reported next to simulated benchmarks, and the mean absolute pairwise correlation is the more informative summary: its excess over the AR(1) benchmark is small for the OLS and V7 residuals, which is consistent with, but does not prove, adequate control of common shocks by the year effects.
+@tbl-app-cd reports the residual dependence statistics. A caveat applies to the Pesaran CD statistic. Residuals of models with year effects have, by construction, an average pairwise correlation of about $-1/(G-1)$ = `{python} H.num(-1/26, 3)` for $G = 27$ countries, which shifts the statistic to about $-3.7$ even under independence, so the standard normal $p$-value is not informative here. The statistic is therefore reported next to simulated benchmarks, and the mean absolute pairwise correlation is the more informative summary: its excess over the AR(1) benchmark is modest for the OLS and V7 residuals (0.03 to 0.04, two to three simulation standard deviations of the benchmark) and negligible once CCE-full is added. This is not proof that the year effects control common shocks adequately, and residual cross-country dependence may remain, which is consistent with the dependence of the headline's statistical evidence on the inference method (@sec-rob-inference).<!-- CHECKED-STATIC (2026-10-14 against robustness.md, residual dependence table: excess 0.032 and 0.042, benchmark SD 0.014) -->
 
 ## Pre-registered diagnostics {#sec-app-diag}
 
@@ -97,7 +97,7 @@ else:
     H.not_yet("section B diagnostics")
 ```
 
-The modified Wald statistic over-rejects in short panels, which is why a Monte Carlo $p$-value under independent normal errors with this panel's layout is shown beside the chi-square value. The classical Hausman statistic is not interpretable here, and the Mundlak form is the Hausman result.
+@tbl-app-diag lists the diagnostics, @tbl-app-vif the variance inflation factors and @tbl-app-bins the binned estimates. The modified Wald statistic over-rejects in short panels, which is why a Monte Carlo $p$-value under independent normal errors with this panel's layout is shown beside the chi-square value. The classical Hausman statistic is not interpretable here, and the Mundlak form is the Hausman result.
 
 ```{python}
 #| label: tbl-app-vif
@@ -134,7 +134,7 @@ else:
 lb, lw = B.get("binned_between", {}), B.get("binned_within", {})
 ```
 
-Linearity tests (adding the second and third bin interactions) give $p$ = `{python} H.pval(lb.get("linearity_p"), 2)` for the between and `{python} H.pval(lw.get("linearity_p"), 2)` for the within component. No bin has thin support (fewer than five exposed countries), but each bin rests on only eight to ten countries.
+The lead placebo of @sec-rob-diagnostics is tabulated in @tbl-app-lead. Linearity tests (adding the second and third bin interactions) give $p$ = `{python} H.pval(lb.get("linearity_p"), 2)` for the between and `{python} H.pval(lw.get("linearity_p"), 2)` for the within component. No bin has thin support (fewer than five exposed countries), but each bin rests on only eight to ten countries.
 
 ```{python}
 #| label: tbl-app-lead
@@ -167,4 +167,4 @@ else:
     H.not_yet("leave-one-out table")
 ```
 
-Every fit is listed; none is selected, and the table is not a ranking. Bootstrap $p$-values for these fits use only 999 replications and are correspondingly coarse.
+@tbl-app-loco lists every fit; none is selected, and the table is not a ranking. Bootstrap $p$-values for these fits use only 999 replications and are correspondingly coarse.

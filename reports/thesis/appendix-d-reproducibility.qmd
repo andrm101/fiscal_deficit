@@ -22,7 +22,7 @@ From the repository root (Windows paths; use `.venv/bin/python` elsewhere):
 2. Build the gold panel and run the gates with `.venv/Scripts/python.exe src/features/panel.py`; the confirmatory extract hash must equal the value in the table below.
 3. Run the test suite with `.venv/Scripts/python.exe -m pytest tests -q` (the environment test fails with a clear message in any other interpreter).
 4. Verify the freeze with `.venv/Scripts/python.exe scripts/freeze.py check`; the confirmatory runner `src/models/py/m1.py` refuses to run on the real panel before the tag exists.
-5. The analyses are `src/models/py/m1.py` (confirmatory), `secondary.py` and `robustness.py`; they write `reports/results/*.json` and `*.md`. Seeds are fixed (42) and the bootstrap seed scheme is logged in each result file.
+5. The analyses are `src/models/py/m1.py` (confirmatory), `secondary.py`, `robustness.py`, `exploratory.py`, `predictive_report.py` (predictive module; it runs `predictive.py`) and `src/evaluate/revisions.py`; they write `reports/results/*.json` and `*.md`. Seeds are fixed (42) and the bootstrap seed scheme is logged in each result file.
 6. Render this thesis with `.venv/Scripts/python.exe scripts/quarto.py render reports/thesis --to typst`; the PDF is written under `reports/thesis/_output/`. The results chapters read the committed result files and need neither the raw data nor the gold panel.
 
 ## Provenance of the committed results {#sec-app-prov}
@@ -34,6 +34,8 @@ rows = [
     ("Gold extract SHA-256 (headline)", M1.get("extract_hash")),
     ("Gold extract SHA-256 (secondary)", S.get("extract_hash")),
     ("Gold extract SHA-256 (robustness)", R.get("meta", {}).get("extract_hash")),
+    ("Gold extract SHA-256 (predictive)", H.PRED.get("meta", {}).get("extract_sha256")),
+    ("predictive.py SHA-256; specification SHA-256", f'{str(H.PRED.get("meta", {}).get("code_sha256"))[:16]}...; {str(H.PRED.get("meta", {}).get("spec_sha256"))[:16]}...'),
     ("Registry SHA-256 (headline)", M1.get("registry_hash")),
     ("Code hash, m1.py + power_variants.py (headline)", M1.get("code_hash")),
     ("robustness.py SHA-256", R.get("meta", {}).get("robustness_py_sha256")),
@@ -47,11 +49,11 @@ H.show_table(df, align="ll", widths=[44, 70])
 
 ```{python}
 #| include: false
-same_ext = len({M1.get("extract_hash"), S.get("extract_hash"), R.get("meta", {}).get("extract_hash")} - {None}) == 1
+same_ext = len({M1.get("extract_hash"), S.get("extract_hash"), R.get("meta", {}).get("extract_hash"), H.PRED.get("meta", {}).get("extract_sha256")} - {None}) == 1
 same_code = R.get("meta", {}).get("headline_code_hash") == M1.get("code_hash")
 ```
 
-The three result files carry `{python} "the same" if same_ext else "different"` extract hash, and the robustness file's recorded headline code hash is `{python} "equal to" if same_code else "different from"` the headline file's. The post-freeze log (`docs/post_freeze_log.md`) records that the headline run's registry hash, extract hash and the hashes of `m1.py` and `power_variants.py` equal the frozen manifest and that `git diff preregistration-v1 -- src config docs/preregistration.md` is empty.
+@tbl-provenance lists the recorded hashes. The result files carry `{python} "the same" if same_ext else "different"` extract hash, and the robustness file's recorded headline code hash is `{python} "equal to" if same_code else "different from"` the headline file's. The post-freeze log (`docs/post_freeze_log.md`) records that the headline run's registry hash, extract hash and the hashes of `m1.py` and `power_variants.py` equal the frozen manifest and that `git diff preregistration-v1 -- src config docs/preregistration.md` is empty.
 
 ```{python}
 #| include: false

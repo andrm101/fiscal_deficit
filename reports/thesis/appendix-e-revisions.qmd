@@ -17,7 +17,7 @@ mean_above = mabs_ci[0] is not None and mabs_ci[0] > sesoi
 med_above = medabs_ci[0] is not None and medabs_ci[0] > sesoi
 ```
 
-This appendix describes how far the first-outturn CAPB lies from the pinned Spring 2026 value used in the thesis (specification `docs/s4_spec.md`; all numbers are read from `reports/results/s4_revisions.json`). It is descriptive: no election effect is estimated, the confirmatory result is unchanged, and nothing here corrects it. A real-time replication is not feasible because only 2015--2021 can carry a real-time value (`{python} H.fact("n_rt")` of `{python} H.fact("n_obs")` country-years), so the archive supports a description of revisions only.
+This appendix describes how far the first-outturn CAPB lies from the pinned Spring 2026 value used in the thesis (specification `docs/s4_spec.md`; all numbers are read from `reports/results/s4_revisions.json`). It is descriptive: no election association is estimated, the confirmatory result is unchanged, and nothing here corrects it. A real-time replication is not feasible because only 2015--2021 can carry a real-time value (`{python} H.fact("n_rt")` of `{python} H.fact("n_obs")` country-years), so the archive supports a description of revisions only.
 
 ## Definitions and sample
 
@@ -46,6 +46,8 @@ H.figure("fig-revisions", "s4_revisions.png",
          "CAPB revisions between first outturn and the Spring 2026 value (216 country-years, 2014-2021): final against first outturn (panel A) and distribution of the revisions (panel B), with the 0.5 pp band. Raw and unadjusted; exposure years are marked in panel A. Source: AMECO vintages Spring 2015 to Spring 2026; ETAD; ParlGov; author's calculations.",
          width="95%")
 ```
+
+@tbl-revisions gives the statistics and @fig-revisions plots the final value against the first outturn.
 
 ## Reading against the SESOI
 
@@ -83,7 +85,7 @@ da = EX.get("difference_mean_abs_revision", {})
 dmc, dac = dm.get("cr1", {}), da.get("cr1", {})
 ```
 
-The difference in the mean revision between exposure years and other years is `{python} H.num(dmc.get("difference"), 2)` pp (`{python} H.ival(dmc.get("ci_lo"), dmc.get("ci_hi"), 2)`) and in the mean absolute revision `{python} H.num(dac.get("difference"), 2)` pp (`{python} H.ival(dac.get("ci_lo"), dac.get("ci_hi"), 2)`). This comparison is raw and descriptive. It could reflect a bias of first-outturn CAPB around elections, but it equally reflects which countries and years are exposed, it is not a replication of the election association, and it does not enter any family.
+@tbl-revisions-exposure shows the revisions by exposure status. The difference in the mean revision between exposure years and other years is `{python} H.num(dmc.get("difference"), 2)` pp (`{python} H.ival(dmc.get("ci_lo"), dmc.get("ci_hi"), 2)`) and in the mean absolute revision `{python} H.num(dac.get("difference"), 2)` pp (`{python} H.ival(dac.get("ci_lo"), dac.get("ci_hi"), 2)`). This comparison is raw and descriptive. It could reflect a bias of first-outturn CAPB around elections, but it equally reflects which countries and years are exposed, it is not a replication of the election association, and it does not enter any family.
 
 ## Limitations
 

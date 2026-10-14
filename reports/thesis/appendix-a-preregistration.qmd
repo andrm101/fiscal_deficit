@@ -5,7 +5,7 @@
 import _helpers as H
 ```
 
-The full document is `docs/preregistration.md`; it became binding with the git tag `{python} H.fact("tag")` (commit `{python} H.fact("tag_commit")`). This appendix summarises its content. Where a number is reported in the results chapters it is read from the committed result files; the entries below restate the registered design.
+The full document is `docs/preregistration.md`; it became binding with the git tag `{python} H.fact("tag")` (commit `{python} H.fact("tag_commit")`). This appendix summarises its content in @tbl-prereg. Where a number is reported in the results chapters it is read from the committed result files; the entries below restate the registered design.
 
 | Section | Registered content |
 |:-------------|:-----------------------------------------------------------------------|
@@ -19,7 +19,7 @@ The full document is `docs/preregistration.md`; it became binding with the git t
 | 8. Power | Minimum detectable effects of @tbl-power; an inconclusive result is the most likely outcome and a legitimate finding. |
 | 9. Diagnostics | Modified Wald, Wooldridge, Pesaran CD, CIPS, VIF, Hausman with Mundlak terms, binned linearity and common support, lead placebo; reported, never used to select a specification. |
 | 10. Secondary analyses | Ten outcomes with Benjamini--Hochberg; early-election term; robustness moderators, sample variants, controls model, alternative windows, crisis exclusions, Driscoll--Kraay and CCE. |
-| 11. Exploratory and descriptive | Fiscal-rule moderation (restricted, exploratory), triple interaction, nonlinear ageing, heterogeneity by debt and accession group, CAPB revisions as a measurement-error appendix, a predictive module. E1-E4 and E6 are reported in @sec-exploratory and the revisions in [Appendix E](#sec-app-revisions); E5, E7 and the predictive module are not part of this draft. <!-- TODO: predictive module (issue 31), E5 and E7 are not part of this draft --> |
+| 11. Exploratory and descriptive | Fiscal-rule moderation (restricted, exploratory), triple interaction, nonlinear ageing, heterogeneity by debt and accession group, CAPB revisions as a measurement-error appendix, a predictive module. E1-E4 and E6 are reported in @sec-exploratory, the predictive module in @sec-predictive and the revisions in [Appendix E](#sec-app-revisions); E5 and E7 are not part of this draft. <!-- TODO: E5 and E7 (and the democratic-age part of E4) are not part of this draft --> |
 | 12. Disclosure | Outcome used for coverage, unconditional descriptives and residual-based noise calibration only; no statistic relating the outcome to any election variable computed before the freeze. |
 | 13. Reproducibility | Python 3.14.3 with `requirements.lock`; the confirmatory runner refuses to run on the real panel before the tag exists; code and report hashes in `docs/freeze_manifest.json`. |
 | 14. Deviations | After the tag, every change is recorded in `docs/amendments.md`; none was needed. |

@@ -12,7 +12,7 @@ xS = H.tier1_exposure("W_S")
 sesoi = H.sesoi()
 ```
 
-All numbers in this chapter are read at render time from the committed result files (`reports/results/m1_confirmatory.json`, `secondary.json`, `robustness.json`); none is typed into the text. Estimates are associations in percentage points (pp) of potential GDP unless stated, and interaction coefficients are per +1 SD of the ageing component. Scheduled elections are predetermined, not exogenous.
+All numbers in this chapter are read at render time from the committed result files (`reports/results/m1_confirmatory.json`, `secondary.json`, `robustness.json`, `exploratory.json`, `predictive.json`); apart from the counts and facts marked as checked, none is typed into the text. Estimates are associations in percentage points (pp) of potential GDP unless stated, and interaction coefficients are per +1 SD of the ageing component. Scheduled elections are predetermined, not exogenous.
 
 ## Confirmatory results {#sec-confirmatory}
 
@@ -36,7 +36,7 @@ H.show_table(pd.DataFrame(rows), widths=[34, 10, 22, 14, 12, 22])
 
 For scale: the estimate is about `{python} H.num(abs(bS.get("estimate", 0)) / sd2 if sd2 else None, 2)` of the two-way standard deviation of the CAPB (`{python} H.num(sd2, 2)` pp). Because the maximum observed exposure is `{python} H.num(xS.get("max"), 2)` and a typical exposed country-year has an exposure of about `{python} H.num(xS.get("mean_pos"), 2)`, the implied association for a typical exposed country-year is about `{python} H.num((bS.get("estimate") or 0) * (xS.get("mean_pos") or 0), 2)` pp. The CR1 standard errors, shown for transparency only because they are not valid for this estimator, give $p$ = `{python} H.pval(bS.get("cr1_p"), 4)` for $\beta_S$; the bootstrap $p$-value is the larger of the two, as expected.
 
-For H2B, the association with the between-country ageing component is `{python} H.num(gB.get("estimate"), 3)` pp per standard deviation, with interval `{python} H.ival(gB.get("ci_lo"), gB.get("ci_hi"), 3)`. The interval does not exclude zero (Holm-adjusted $p$ = `{python} H.pval(gB.get("p_holm"), 4)`) and lies inside ±`{python} H.num(sesoi, 1)` pp, so the reading is "equivalent within the SESOI": the data do not support a between-country ageing heterogeneity of the size that the SESOI defines as relevant. The positive sign means that older countries show a weaker association, but no direction was pre-registered and this is a cross-country contrast. For H2W, the estimate is `{python} H.num(gW.get("estimate"), 3)` pp per standard deviation with interval `{python} H.ival(gW.get("ci_lo"), gW.get("ci_hi"), 3)`: the interval is about `{python} H.num((gW.get("ci_hi") or 0) - (gW.get("ci_lo") or 0), 1)` pp wide, and the estimate is uninformative, as the power analysis anticipated.
+For H2B, the association with the between-country ageing component is `{python} H.num(gB.get("estimate"), 3)` pp per standard deviation, with interval `{python} H.ival(gB.get("ci_lo"), gB.get("ci_hi"), 3)`. The interval does not exclude zero (Holm-adjusted $p$ = `{python} H.pval(gB.get("p_holm"), 4)`) and lies inside ±`{python} H.num(sesoi, 1)` pp, so the reading is "equivalent within the SESOI" in the headline specification: the data do not support a between-country ageing heterogeneity of the size that the SESOI defines as relevant. That reading is itself fragile: the interval for $\gamma_B$ lies inside the band in `{python} H.cnt(*H.rob_count("A", "gamma_B", "within_sesoi"))` of the inference sensitivities (@sec-rob-inference). The positive sign means that older countries show a weaker association, but no direction was pre-registered and this is a cross-country contrast. For H2W, the estimate is `{python} H.num(gW.get("estimate"), 3)` pp per standard deviation with interval `{python} H.ival(gW.get("ci_lo"), gW.get("ci_hi"), 3)`: the interval is about `{python} H.num((gW.get("ci_hi") or 0) - (gW.get("ci_lo") or 0), 1)` pp wide, and the estimate is uninformative, as the power analysis anticipated.
 
 ```{python}
 #| output: asis
@@ -45,7 +45,7 @@ H.figure("fig-headline", "f1_headline_estimates.png",
          width="95%")
 ```
 
-@fig-headline shows the three estimates against the equivalence band. The wide interval of $\gamma_W$ and the interval of $\beta_S$ that straddles the lower edge of the band are the visual summary of the chapter: the evidence is informative about the sign of $\beta_S$ and about the smallness of $\gamma_B$, and says little else.
+@fig-headline shows the three estimates against the equivalence band. The wide interval of $\gamma_W$ and the interval of $\beta_S$ that straddles the lower edge of the band are the visual summary of the chapter: the evidence is informative about the sign of $\beta_S$, whose statistical support depends on the inference method (@sec-robustness), and, in the headline specification only, about the smallness of $\gamma_B$; it says little else.
 
 ```{python}
 #| output: asis
@@ -54,7 +54,7 @@ H.figure("fig-profile", "f2_election_window_profile.png",
          width="75%")
 ```
 
-@fig-profile is a descriptive complement that carries no test: raw means by year relative to a scheduled election, without year effects or controls and with overlapping windows for elections that are close together. Its role is to show that the regression association is not the artefact of a single year or of a single country's trajectory, and not to provide independent evidence.
+@fig-profile is a descriptive complement that carries no test: raw means by year relative to a scheduled election, without year effects or controls and with overlapping windows for elections that are close together. Its role is to show the raw pattern around scheduled elections; it cannot rule out that the regression association reflects particular years or countries (the leave-one-country-out fits of @sec-rob-sample address that for countries), and it provides no independent evidence.
 
 ```{python}
 #| output: asis
@@ -125,7 +125,7 @@ H.figure("fig-inference-ladder", "f4_inference_ladder.png",
          width="85%")
 ```
 
-@tbl-rob-inference and @fig-inference-ladder show where the headline's exclusion of zero is lost. The `{python} len(olsA)` rows that use the OLS fixed-effects estimator, with CR1, wild-bootstrap, Driscoll--Kraay, two-way or CCE inference, have intervals excluding zero in `{python} H.cnt(kO, len(olsA))` cases; the rows that keep V7 and add CCE augmentation have intervals excluding zero in `{python} H.cnt(k7, len(v7A))` cases (in one of them the wild-bootstrap $p$-value is above 0.05 although the interval just excludes zero<!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): static remark, re-check against section A -->). The OLS point estimates are of the same sign and about the same size as the headline, but their intervals are wider. The reading therefore turns on the efficiency gain from the pre-registered estimator (weights and AR(1) correction), and on how cross-country dependence is handled in the standard errors, and less on the point estimate. We neither prefer nor dismiss any of these rows; the pre-registered estimator was chosen by a mechanical power rule before any effect was estimated, but its wild-bootstrap size under cross-country dependence is the known weak point (@sec-inference).
+@tbl-rob-inference and @fig-inference-ladder show where the headline's exclusion of zero is lost. The `{python} len(olsA)` rows that use the OLS fixed-effects estimator, with CR1, wild-bootstrap, Driscoll--Kraay, two-way or CCE inference, have intervals excluding zero in `{python} H.cnt(kO, len(olsA))` cases; the rows that keep V7 and add CCE augmentation have intervals excluding zero in `{python} H.cnt(k7, len(v7A))` cases (in one of them the wild-bootstrap $p$-value is above 0.05 although the interval just excludes zero<!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): static remark, re-check against section A -->). The OLS point estimates are of the same sign and about the same size as the headline, but their intervals are wider. The reading therefore turns on the efficiency gain from the pre-registered estimator (weights and AR(1) correction), and on how cross-country dependence is handled in the standard errors, and less on the point estimate. We neither prefer nor dismiss any of these rows; the pre-registered estimator was chosen by a mechanical power rule before any association was estimated, but its wild-bootstrap size under cross-country dependence is the known weak point (@sec-inference).
 
 ### Sample and definition variants {#sec-rob-sample}
 
@@ -152,9 +152,9 @@ for r in rowsA + rowsC + rowsD + rowsL:
         not_excl.append(r["label"] if not r["id"].startswith("C4-loco") else "leave out " + r["id"].split("-")[-1])
 cond = bool(kC is not None and nC and kC / nC >= 0.5 and kL is not None and nL and kL / nL >= 0.5 and nA and kA is not None and kA / nA < 0.5)
 verdict = (
-    "Taken together, the sign of the association is robust to every specification run. The exclusion of zero holds in most sample and definition variants "
+    "Taken together, the sign of the association is kept in every specification run. The exclusion of zero holds in most sample and definition variants "
     "and in nearly all leave-one-country-out fits, but not across estimator and inference choices: it is lost under OLS-based inference that handles "
-    "cross-country dependence through the standard errors, so the headline is fragile to the inference method rather than to the sample."
+    "cross-country dependence through the standard errors, so the statistical evidence depends on how cross-country dependence is handled more than on the sample."
     if cond else
     "The pattern of the robustness counts differs from the one assumed when this chapter was drafted; read the counts above rather than this sentence."
 )
@@ -162,11 +162,11 @@ verdict = (
 
 @tbl-rob-sample reports the variants run with the pre-registered estimator. The 2022 extension (`{python} H.num(ext.get("n_obs"), 0)` country-years; five countries without a complete 2022 exposure) and the controls model (703 rows) leave the association and its interval close to the headline. Dropping the crisis years 2008--2012 moves the estimate further from zero, whereas dropping 2020--2021 leaves an interval that narrowly includes zero. The 6-month window gives a larger estimate and the 18-month window a smaller one, with the interval including zero; the calendar-year dummy gives a smaller coefficient with an interval excluding zero (the units differ, because the dummy is a whole-year exposure for any election year). Replacing the moderator by `OLDDEP3` or by median age changes $\beta_S$ little.
 
-The leave-one-country-out fits (B = 999 each) keep the sign in `{python} H.cnt(lb.get("n_same_sign"), loco.get("n_fits"))` fits, and the interval excludes zero in `{python} H.cnt(lb.get("n_interval_excludes_zero"), loco.get("n_fits"))`. The estimate ranges from `{python} H.num(lb.get("min"), 3)` (without `{python} lb.get("argmin", H.NA)`) to `{python} H.num(lb.get("max"), 3)` (without `{python} lb.get("argmax", H.NA)`); the largest shift occurs when `{python} lb.get("most_influential", H.NA)` is removed (`{python} H.num(lb.get("most_influential_shift"), 3)` pp). For $\gamma_B$ the range is `{python} H.num(lg.get("min"), 3)` to `{python} H.num(lg.get("max"), 3)`. No single country accounts for the headline.
+The leave-one-country-out fits (B = 999 each) keep the sign in `{python} H.cnt(lb.get("n_same_sign"), loco.get("n_fits"))` fits, and the interval excludes zero in `{python} H.cnt(lb.get("n_interval_excludes_zero"), loco.get("n_fits"))`. The estimate ranges from `{python} H.num(lb.get("min"), 3)` (without `{python} lb.get("argmin", H.NA)`) to `{python} H.num(lb.get("max"), 3)` (without `{python} lb.get("argmax", H.NA)`); the largest shift occurs when `{python} lb.get("most_influential", H.NA)` is removed (`{python} H.num(lb.get("most_influential_shift"), 3)` pp). For $\gamma_B$ the range is `{python} H.num(lg.get("min"), 3)` to `{python} H.num(lg.get("max"), 3)`. No single country accounts for the headline, although the one leave-one-out fit whose interval includes zero (without `{python} ", ".join(r["id"].split("-")[-1] for r in rowsL if not r["targets"]["beta_S"].get("excludes_zero")) or "none"`) shows that the interval is not far from zero.
 
 The specifications whose 95% interval for $\beta_S$ does *not* exclude zero are: `{python} "; ".join(not_excl) if not_excl else "none"`. <!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): this list is generated at render time; re-read it after any re-run of the robustness suite -->
 
-`{python} verdict` We therefore regard the confirmatory finding as fragile with respect to inference, and as stable in sign and in rough magnitude. <!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): the preceding sentence is conditional on the render-time counts; re-check the wording after any re-run -->
+`{python} verdict` We therefore read the confirmatory result as `{python} H.evidence_core()`. <!-- CHECKED-STATIC (2026-10-13 against robustness.json at commit e362ba9; re-check only if the suite is re-run): the preceding sentence is conditional on the render-time counts; re-check the wording after any re-run -->
 
 ```{python}
 #| output: asis
@@ -212,7 +212,7 @@ mult = H.SEC.get("multiplicity", {})
 bh_ids = [o["id"] for o in fam if o["targets"]["beta_S"].get("bh_reject")]
 ```
 
-The pre-registration pre-specifies the same model for ten further outcomes (`docs/secondary_spec.md`): balances (headline primary balance, net lending, the change in the CAPB), primary expenditure, revenue, social benefits in cash and in kind, and three COFOG functions (social protection, old age, health). The outcomes other than the change in the CAPB are *not* cyclically adjusted, so a match or a mismatch with the CAPB result mixes policy and cyclical effects. Multiplicity is controlled by Benjamini--Hochberg over the ten $\beta_S$ tests; the headline $\beta_S$, $\gamma_B$ and $\gamma_W$ of the CAPB model are reproduced exactly (self-check passed).
+The pre-registration pre-specifies the same model for ten further outcomes (`docs/secondary_spec.md`): balances (headline primary balance, net lending, the change in the CAPB), primary expenditure, revenue, social benefits in cash and in kind, and three COFOG functions (social protection, old age, health). The outcomes other than the change in the CAPB are *not* cyclically adjusted, so a match or a mismatch with the CAPB result mixes policy and cyclical components. Multiplicity is controlled by Benjamini--Hochberg over the ten $\beta_S$ tests; the headline $\beta_S$, $\gamma_B$ and $\gamma_W$ of the CAPB model are reproduced exactly (self-check passed).
 
 ```{python}
 #| label: tbl-secondary
@@ -239,7 +239,7 @@ H.figure("fig-secondary", "secondary_forest.png",
          width="90%")
 ```
 
-@tbl-secondary and @fig-secondary show that the Benjamini--Hochberg adjustment rejects `{python} H.cnt(mult.get("n_bh_reject"), mult.get("n_family"))` outcomes (`{python} ", ".join(bh_ids) or "none"`, the change in the CAPB; the Benjamini--Yekutieli adjustment rejects `{python} H.cnt(mult.get("n_by_reject"), mult.get("n_family"))`). The unadjusted intervals exclude zero for `{python} n_excl` of ten outcomes. `{python} n_weak` of the ten point estimates are in the direction of a weaker budget (a lower balance, lower revenue or higher spending). The balance outcomes have the same sign as the CAPB result, with smaller point estimates and intervals that include zero for the level of the headline primary balance and of net lending: `{python} H.num(b("S1a"), 2)` and `{python} H.num(b("S1b"), 2)` pp of GDP, against `{python} H.num(bS.get("estimate"), 2)` for the CAPB. The change in the CAPB has an association of `{python} H.num(b("S1c"), 2)` pp of potential GDP, a different quantity that is not directly comparable in size. On the composition side, $\beta_S$ is `{python} H.num(b("S1d"), 2, True)` pp of GDP for primary expenditure and `{python} H.num(b("S1e"), 2)` pp for revenue; the difference of the two, `{python} H.num((b("S1e") or 0) - (b("S1d") or 0), 2)` pp, is arithmetic on two separate fits and not a decomposition of the balance. No spending or revenue component clearly drives the CAPB association: the intervals for primary expenditure and revenue include zero, and the one component whose interval excludes zero before adjustment, social protection spending (COFOG GF10), has the opposite sign to a pre-election expansion.
+@tbl-secondary and @fig-secondary show that the Benjamini--Hochberg adjustment rejects `{python} H.cnt(mult.get("n_bh_reject"), mult.get("n_family"))` outcomes (`{python} ", ".join(bh_ids) or "none"`, the change in the CAPB; the Benjamini--Yekutieli adjustment rejects `{python} H.cnt(mult.get("n_by_reject"), mult.get("n_family"))`). The change in the CAPB is arithmetically related to its level, so this rejection is not independent corroboration of the headline. The unadjusted intervals exclude zero for `{python} n_excl` of ten outcomes. `{python} n_weak` of the ten point estimates are in the direction of a weaker budget (a lower balance, lower revenue or higher spending). The balance outcomes have the same sign as the CAPB result, with smaller point estimates and intervals that include zero for the level of the headline primary balance and of net lending: `{python} H.num(b("S1a"), 2)` and `{python} H.num(b("S1b"), 2)` pp of GDP, against `{python} H.num(bS.get("estimate"), 2)` for the CAPB. The change in the CAPB has an association of `{python} H.num(b("S1c"), 2)` pp of potential GDP, a different quantity that is not directly comparable in size. On the composition side, $\beta_S$ is `{python} H.num(b("S1d"), 2, True)` pp of GDP for primary expenditure and `{python} H.num(b("S1e"), 2)` pp for revenue; the difference of the two, `{python} H.num((b("S1e") or 0) - (b("S1d") or 0), 2)` pp, is arithmetic on two separate fits and not a decomposition of the balance. No spending or revenue component clearly accounts for the CAPB association: the intervals for primary expenditure and revenue include zero, and the one component whose interval excludes zero before adjustment, social protection spending (COFOG GF10), has the opposite sign to a pre-election expansion.
 
 A caution applies to the persistence of the spending-share series: `{python} ", ".join(hi_rho) or "no outcome"` have a Nickell-corrected persistence of at least 0.85, where the AR(1) correction and the bootstrap were not validated (the pre-registered power study used a persistence of about 0.7). Those intervals deserve less weight. The $\gamma_B$ and $\gamma_W$ estimates for the secondary outcomes are descriptive and are in `reports/results/secondary.md`.
 
@@ -324,3 +324,114 @@ The group difference between accession members and the EU-14 (E4c) is the only c
 **E6: country typology.** A $k$-means clustering of the 27 countries on five standardised country-level features (mean lagged debt, interest, CAPB, interquartile range of the CAPB, and old-age dependency) is descriptive only: it uses the outcome, carries no inference on membership, and its labels are not used in any model. The admissible partition with the highest silhouette has $k$ = `{python} e6.get("chosen_k")`, with a mean silhouette of `{python} H.num(e6.get("silhouette"), 2)`, which is weak structure on the Kaufman--Rousseeuw scale. It separates `{python} ", ".join(mem.get("2", []))` (mean debt `{python} H.num(cm.get("2", {}).get("mean_debt"), 0)`% of GDP, against `{python} H.num(cm.get("1", {}).get("mean_debt"), 0)`% for the other `{python} len(mem.get("1", []))`) from the rest. The partition is not stable under the clustering algorithm's starting values: only `{python} H.pct(stab.get("share_equal_to_reference"))` of `{python} stab.get("n_seeds")` single-start runs reproduce the reference partition (median adjusted Rand index `{python} H.num(stab.get("ari_median"), 2)`), although a Ward-linkage cut gives the identical partition (adjusted Rand index `{python} H.num(stab.get("ari_ward_vs_reference"), 2)`). We read it as a description of three high-debt, high-interest countries against the rest, not as a typology.
 
 **Not run.** `{python} "; ".join(f"{k}: {v}" for k, v in H.EXP.get("not_run", {}).items())`. The thesis therefore says nothing about E5, about the researcher's optional extension (E7, not chosen) or about heterogeneity by democratic age.
+
+## Predictive evaluation {#sec-predictive}
+
+```{python}
+#| include: false
+pr = H.pred_res()
+pyears = pr.get("P", {}).get("years", [])
+hyears = pr.get("H", {}).get("years", [])
+p0 = H.pacc("P", "P0")
+fam6 = H.pfam()
+sched = H.PRED.get("meta", {}).get("schedule_agreement", {})
+sd50, sd80 = H.pred_power_sd()
+gain = H.pred_oracle_gain()
+loco = pr.get("loco", {}).get("accuracy", {})
+loco_main = [v.get("ratio_to_main") for v in loco.values() if v.get("ratio_to_main") is not None] or [None]
+cl4 = [H.pacc("P", m) for m in ("P1a-B1", "P1a-B2", "P1b-B1", "P1b-B2")]
+r4 = [c.get("ratio") for c in cl4 if c.get("ratio") is not None] or [None]
+all_contain_one = bool(cl4) and all(c.get("ratio_ci") and c["ratio_ci"][0] <= 1 <= c["ratio_ci"][1] for c in cl4)
+hr4 = [H.pacc("H", m).get("ratio") for m in ("P1a-B1", "P1a-B2", "P1b-B1", "P1b-B2") if H.pacc("H", m).get("ratio") is not None] or [None]
+holm_all_one = bool(fam6) and all((r.get("p_holm") or 0) >= 0.9999 for r in fam6.values())
+rmin_raw = min((r["p"] for r in fam6.values()), default=None)
+pol_a, pol_b = H.pimp("P1a", "group:political"), H.pimp("P1b", "group:political")
+fm_a, fm_b = H.pimp("P1a", "group:fiscal_macro"), H.pimp("P1b", "group:fiscal_macro")
+dem_a, dem_b = H.pimp("P1a", "group:demographic"), H.pimp("P1b", "group:demographic")
+inc_a, inc_b = fam6.get("P1a: B2 vs B1", {}), fam6.get("P1b: B2 vs B1", {})
+```
+
+This section is a predictive and non-causal exercise, separate from the confirmatory question (@sec-strategy-predictive). Its specification (`docs/predictive_spec.md`) was fixed before any forecast was computed, and all numbers are read from `reports/results/predictive.json`.
+
+*Target and design.* The target is the next-year change in the CAPB, $y_{i,T} = \text{CAPB}_{i,T+1} - \text{CAPB}_{i,T}$, in pp of potential GDP, for the `{python} len(pr.get("codes", []))` member states. Forecasts are one-step-ahead from an expanding window: at origin $T$ (the end of year $T$) every model is refitted from scratch on all complete rows with forecast year up to $T$, hyperparameters are chosen by time-ordered validation inside the training window, and the next-year change is forecast for each country. The primary block P has origins `{python} (pyears[0] - 1) if pyears else H.NA`--`{python} (pyears[-1] - 1) if pyears else H.NA`, forecast years `{python} pyears[0] if pyears else H.NA`--`{python} pyears[-1] if pyears else H.NA` and `{python} p0.get("n", H.NA)` forecasts; block H (forecast years `{python} hyears[0] if hyears else H.NA`--`{python} hyears[-1] if hyears else H.NA`, `{python} H.pacc("H", "P0").get("n", H.NA)` forecasts) is reported descriptively and never pooled with P. The benchmark is persistence (a forecast of no change, P0). The learned models are ridge or elastic-net regression (P1a) and gradient-boosted trees (scikit-learn histogram boosting, P1b), each on two feature sets: B1 holds the lagged CAPB level and last change, debt, the output gap, the interest--growth differential and euro membership; B2 adds four election-calendar columns and three demographic measures. The incremental value of the political and demographic block is the comparison of B2 with B1 within a model class.
+
+*Information set.* Every feature is dated on or before the origin; country means and standardisation use the training window only, and no function of the calendar year enters. The election calendar is built from the statutory schedule only: known pre- and post-election exposure of the forecast year and of the origin year from elections already held plus the next scheduled date (date of the last election plus its term length). The realised class or date of any later election is never used, so early elections are unforecastable by construction. This rule agrees with ETAD's recorded scheduled date within `{python} sched.get("tolerance_days", H.NA)` days for `{python} H.pct(sched.get("share_within_tolerance"), 1)` of `{python} sched.get("n_pairs", H.NA)` comparable elections, so it measures the schedule with error but without look-ahead. Accuracy is the root mean squared error (RMSE) and mean absolute error (MAE) in pp of potential GDP, with 95% country-cluster bootstrap intervals (27 clusters, B = 9,999). Models are compared with the Diebold--Mariano test with the Harvey--Leybourne--Newbold correction on the `{python} len(pyears)` yearly cross-country mean squared-loss differentials (Student $t$, `{python} len(pyears) - 1` degrees of freedom); the six pre-listed comparisons (four models against persistence, and B2 against B1 for each class) form a family adjusted by Holm's procedure.
+
+```{python}
+#| label: tbl-pred-accuracy
+#| tbl-cap: "Out-of-sample accuracy, block P (351 forecasts; pp of potential GDP). Ratio: RMSE relative to persistence P0, with 95% country-cluster bootstrap interval. P0b repeats the last change. Source: reports/results/predictive.json."
+names = [("P0", "Persistence (P0)"), ("P0b", "Last change repeated (P0b)"), ("P1a-B1", "Ridge / elastic net, B1"), ("P1a-B2", "Ridge / elastic net, B2"),
+         ("P1b-B1", "Gradient-boosted trees, B1"), ("P1b-B2", "Gradient-boosted trees, B2")]
+rows = []
+for k, lab in names:
+    a = H.pacc("P", k)
+    if not a:
+        continue
+    rows.append({"Model": lab, "RMSE [95% interval]": f'{H.num(a.get("rmse"), 2)} {H.ival(*(a.get("rmse_ci") or [None, None]), 2)}',
+                 "MAE": H.num(a.get("mae"), 2),
+                 "RMSE ratio to P0 [95% interval]": "1 (benchmark)" if k == "P0" else f'{H.num(a.get("ratio"), 3)} {H.ival(*(a.get("ratio_ci") or [None, None]), 3)}'})
+if rows:
+    H.show_table(pd.DataFrame(rows), align="lrrr", widths=[34, 26, 8, 30])
+else:
+    H.not_yet("the predictive accuracy table")
+```
+
+```{python}
+#| label: tbl-pred-dm
+#| tbl-cap: "Diebold-Mariano comparisons (Harvey-Leybourne-Newbold correction, 13 yearly loss differentials, two-sided; Holm over the six). Mean loss difference in pp squared, positive when the first-named model is better. Relative MSE reduction with 95% country-cluster bootstrap interval. Source: reports/results/predictive.json."
+lab6 = {"P1a-B1 vs P0": "Ridge / elastic net B1 against persistence", "P1b-B1 vs P0": "Trees B1 against persistence",
+        "P1a-B2 vs P0": "Ridge / elastic net B2 against persistence", "P1b-B2 vs P0": "Trees B2 against persistence",
+        "P1a: B2 vs B1": "Ridge / elastic net: B2 against B1", "P1b: B2 vs B1": "Trees: B2 against B1"}
+rows = []
+for k, lab in lab6.items():
+    r = fam6.get(k)
+    if not r:
+        continue
+    lo, hi = r.get("rel_reduction_ci") or [None, None]
+    rows.append({"Comparison": lab, "Mean loss difference": H.num(r.get("mean"), 3), "HLN statistic": H.num(r.get("hln"), 2),
+                 "Raw p": H.pval(r.get("p"), 3), "Holm p": H.pval(r.get("p_holm"), 3),
+                 "Relative MSE reduction, % [95% interval]": f'{H.num(100 * r["rel_reduction"], 1)} {H.ival(None if lo is None else 100 * lo, None if hi is None else 100 * hi, 1)}'})
+if rows:
+    H.show_table(pd.DataFrame(rows), align="lrrrrr", widths=[40, 12, 10, 8, 8, 28])
+else:
+    H.not_yet("the Diebold-Mariano comparisons")
+```
+
+@tbl-pred-accuracy gives the accuracy of the main models. Persistence has an RMSE of `{python} H.num(p0.get("rmse"), 2)` pp; the four learned models have RMSE ratios to persistence of `{python} H.num(min(r4), 3)` to `{python} H.num(max(r4), 3)`, and `{python} "every one of their intervals contains one" if all_contain_one else "not every interval contains one (see the table)"`. Repeating the last change (P0b) is clearly worse than persistence (ratio `{python} H.num(H.pacc("P", "P0b").get("ratio"), 2)`). @tbl-pred-dm gives the six Holm-adjusted comparisons: the smallest raw $p$-value is `{python} H.pval(rmin_raw, 2)` and `{python} "all six Holm-adjusted p-values equal 1" if holm_all_one else "the Holm-adjusted p-values are shown in the table"`. No model is distinguishable from persistence. Errors are dominated by the crisis years and by country-specific episodes, as @fig-pred-errors shows, and the learned models follow persistence closely in most years.
+
+```{python}
+#| output: asis
+H.figure("fig-pred-errors", "predictive_errors.png",
+         "Out-of-sample RMSE by forecast year (panel A) and RMSE ratio to persistence with 95% country-cluster intervals for block P and, as indicative only, block H (panel B). Predictive and non-causal. Source: European Commission AMECO Spring 2026, Eurostat, ETAD v1.0.0 and ParlGov 2024; author's calculations.",
+         width="95%")
+```
+
+*Incremental value of the political and demographic block.* Comparing B2 with B1 within a model class, the relative reduction of the mean squared error is `{python} H.num(100 * inc_a.get("rel_reduction", float("nan")), 1)`% for ridge / elastic net (raw $p$ = `{python} H.pval(inc_a.get("p"), 2)`) and `{python} H.num(100 * inc_b.get("rel_reduction", float("nan")), 1)`% for trees (raw $p$ = `{python} H.pval(inc_b.get("p"), 2)`), where a negative value means that the larger set is slightly worse; both Holm-adjusted $p$-values are `{python} H.pval(inc_a.get("p_holm"), 2)`. There is therefore no evidence that the political and demographic block improves out-of-sample prediction of the next-year change in the CAPB, and for trees the point estimate is slightly worse with it. The statement has limited reach. With `{python} len(pyears)` forecast years the test can detect only a mean loss differential of about `{python} sd50` standard deviations of the yearly differential with 50% power and `{python} sd80` with 80% power, so a small gain would not be detected; and the null is about prediction from a statutory calendar and slow-moving demography, not about whether elections matter for fiscal policy, so it neither supports nor contradicts the association of @sec-confirmatory.
+
+```{python}
+#| label: tbl-pred-importance
+#| tbl-cap: "Out-of-sample permutation importance by feature group, origins 2008-2020: increase in squared error (%) when the group is permuted jointly across countries within a year, pooled, with 95% country-cluster bootstrap interval. Predictive description only. Source: reports/results/predictive.json."
+def imp(t):
+    ci = t.get("ci") or [None, None]
+    return f'{H.num(t.get("pooled_pct"), 2)} {H.ival(ci[0], ci[1], 2)}' if t else H.NA
+rows = [{"Feature group": "Lagged fiscal and macro", "Ridge / elastic net, B2": imp(fm_a), "Trees, B2": imp(fm_b)},
+        {"Feature group": "Political (election calendar)", "Ridge / elastic net, B2": imp(pol_a), "Trees, B2": imp(pol_b)},
+        {"Feature group": "Demographic", "Ridge / elastic net, B2": imp(dem_a), "Trees, B2": imp(dem_b)}]
+if fm_a:
+    H.show_table(pd.DataFrame(rows), align="lrr", widths=[34, 28, 28])
+else:
+    H.not_yet("the permutation importance")
+```
+
+*Importance.* SHAP values were not computed (the package is not installed); out-of-sample permutation importance and accumulated local effects (ALE) are used instead. @tbl-pred-importance shows that the usable signal sits in the lagged fiscal and macro group: permuting it raises the squared error by `{python} H.num(fm_a.get("pooled_pct"), 1)`% (ridge / elastic net) and `{python} H.num(fm_b.get("pooled_pct"), 1)`% (trees), with intervals above zero, whereas permuting the political group changes it by `{python} H.num(pol_a.get("pooled_pct"), 2)`% and `{python} H.num(pol_b.get("pooled_pct"), 2)`% with intervals containing zero. The ALE curves in @fig-pred-importance show mean reversion in the CAPB level and a mildly positive slope in debt, and a flat curve for the known pre-election exposure. Importance describes which inputs a forecast relies on, not what produces the outcome.
+
+```{python}
+#| output: asis
+H.figure("fig-pred-importance", "predictive_importance.png",
+         "Grouped permutation importance (panel A) and first-order accumulated local effects of selected features for the model refitted at origin 2020 (panel B). Predictive description, not causal. Source: European Commission AMECO Spring 2026, Eurostat, ETAD v1.0.0 and ParlGov 2024; author's calculations.",
+         width="95%")
+```
+
+*Block H, oracle diagnostics and country transfer.* In block H (forecast years `{python} hyears[0] if hyears else H.NA`--`{python} hyears[-1] if hyears else H.NA`) the four learned models have RMSE ratios to persistence of `{python} H.num(min(hr4), 2)` to `{python} H.num(max(hr4), 2)`. This is descriptive only: two forecast years support no inference, the intervals in @fig-pred-errors are indicative, and block H is not pristine, because the 2022 CAPB entered the robustness extension of @sec-robustness (2023 did not). It should not be read as a confirmation. Oracle diagnostics replace the statutory calendar with ETAD's ex-post scheduled dates or add the realised exposure of the forecast year; they leak the future by construction and are not forecasts. The best of them lowers RMSE by `{python} H.num(gain, 1)`% relative to the strict set, never more than 1%, so the strict calendar rule does not hide a gain that leaked information would reveal; the political columns carry little signal either way. In leave-one-country-out refits, which remove each country from fitting, standardisation and validation, the RMSE is `{python} H.num(min(loco_main), 3)` to `{python} H.num(max(loco_main), 3)` times that of the main run, so the models transfer to an unseen country about as well as they predict within the sample, which is close to persistence.
+
+*What is not claimed.* The exercise is not real-time forecasting: the target and all features are the Spring 2026 vintage of the CAPB and the output gap, which are model estimates revised with later data, so accuracy levels are not operational forecast skill (the revisions are described in [Appendix E](#sec-app-revisions)). The election columns measure the statutory schedule with error and cannot see early elections. The results are associations between predictors and an outcome, never causal; a predictor that improves accuracy would still be only a predictor, and the null for the political block is not evidence that elections do not matter. The one deviation of the predictive specification that matters for reading (its quoted 71% schedule agreement divided by all calendar rows and was corrected to the value above) is recorded in `reports/results/predictive.md`; it changes no model or test.

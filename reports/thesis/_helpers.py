@@ -53,6 +53,7 @@ SEC = load_json("secondary.json")
 ROB = load_json("robustness.json")
 EXP = load_json("exploratory.json")
 S4 = load_json("s4_revisions.json")
+PRED = load_json("predictive.json")
 
 
 # ----------------------------------------------------------------------------- formatting
@@ -208,7 +209,8 @@ _FACTS = {
     "irl": (f"{MINUS}27.6", "reports/tier1_descriptives.md", r"CAPB -27\.6 pp"),
     "g1_sd": ("1.25", "docs/decision_log.md", r"1\.25 pp"),
     "e1_changes": ("30", "docs/exploratory_spec.md", r"30 consecutive-year changes"),
-    "wcb_size": ("11\u201312", "docs/preregistration.md", r"11.12%"),
+    "pred_spec_commit": ("e082071", "docs/post_freeze_log.md", r"e082071"),
+    "wcb_size":("11\u201312", "docs/preregistration.md", r"11.12%"),
 }
 FACT_FAILS: list[str] = []
 for _k, (_v, _src, _rx) in _FACTS.items():
@@ -376,3 +378,67 @@ def s4_ci(key: str, d: int = 2, as_pct: bool = False) -> str:
     if as_pct:
         return f"{pct(est)} [{pct(ci[0])}, {pct(ci[1])}]"
     return f"{num(est, d)} {ival(ci[0], ci[1], d)}"
+
+
+# ----------------------------------------------------------------------------- shared evidence statement
+def evidence_core() -> str:
+    """The one phrase that every summary chapter uses for the strength of the headline evidence (read from the JSON)."""
+    b = head("beta_S")
+    kA, nA = rob_count("A", "beta_S", "excludes_zero")
+    ks, ns = rob_count("all", "beta_S", "keeps_sign")
+    if _bad(b.get("estimate")) or kA is None or ks is None:
+        return NA
+    return (
+        f"a negative association of about {num(abs(b['estimate']), 1)} pp of potential GDP that is stable in sign "
+        f"(kept in {ks} of {ns} robustness specifications) but whose statistical evidence depends on how "
+        f"cross-country dependence is handled (the 95% interval excludes zero in only {kA} of {nA} inference variants)"
+    )
+
+
+def evidence_limits() -> str:
+    """Companion sentences: power, winner's curse and the ageing terms, in the same words in every summary chapter."""
+    mde = prereg_power().get("beta_S", {}).get("rho")
+    kg, ng = rob_count("A", "gamma_B", "within_sesoi")
+    return (
+        f"The estimate lies below the design's minimum detectable effect ({num(mde, 2)} pp), so winner's-curse caution applies and its "
+        f"magnitude is probably overstated. The between-country ageing term is equivalent to zero within {PM}{num(sesoi(), 1)} pp in the headline "
+        f"but inside that band in {cnt(kg, ng)} inference variants; the within-country ageing term is not powered and uninformative."
+    )
+
+
+# ----------------------------------------------------------------------------- predictive module accessors
+def pred_res() -> dict[str, Any]:
+    return PRED.get("results", {})
+
+
+def pacc(block: str, model: str) -> dict[str, Any]:
+    """Accuracy record of a model in block 'P' or 'H' of the predictive module."""
+    return pred_res().get(block, {}).get("accuracy", {}).get(model, {})
+
+
+def pfam() -> dict[str, dict[str, Any]]:
+    """The six Holm-adjusted Diebold-Mariano comparisons, keyed by their label."""
+    return {r["comparison"]: r for r in pred_res().get("family", []) if r.get("status") == "ok"}
+
+
+def pimp(model: str, item: str) -> dict[str, Any]:
+    """Permutation-importance record ('group:political', ...) of a model class ('P1a' or 'P1b')."""
+    return pred_res().get("importance", {}).get(model, {}).get("items", {}).get(item, {})
+
+
+def pred_power_sd() -> tuple[str, str]:
+    """(50%, 80%) power detectable differential in SD units, parsed from the stored incremental-value reading."""
+    m = re.search(r"about ([\d.]+) SD .*?\(50 per cent power\) to ([\d.]+) SD", pred_res().get("incremental_reading", ""))
+    return (m.group(1), m.group(2)) if m else (NA, NA)
+
+
+def pred_oracle_gain() -> float | None:
+    """Largest percentage reduction of RMSE achieved by any look-ahead (oracle) set relative to its strict set (negative = none)."""
+    gains = []
+    for cls in ("P1a", "P1b"):
+        base = pacc("P", f"{cls}-B2").get("rmse")
+        for suf in ("o", "f"):
+            r = pacc("P", f"{cls}-B2{suf}").get("rmse")
+            if base and r:
+                gains.append(100 * (1 - r / base))
+    return max(gains) if gains else None
